@@ -1,0 +1,167 @@
+{
+    "id": "VVAS-Ataxia",
+    "name": "Visual Vertigo Analogue Scale for Ataxia",
+    "shortName": "VVAS",
+    "version": "1.0",
+    "description": "A self-report visual analogue scale designed to assess the severity of vertigo, dizziness, and balance-related symptoms in patients with ataxia and vestibular disorders. Patients rate their symptoms on a continuous scale for various triggering situations.",
+    "category": "ataxia",
+    "recallPeriod": "Past month",
+    "instructions": "For each situation listed below, please mark on the line how severe your symptoms of dizziness, unsteadiness, or vertigo are. The left end means no symptoms at all, and the right end means the worst symptoms you can imagine.",
+    "estimatedTime": "5-10 minutes",
+    "scoringType": "vas-mean",
+    "maxScore": 10,
+    "minScore": 0,
+    "totalItems": 9,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "VVAS_1",
+            "number": 1,
+            "question": "Walking through a supermarket or shopping center",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_2",
+            "number": 2,
+            "question": "Being a passenger in a car",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_3",
+            "number": 3,
+            "question": "Watching action scenes on television or at the movies",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_4",
+            "number": 4,
+            "question": "Seeing busy visual patterns (stripes, checks, scrolling screens)",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_5",
+            "number": 5,
+            "question": "Walking on uneven or sloped surfaces",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_6",
+            "number": 6,
+            "question": "Walking in the dark or poorly lit areas",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_7",
+            "number": 7,
+            "question": "Standing or walking after quickly turning your head",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_8",
+            "number": 8,
+            "question": "General overall level of dizziness/unsteadiness today",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "No symptoms",
+            "rightAnchor": "Worst symptoms imaginable",
+            "range": { "min": 0, "max": 10 }
+        },
+        {
+            "id": "VVAS_9",
+            "number": 9,
+            "question": "How much do these symptoms affect your daily activities?",
+            "type": "vas",
+            "required": true,
+            "leftAnchor": "Not at all",
+            "rightAnchor": "Completely prevents activities",
+            "range": { "min": 0, "max": 10 }
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "none",
+            "label": "No Symptoms",
+            "range": { "min": 0, "max": 0.9 },
+            "color": "#22c55e",
+            "description": "No vertigo or dizziness symptoms."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Symptoms",
+            "range": { "min": 1, "max": 3.9 },
+            "color": "#84cc16",
+            "description": "Mild dizziness/vertigo with minimal impact on function."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Symptoms",
+            "range": { "min": 4, "max": 6.9 },
+            "color": "#eab308",
+            "description": "Moderate dizziness/vertigo affecting daily activities."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Symptoms",
+            "range": { "min": 7, "max": 10 },
+            "color": "#dc2626",
+            "description": "Severe dizziness/vertigo significantly limiting function."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Calculate the mean of all VAS ratings (0-10 scale). Individual items can also be analyzed separately to identify specific triggers.",
+        "totalScoreRange": "0-10 (mean of all items)",
+        "itemAnalysis": "Items 1-7 assess specific triggering situations. Item 8 assesses overall symptom level. Item 9 assesses functional impact.",
+        "visualVertigoDependence": "High scores on items 3-4 (visual triggers) suggest visual vertigo/visual dependence which is common in cerebellar ataxia.",
+        "clinicalUse": "Used to track vestibular and balance symptoms in patients with ataxia, as well as to identify sensitivity to visual motion which may guide vestibular rehabilitation.",
+        "minimumClinicallyImportantDifference": "A change of 1.5-2 points is generally considered clinically meaningful."
+    },
+
+    "references": [
+        {
+            "citation": "Dannenbaum E, Chilingaryan G, Fung J. Visual vertigo analogue scale: an assessment questionnaire for visual vertigo. J Vestib Res. 2011;21(3):153-159.",
+            "doi": "10.3233/VES-2011-0412"
+        },
+        {
+            "citation": "Guerraz M, Yardley L, Bertholon P, et al. Visual vertigo: symptom assessment, spatial orientation and postural control. Brain. 2001;124(Pt 8):1646-1656.",
+            "doi": "10.1093/brain/124.8.1646"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Adapted from Dannenbaum E et al.",
+        "license": "Free for clinical and research use"
+    }
+}

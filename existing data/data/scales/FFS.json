@@ -1,0 +1,162 @@
+{
+    "id": "FFS",
+    "name": "Flinders Fatigue Scale",
+    "shortName": "FFS",
+    "version": "1.0",
+    "description": "A brief self-report measure designed to assess the severity and impact of fatigue, distinguishing fatigue from sleepiness.",
+    "category": "fatigue",
+    "recallPeriod": "Over the last two weeks",
+    "instructions": "We are interested in the extent that you have felt fatigued (tired, weary, exhausted) over the last two weeks. We do not mean feelings of sleepiness (the likelihood of falling asleep). Please select the appropriate response in accordance with your average feelings over this two-week period.",
+    "estimatedTime": "3-5 minutes",
+    "scoringType": "sum",
+    "maxScore": 24,
+    "totalItems": 7,
+
+    "questions": [
+        {
+            "id": "FFS_1",
+            "number": 1,
+            "question": "Was fatigue a problem for you?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all", "points": 0 },
+                { "value": 1, "label": "Moderately", "points": 2 },
+                { "value": 2, "label": "Extremely", "points": 4 }
+            ]
+        },
+        {
+            "id": "FFS_2",
+            "number": 2,
+            "question": "Did fatigue cause problems with your everyday functioning (e.g., work, social, family)?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all", "points": 0 },
+                { "value": 1, "label": "Moderately", "points": 2 },
+                { "value": 2, "label": "Extremely", "points": 4 }
+            ]
+        },
+        {
+            "id": "FFS_3",
+            "number": 3,
+            "question": "Did fatigue cause you distress?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all", "points": 0 },
+                { "value": 1, "label": "Moderately", "points": 2 },
+                { "value": 2, "label": "Extremely", "points": 4 }
+            ]
+        },
+        {
+            "id": "FFS_4",
+            "number": 4,
+            "question": "How often did you suffer from fatigue?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "0 days/week", "points": 0 },
+                { "value": 1, "label": "1-2 days/week", "points": 1 },
+                { "value": 2, "label": "3-4 days/week", "points": 2 },
+                { "value": 3, "label": "5-6 days/week", "points": 3 },
+                { "value": 4, "label": "7 days/week", "points": 4 }
+            ]
+        },
+        {
+            "id": "FFS_5",
+            "number": 5,
+            "question": "At what time(s) of the day did you typically experience fatigue?",
+            "type": "multi-select",
+            "required": false,
+            "scoredInTotal": false,
+            "options": [
+                { "value": "early-morning", "label": "Early morning", "points": 0 },
+                { "value": "mid-morning", "label": "Mid morning", "points": 0 },
+                { "value": "midday", "label": "Midday", "points": 0 },
+                { "value": "mid-afternoon", "label": "Mid afternoon", "points": 0 },
+                { "value": "late-afternoon", "label": "Late afternoon", "points": 0 },
+                { "value": "early-evening", "label": "Early evening", "points": 0 },
+                { "value": "late-evening", "label": "Late evening", "points": 0 }
+            ]
+        },
+        {
+            "id": "FFS_6",
+            "number": 6,
+            "question": "How severe was the fatigue you experienced?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all", "points": 0 },
+                { "value": 1, "label": "Moderate", "points": 2 },
+                { "value": 2, "label": "Extreme", "points": 4 }
+            ]
+        },
+        {
+            "id": "FFS_7",
+            "number": 7,
+            "question": "How much was your fatigue caused by poor sleep?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all", "points": 0 },
+                { "value": 1, "label": "Moderately", "points": 2 },
+                { "value": 2, "label": "Entirely", "points": 4 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-fatigue",
+            "label": "No Significant Fatigue",
+            "min": 0,
+            "max": 5,
+            "color": "#22c55e",
+            "description": "No clinically significant fatigue."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Fatigue",
+            "min": 6,
+            "max": 11,
+            "color": "#eab308",
+            "description": "Mild fatigue that may warrant monitoring."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Fatigue",
+            "min": 12,
+            "max": 17,
+            "color": "#f97316",
+            "description": "Moderate fatigue impacting daily functioning."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Fatigue",
+            "min": 18,
+            "max": 24,
+            "color": "#ef4444",
+            "description": "Severe fatigue significantly affecting quality of life."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum scored items (questions 1-4, 6-7). Question 5 is descriptive and not included in total score. Range: 0-24.",
+        "fatigueVsSleepiness": "This scale specifically measures fatigue (tiredness, weariness, exhaustion) as distinct from sleepiness (likelihood of falling asleep).",
+        "clinicalNotes": "Question 7 provides insight into whether fatigue may be sleep-related, which can guide treatment approaches. Question 5 identifies temporal patterns of fatigue."
+    },
+
+    "references": [
+        {
+            "citation": "Gradisar M, Lack L, Richards H, et al. The Flinders Fatigue Scale: Preliminary psychometric properties and clinical sensitivity of a new scale for measuring daytime fatigue associated with insomnia. J Clin Sleep Med. 2007;3(7):722-728."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Gradisar M, Lack L, et al.",
+        "license": "Public domain for clinical use"
+    }
+}

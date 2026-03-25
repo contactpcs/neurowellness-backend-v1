@@ -1,0 +1,213 @@
+{
+    "id": "Pain-Rating-Scale",
+    "name": "Pain Rating Scale",
+    "shortName": "PRS",
+    "version": "1.0",
+    "description": "A comprehensive pain assessment using numeric rating scales to evaluate pain intensity, interference with daily activities, and pain-related distress.",
+    "category": "pain",
+    "recallPeriod": "Current/Past 24 hours",
+    "instructions": "Please rate your pain by selecting the number that best describes your experience. 0 means no pain and 10 means the worst pain imaginable.",
+    "estimatedTime": "2-3 minutes",
+    "scoringType": "sum",
+    "maxScore": 60,
+    "maxItemScore": 10,
+
+    "questions": [
+        {
+            "id": "PRS_1",
+            "number": 1,
+            "question": "Please rate your CURRENT pain intensity right now.",
+            "type": "likert",
+            "required": true,
+            "domain": "intensity-current",
+            "options": [
+                { "value": 0, "label": "0 - No Pain" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Worst Pain" }
+            ]
+        },
+        {
+            "id": "PRS_2",
+            "number": 2,
+            "question": "Please rate your AVERAGE pain level over the past 24 hours.",
+            "type": "likert",
+            "required": true,
+            "domain": "intensity-average",
+            "options": [
+                { "value": 0, "label": "0 - No Pain" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Worst Pain" }
+            ]
+        },
+        {
+            "id": "PRS_3",
+            "number": 3,
+            "question": "Please rate the WORST pain you have experienced in the past 24 hours.",
+            "type": "likert",
+            "required": true,
+            "domain": "intensity-worst",
+            "options": [
+                { "value": 0, "label": "0 - No Pain" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Worst Pain" }
+            ]
+        },
+        {
+            "id": "PRS_4",
+            "number": 4,
+            "question": "How much has pain interfered with your DAILY ACTIVITIES (work, household chores, self-care)?",
+            "type": "likert",
+            "required": true,
+            "domain": "interference-activities",
+            "options": [
+                { "value": 0, "label": "0 - No Interference" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Complete Interference" }
+            ]
+        },
+        {
+            "id": "PRS_5",
+            "number": 5,
+            "question": "How much has pain interfered with your SLEEP in the past 24 hours?",
+            "type": "likert",
+            "required": true,
+            "domain": "interference-sleep",
+            "options": [
+                { "value": 0, "label": "0 - No Interference" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Complete Interference" }
+            ]
+        },
+        {
+            "id": "PRS_6",
+            "number": 6,
+            "question": "How much DISTRESS or discomfort has your pain caused you?",
+            "type": "likert",
+            "required": true,
+            "domain": "distress",
+            "options": [
+                { "value": 0, "label": "0 - No Distress" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" },
+                { "value": 3, "label": "3" },
+                { "value": 4, "label": "4" },
+                { "value": 5, "label": "5 - Moderate" },
+                { "value": 6, "label": "6" },
+                { "value": 7, "label": "7" },
+                { "value": 8, "label": "8" },
+                { "value": 9, "label": "9" },
+                { "value": 10, "label": "10 - Extreme Distress" }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-pain",
+            "label": "No Pain",
+            "min": 0,
+            "max": 0,
+            "color": "#22c55e",
+            "description": "No pain reported."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Pain",
+            "min": 1,
+            "max": 18,
+            "color": "#84cc16",
+            "description": "Mild pain with minimal impact on daily functioning."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Pain",
+            "min": 19,
+            "max": 36,
+            "color": "#eab308",
+            "description": "Moderate pain that may interfere with some daily activities."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Pain",
+            "min": 37,
+            "max": 54,
+            "color": "#f97316",
+            "description": "Severe pain significantly impacting daily functioning and quality of life."
+        },
+        {
+            "id": "extreme",
+            "label": "Extreme Pain",
+            "min": 55,
+            "max": 60,
+            "color": "#ef4444",
+            "description": "Extreme, debilitating pain requiring immediate clinical attention."
+        }
+    ],
+
+    "interpretation": {
+        "domains": {
+            "intensity": "Questions 1-3 assess pain intensity (current, average, worst)",
+            "interference": "Questions 4-5 measure how pain interferes with daily life",
+            "distress": "Question 6 captures emotional impact of pain"
+        },
+        "clinicalNotes": "Individual item scores of 7 or higher warrant clinical attention. Consider the pattern across domains - high intensity with low interference may indicate good coping, while the reverse may suggest need for pain management support."
+    },
+
+    "references": [
+        {
+            "citation": "Jensen MP, Karoly P. Self-report scales and procedures for assessing pain in adults. In: Turk DC, Melzack R, eds. Handbook of Pain Assessment. 3rd ed. 2011.",
+            "url": ""
+        },
+        {
+            "citation": "Ferreira-Valente MA, Pais-Ribeiro JL, Jensen MP. Validity of four pain intensity rating scales. Pain. 2011;152(10):2399-2404.",
+            "url": ""
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2024-01-01",
+        "updatedAt": "2024-01-01",
+        "author": "Clinical Assessment Team",
+        "license": "Public domain for clinical use"
+    }
+}

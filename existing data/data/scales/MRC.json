@@ -1,0 +1,319 @@
+{
+    "id": "MRC",
+    "name": "MRC Scale for Muscle Strength",
+    "shortName": "MRC",
+    "version": "1.0",
+    "description": "The Medical Research Council (MRC) scale is a standardized clinical assessment for grading muscle strength. Each muscle group is graded 0-5, with assessments performed bilaterally for upper and lower limbs.",
+    "category": "motor-function",
+    "recallPeriod": "Current examination",
+    "instructions": "Grade each muscle group from 0 to 5 based on the strength observed during examination. MRC grade for each muscle must be given in full numbers (e.g., 4+ or 4.5 = 4, 4- = 3, 5- = 4).",
+    "estimatedTime": "10-15 minutes",
+    "scoringType": "sum",
+    "maxScore": 60,
+    "totalItems": 12,
+    "administrationType": "clinician-rated",
+
+    "gradeDefinitions": {
+        "5": "Normal strength",
+        "4": "Movement against gravity and resistance",
+        "3": "Movement against gravity over (almost) the full range",
+        "2": "Movement of the limb but not against gravity",
+        "1": "Visible contraction without movement of the limb (not existent for hip flexion)",
+        "0": "No visible contraction"
+    },
+
+    "questions": [
+        {
+            "id": "MRC_LA_SA",
+            "number": 1,
+            "question": "Left Arm - Shoulder Abductors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-arm",
+            "muscleGroup": "Shoulder abductors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_LA_EF",
+            "number": 2,
+            "question": "Left Arm - Elbow Flexors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-arm",
+            "muscleGroup": "Elbow flexors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_LA_WE",
+            "number": 3,
+            "question": "Left Arm - Wrist Extensors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-arm",
+            "muscleGroup": "Wrist extensors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RA_SA",
+            "number": 4,
+            "question": "Right Arm - Shoulder Abductors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-arm",
+            "muscleGroup": "Shoulder abductors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RA_EF",
+            "number": 5,
+            "question": "Right Arm - Elbow Flexors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-arm",
+            "muscleGroup": "Elbow flexors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RA_WE",
+            "number": 6,
+            "question": "Right Arm - Wrist Extensors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-arm",
+            "muscleGroup": "Wrist extensors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_LL_HF",
+            "number": 7,
+            "question": "Left Leg - Hip Flexors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-leg",
+            "muscleGroup": "Hip flexors",
+            "note": "Grade 1 not applicable for hip flexion",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_LL_KE",
+            "number": 8,
+            "question": "Left Leg - Knee Extensors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-leg",
+            "muscleGroup": "Knee extensors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_LL_FD",
+            "number": 9,
+            "question": "Left Leg - Foot Dorsiflexors",
+            "type": "likert",
+            "required": true,
+            "limb": "left-leg",
+            "muscleGroup": "Foot dorsiflexors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RL_HF",
+            "number": 10,
+            "question": "Right Leg - Hip Flexors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-leg",
+            "muscleGroup": "Hip flexors",
+            "note": "Grade 1 not applicable for hip flexion",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RL_KE",
+            "number": 11,
+            "question": "Right Leg - Knee Extensors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-leg",
+            "muscleGroup": "Knee extensors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        },
+        {
+            "id": "MRC_RL_FD",
+            "number": 12,
+            "question": "Right Leg - Foot Dorsiflexors",
+            "type": "likert",
+            "required": true,
+            "limb": "right-leg",
+            "muscleGroup": "Foot dorsiflexors",
+            "options": [
+                { "value": 0, "label": "0 - No visible contraction", "points": 0 },
+                { "value": 1, "label": "1 - Visible contraction without movement", "points": 1 },
+                { "value": 2, "label": "2 - Movement but not against gravity", "points": 2 },
+                { "value": 3, "label": "3 - Movement against gravity", "points": 3 },
+                { "value": 4, "label": "4 - Movement against gravity and resistance", "points": 4 },
+                { "value": 5, "label": "5 - Normal strength", "points": 5 }
+            ]
+        }
+    ],
+
+    "limbs": [
+        {
+            "id": "left-arm",
+            "name": "Left Arm",
+            "items": ["MRC_LA_SA", "MRC_LA_EF", "MRC_LA_WE"],
+            "maxScore": 15
+        },
+        {
+            "id": "right-arm",
+            "name": "Right Arm",
+            "items": ["MRC_RA_SA", "MRC_RA_EF", "MRC_RA_WE"],
+            "maxScore": 15
+        },
+        {
+            "id": "left-leg",
+            "name": "Left Leg",
+            "items": ["MRC_LL_HF", "MRC_LL_KE", "MRC_LL_FD"],
+            "maxScore": 15
+        },
+        {
+            "id": "right-leg",
+            "name": "Right Leg",
+            "items": ["MRC_RL_HF", "MRC_RL_KE", "MRC_RL_FD"],
+            "maxScore": 15
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "normal",
+            "label": "Normal Strength",
+            "min": 60,
+            "max": 60,
+            "color": "#22c55e",
+            "description": "All muscle groups have normal strength (Grade 5)."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Weakness",
+            "min": 48,
+            "max": 59,
+            "color": "#eab308",
+            "description": "Mild muscle weakness detected."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Weakness",
+            "min": 36,
+            "max": 47,
+            "color": "#f97316",
+            "description": "Moderate muscle weakness affecting function."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Weakness",
+            "min": 0,
+            "max": 35,
+            "color": "#dc2626",
+            "description": "Severe muscle weakness with significant functional impairment."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all 12 muscle group scores. Each muscle group scored 0-5. Total range: 0-60.",
+        "gradeRounding": "Grades must be given in full numbers. 4+ or 4.5 = 4, 4- = 3, 5- = 4.",
+        "normalScore": "A score of 60 indicates normal strength in all assessed muscle groups.",
+        "clinicalUse": "Used to assess and monitor muscle strength in neuromuscular disorders, stroke, and other conditions affecting motor function."
+    },
+
+    "references": [
+        {
+            "citation": "Medical Research Council. Aids to the Investigation of Peripheral Nerve Injuries. War Memorandum No. 7. London: HMSO; 1943."
+        },
+        {
+            "citation": "Compston A. Aids to the investigation of peripheral nerve injuries. Medical Research Council: Nerve Injuries Research Committee. Brain. 2010;133(10):2838-2844.",
+            "doi": "10.1093/brain/awq270"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Medical Research Council",
+        "license": "Public domain"
+    }
+}

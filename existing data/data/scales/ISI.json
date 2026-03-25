@@ -1,0 +1,180 @@
+{
+    "id": "ISI",
+    "name": "Insomnia Severity Index",
+    "shortName": "ISI",
+    "version": "1.0",
+    "description": "A brief self-report instrument measuring the nature, severity, and impact of insomnia. Assesses the severity of sleep onset, sleep maintenance, and early morning awakening problems, as well as sleep satisfaction, interference with daily functioning, noticeability, and distress.",
+    "category": "sleep",
+    "recallPeriod": "Over the last 2 weeks",
+    "instructions": "For each question, please circle the number that best describes your answer. Rate the current (last 2 weeks) severity of your insomnia problem(s).",
+    "estimatedTime": "5 minutes",
+    "scoringType": "sum",
+    "maxScore": 28,
+    "totalItems": 7,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "ISI_1",
+            "number": 1,
+            "question": "Difficulty falling asleep",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Moderate", "points": 2 },
+                { "value": 3, "label": "Severe", "points": 3 },
+                { "value": 4, "label": "Very Severe", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_2",
+            "number": 2,
+            "question": "Difficulty staying asleep",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Moderate", "points": 2 },
+                { "value": 3, "label": "Severe", "points": 3 },
+                { "value": 4, "label": "Very Severe", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_3",
+            "number": 3,
+            "question": "Problems waking up too early",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Moderate", "points": 2 },
+                { "value": 3, "label": "Severe", "points": 3 },
+                { "value": 4, "label": "Very Severe", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_4",
+            "number": 4,
+            "question": "How SATISFIED/DISSATISFIED are you with your CURRENT sleep pattern?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Very Satisfied", "points": 0 },
+                { "value": 1, "label": "Satisfied", "points": 1 },
+                { "value": 2, "label": "Moderately Satisfied", "points": 2 },
+                { "value": 3, "label": "Dissatisfied", "points": 3 },
+                { "value": 4, "label": "Very Dissatisfied", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_5",
+            "number": 5,
+            "question": "How NOTICEABLE to others do you think your sleep problem is in terms of impairing the quality of your life?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all Noticeable", "points": 0 },
+                { "value": 1, "label": "A Little", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Much", "points": 3 },
+                { "value": 4, "label": "Very Much Noticeable", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_6",
+            "number": 6,
+            "question": "How WORRIED/DISTRESSED are you about your current sleep problem?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all Worried", "points": 0 },
+                { "value": 1, "label": "A Little", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Much", "points": 3 },
+                { "value": 4, "label": "Very Much Worried", "points": 4 }
+            ]
+        },
+        {
+            "id": "ISI_7",
+            "number": 7,
+            "question": "To what extent do you consider your sleep problem to INTERFERE with your daily functioning (e.g. daytime fatigue, mood, ability to function at work/daily chores, concentration, memory, mood, etc.) CURRENTLY?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all Interfering", "points": 0 },
+                { "value": 1, "label": "A Little", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Much", "points": 3 },
+                { "value": 4, "label": "Very Much Interfering", "points": 4 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "none",
+            "label": "No Clinically Significant Insomnia",
+            "min": 0,
+            "max": 7,
+            "color": "#22c55e",
+            "description": "No clinically significant insomnia."
+        },
+        {
+            "id": "subthreshold",
+            "label": "Subthreshold Insomnia",
+            "min": 8,
+            "max": 14,
+            "color": "#eab308",
+            "description": "Subthreshold insomnia; may benefit from sleep hygiene education."
+        },
+        {
+            "id": "moderate",
+            "label": "Clinical Insomnia (Moderate)",
+            "min": 15,
+            "max": 21,
+            "color": "#f97316",
+            "description": "Clinical insomnia of moderate severity; treatment indicated."
+        },
+        {
+            "id": "severe",
+            "label": "Clinical Insomnia (Severe)",
+            "min": 22,
+            "max": 28,
+            "color": "#dc2626",
+            "description": "Severe clinical insomnia requiring comprehensive treatment."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all 7 item scores. Range: 0-28.",
+        "cutoffs": {
+            "noInsomnia": "0-7",
+            "subthreshold": "8-14",
+            "moderateClinical": "15-21",
+            "severeClinical": "22-28"
+        },
+        "clinicalUse": "The ISI is widely used in clinical practice and research to screen for insomnia, assess severity, and monitor treatment response.",
+        "minimumClinicalDifference": "A change of 6 points or more is generally considered clinically meaningful."
+    },
+
+    "references": [
+        {
+            "citation": "Morin CM, Belleville G, Bélanger L, Ivers H. The Insomnia Severity Index: psychometric indicators to detect insomnia cases and evaluate treatment response. Sleep. 2011;34(5):601-608.",
+            "doi": "10.1093/sleep/34.5.601"
+        },
+        {
+            "citation": "Bastien CH, Vallières A, Morin CM. Validation of the Insomnia Severity Index as an outcome measure for insomnia research. Sleep Med. 2001;2(4):297-307."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Morin CM",
+        "license": "Public domain for clinical use"
+    }
+}

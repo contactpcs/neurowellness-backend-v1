@@ -1,0 +1,427 @@
+{
+    "id": "DASS-21",
+    "name": "Depression Anxiety Stress Scales - 21 Item Version",
+    "shortName": "DASS-21",
+    "version": "1.0",
+    "description": "A 21-item self-report instrument measuring the three related negative emotional states of depression, anxiety and stress.",
+    "category": "mood",
+    "recallPeriod": "Over the past week",
+    "timeToComplete": "5-10 minutes",
+    "scoringMethod": "sum",
+    "totalItems": 21,
+    "maxScore": 63,
+    "maxItemScore": 3,
+    
+    "instructions": "Please read each statement and select a number 0, 1, 2 or 3 which indicates how much the statement applied to you over the past week. There are no right or wrong answers. Do not spend too much time on any statement.",
+    
+    "subscales": [
+        {
+            "id": "depression",
+            "name": "Depression",
+            "items": [3, 5, 10, 13, 16, 17, 21],
+            "maxScore": 21,
+            "multiplier": 2,
+            "description": "Measures dysphoria, hopelessness, devaluation of life, self-deprecation, lack of interest/involvement, anhedonia, and inertia"
+        },
+        {
+            "id": "anxiety",
+            "name": "Anxiety",
+            "items": [2, 4, 7, 9, 15, 19, 20],
+            "maxScore": 21,
+            "multiplier": 2,
+            "description": "Measures autonomic arousal, skeletal muscle effects, situational anxiety, and subjective experience of anxious affect"
+        },
+        {
+            "id": "stress",
+            "name": "Stress",
+            "items": [1, 6, 8, 11, 12, 14, 18],
+            "maxScore": 21,
+            "multiplier": 2,
+            "description": "Measures difficulty relaxing, nervous arousal, being easily upset/agitated, irritable/over-reactive and impatient"
+        }
+    ],
+    
+    "questions": [
+        {
+            "index": 0,
+            "id": 1,
+            "subscale": "stress",
+            "label": "I found it hard to wind down",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 1,
+            "id": 2,
+            "subscale": "anxiety",
+            "label": "I was aware of dryness of my mouth",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 2,
+            "id": 3,
+            "subscale": "depression",
+            "label": "I couldn't seem to experience any positive feeling at all",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 3,
+            "id": 4,
+            "subscale": "anxiety",
+            "label": "I experienced breathing difficulty (e.g., excessively rapid breathing, breathlessness in the absence of physical exertion)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 4,
+            "id": 5,
+            "subscale": "depression",
+            "label": "I found it difficult to work up the initiative to do things",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 5,
+            "id": 6,
+            "subscale": "stress",
+            "label": "I tended to over-react to situations",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 6,
+            "id": 7,
+            "subscale": "anxiety",
+            "label": "I experienced trembling (e.g., in the hands)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 7,
+            "id": 8,
+            "subscale": "stress",
+            "label": "I felt that I was using a lot of nervous energy",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 8,
+            "id": 9,
+            "subscale": "anxiety",
+            "label": "I was worried about situations in which I might panic and make a fool of myself",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 9,
+            "id": 10,
+            "subscale": "depression",
+            "label": "I felt that I had nothing to look forward to",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 10,
+            "id": 11,
+            "subscale": "stress",
+            "label": "I found myself getting agitated",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 11,
+            "id": 12,
+            "subscale": "stress",
+            "label": "I found it difficult to relax",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 12,
+            "id": 13,
+            "subscale": "depression",
+            "label": "I felt down-hearted and blue",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 13,
+            "id": 14,
+            "subscale": "stress",
+            "label": "I was intolerant of anything that kept me from getting on with what I was doing",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 14,
+            "id": 15,
+            "subscale": "anxiety",
+            "label": "I felt I was close to panic",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 15,
+            "id": 16,
+            "subscale": "depression",
+            "label": "I was unable to become enthusiastic about anything",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 16,
+            "id": 17,
+            "subscale": "depression",
+            "label": "I felt I wasn't worth much as a person",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 17,
+            "id": 18,
+            "subscale": "stress",
+            "label": "I felt that I was rather touchy",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 18,
+            "id": 19,
+            "subscale": "anxiety",
+            "label": "I was aware of the action of my heart in the absence of physical exertion (e.g., sense of heart rate increase, heart missing a beat)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 19,
+            "id": 20,
+            "subscale": "anxiety",
+            "label": "I felt scared without any good reason",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        },
+        {
+            "index": 20,
+            "id": 21,
+            "subscale": "depression",
+            "label": "I felt that life was meaningless",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Did not apply to me at all" },
+                { "value": 1, "label": "Applied to me to some degree, or some of the time" },
+                { "value": 2, "label": "Applied to me to a considerable degree or a good part of time" },
+                { "value": 3, "label": "Applied to me very much or most of the time" }
+            ]
+        }
+    ],
+    
+    "scoring": {
+        "note": "Scores for each subscale are calculated by summing the scores for the relevant items. Final subscale scores should be multiplied by 2 to match the full DASS-42 norms.",
+        "subscaleCalculation": "Sum items × 2"
+    },
+    
+    "severityBands": [
+        { "min": 0, "max": 29, "level": "normal", "label": "Normal", "color": "#4CAF50", "description": "Within normal range across all three domains" },
+        { "min": 30, "max": 40, "level": "mild", "label": "Mild", "color": "#8BC34A", "description": "Mild distress symptoms" },
+        { "min": 41, "max": 60, "level": "moderate", "label": "Moderate", "color": "#FFC107", "description": "Moderate distress symptoms" },
+        { "min": 61, "max": 80, "level": "severe", "label": "Severe", "color": "#FF9800", "description": "Severe distress symptoms" },
+        { "min": 81, "max": 126, "level": "extremely-severe", "label": "Extremely Severe", "color": "#F44336", "description": "Extremely severe distress symptoms" }
+    ],
+    
+    "subscaleSeverityBands": {
+        "depression": [
+            { "min": 0, "max": 9, "level": "normal", "label": "Normal", "color": "#4CAF50" },
+            { "min": 10, "max": 13, "level": "mild", "label": "Mild", "color": "#8BC34A" },
+            { "min": 14, "max": 20, "level": "moderate", "label": "Moderate", "color": "#FFC107" },
+            { "min": 21, "max": 27, "level": "severe", "label": "Severe", "color": "#FF9800" },
+            { "min": 28, "max": 42, "level": "extremely-severe", "label": "Extremely Severe", "color": "#F44336" }
+        ],
+        "anxiety": [
+            { "min": 0, "max": 7, "level": "normal", "label": "Normal", "color": "#4CAF50" },
+            { "min": 8, "max": 9, "level": "mild", "label": "Mild", "color": "#8BC34A" },
+            { "min": 10, "max": 14, "level": "moderate", "label": "Moderate", "color": "#FFC107" },
+            { "min": 15, "max": 19, "level": "severe", "label": "Severe", "color": "#FF9800" },
+            { "min": 20, "max": 42, "level": "extremely-severe", "label": "Extremely Severe", "color": "#F44336" }
+        ],
+        "stress": [
+            { "min": 0, "max": 14, "level": "normal", "label": "Normal", "color": "#4CAF50" },
+            { "min": 15, "max": 18, "level": "mild", "label": "Mild", "color": "#8BC34A" },
+            { "min": 19, "max": 25, "level": "moderate", "label": "Moderate", "color": "#FFC107" },
+            { "min": 26, "max": 33, "level": "severe", "label": "Severe", "color": "#FF9800" },
+            { "min": 34, "max": 42, "level": "extremely-severe", "label": "Extremely Severe", "color": "#F44336" }
+        ]
+    },
+    
+    "riskRules": [
+        {
+            "id": "severe-depression",
+            "subscale": "depression",
+            "condition": "score >= 21",
+            "severity": "high",
+            "message": "Severe to extremely severe depression symptoms detected",
+            "recommendation": "Immediate clinical evaluation recommended. Consider referral to mental health specialist."
+        },
+        {
+            "id": "severe-anxiety",
+            "subscale": "anxiety",
+            "condition": "score >= 15",
+            "severity": "high",
+            "message": "Severe to extremely severe anxiety symptoms detected",
+            "recommendation": "Clinical evaluation recommended. Consider referral for anxiety treatment."
+        },
+        {
+            "id": "severe-stress",
+            "subscale": "stress",
+            "condition": "score >= 26",
+            "severity": "moderate",
+            "message": "Severe to extremely severe stress levels detected",
+            "recommendation": "Stress management intervention recommended."
+        },
+        {
+            "id": "suicidal-ideation-check",
+            "questionIndex": 20,
+            "condition": "value >= 2",
+            "severity": "critical",
+            "message": "Patient indicates life feels meaningless frequently or more",
+            "recommendation": "Screen for suicidal ideation. Consider immediate safety assessment."
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The DASS-21 is a quantitative measure of distress along the three axes of depression, anxiety and stress. It is not a categorical measure of clinical diagnoses. Recommended cutoffs are based on score distributions in normative samples.",
+        "actions": {
+            "normal": "No intervention required; continue monitoring if clinically indicated",
+            "mild": "Suggest self-help strategies; monitor at follow-up",
+            "moderate": "Consider psychological intervention; may benefit from treatment",
+            "severe": "Recommend psychological or psychiatric treatment",
+            "extremely-severe": "Urgent psychological or psychiatric intervention recommended"
+        },
+        "references": [
+            "Lovibond, S.H. & Lovibond, P.F. (1995). Manual for the Depression Anxiety Stress Scales (2nd ed.). Sydney: Psychology Foundation.",
+            "Antony, M.M., et al. (1998). Psychometric properties of the 42-item and 21-item versions of the DASS. Behaviour Research and Therapy, 36, 167-179."
+        ]
+    }
+}

@@ -1,0 +1,862 @@
+{
+    "id": "SLEEP-50",
+    "name": "SLEEP-50 Questionnaire",
+    "shortName": "SLEEP-50",
+    "version": "1.0",
+    "description": "A comprehensive 50-item screening questionnaire for sleep disorders. Assesses multiple sleep disorder categories including sleep apnea, insomnia, narcolepsy, restless legs syndrome, circadian rhythm disorders, parasomnias, nightmares, and daytime functioning.",
+    "category": "sleep",
+    "recallPeriod": "During the past 4 weeks",
+    "instructions": "Please respond to what extent a statement has been applicable to you during the past 4 weeks. Score each item on a 4-point scale: 1 (not at all), 2 (somewhat), 3 (rather much), 4 (very much).",
+    "estimatedTime": "10-15 minutes",
+    "scoringType": "sum-subscales",
+    "maxScore": 200,
+    "totalItems": 50,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "SLEEP50_1",
+            "number": 1,
+            "question": "I am told that I snore.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_2",
+            "number": 2,
+            "question": "I sweat during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_3",
+            "number": 3,
+            "question": "I am told that I hold my breath when sleeping.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_4",
+            "number": 4,
+            "question": "I am told that I wake up gasping for air.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_5",
+            "number": 5,
+            "question": "I wake up with a dry mouth.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_6",
+            "number": 6,
+            "question": "I wake up during the night while coughing or being short of breath.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_7",
+            "number": 7,
+            "question": "I wake up with a sour taste in my mouth.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_8",
+            "number": 8,
+            "question": "I wake up with a headache.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-apnea",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_9",
+            "number": 9,
+            "question": "I have difficulty in falling asleep.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_10",
+            "number": 10,
+            "question": "Thoughts go through my head and keep me awake.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_11",
+            "number": 11,
+            "question": "I worry and find it hard to relax.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_12",
+            "number": 12,
+            "question": "I wake up during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_13",
+            "number": 13,
+            "question": "After waking up during the night, I fall asleep slowly.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_14",
+            "number": 14,
+            "question": "I wake up early and cannot get back to sleep.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_15",
+            "number": 15,
+            "question": "I sleep lightly.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_16",
+            "number": 16,
+            "question": "I sleep too little.",
+            "type": "likert",
+            "required": true,
+            "subscale": "insomnia",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_17",
+            "number": 17,
+            "question": "I see dreamlike images when falling asleep or waking up.",
+            "type": "likert",
+            "required": true,
+            "subscale": "narcolepsy",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_18",
+            "number": 18,
+            "question": "I sometimes fall asleep on a social occasion.",
+            "type": "likert",
+            "required": true,
+            "subscale": "narcolepsy",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_19",
+            "number": 19,
+            "question": "I have sleep attacks during the day.",
+            "type": "likert",
+            "required": true,
+            "subscale": "narcolepsy",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_20",
+            "number": 20,
+            "question": "With intense emotions, my muscles sometimes collapse during the day.",
+            "type": "likert",
+            "required": true,
+            "subscale": "narcolepsy",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_21",
+            "number": 21,
+            "question": "I sometimes cannot move when falling asleep or waking up.",
+            "type": "likert",
+            "required": true,
+            "subscale": "narcolepsy",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_22",
+            "number": 22,
+            "question": "I am told that I kick my legs when I sleep.",
+            "type": "likert",
+            "required": true,
+            "subscale": "restless-legs",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_23",
+            "number": 23,
+            "question": "I have cramps or pain in my legs during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "restless-legs",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_24",
+            "number": 24,
+            "question": "I feel little shocks in my legs during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "restless-legs",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_25",
+            "number": 25,
+            "question": "I cannot keep my legs at rest when falling asleep.",
+            "type": "likert",
+            "required": true,
+            "subscale": "restless-legs",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_26",
+            "number": 26,
+            "question": "I would rather go to bed at a different time.",
+            "type": "likert",
+            "required": true,
+            "subscale": "circadian-rhythm",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_27",
+            "number": 27,
+            "question": "I go to bed at very different times (more than 2 hr difference).",
+            "type": "likert",
+            "required": true,
+            "subscale": "circadian-rhythm",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_28",
+            "number": 28,
+            "question": "I do shift work.",
+            "type": "likert",
+            "required": true,
+            "subscale": "circadian-rhythm",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_29",
+            "number": 29,
+            "question": "I sometimes walk when I am sleeping.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleepwalking",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_30",
+            "number": 30,
+            "question": "I sometimes wake up in a different place than where I fell asleep.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleepwalking",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_31",
+            "number": 31,
+            "question": "I sometimes find evidence of having performed an action during the night I do not remember.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleepwalking",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_32",
+            "number": 32,
+            "question": "I have frightening dreams.",
+            "type": "likert",
+            "required": true,
+            "subscale": "nightmares",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_33",
+            "number": 33,
+            "question": "I wake up from these dreams.",
+            "type": "likert",
+            "required": true,
+            "subscale": "nightmares",
+            "conditionalOn": "SLEEP50_32 > 1",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_34",
+            "number": 34,
+            "question": "I remember the content of these dreams.",
+            "type": "likert",
+            "required": true,
+            "subscale": "nightmares",
+            "conditionalOn": "SLEEP50_32 > 1",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_35",
+            "number": 35,
+            "question": "I can orientate quickly after these dreams.",
+            "type": "likert",
+            "required": true,
+            "subscale": "nightmares",
+            "conditionalOn": "SLEEP50_32 > 1",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_36",
+            "number": 36,
+            "question": "I have physical symptoms during or after these dreams (e.g., movements, sweating, heart palpitations, shortness of breath).",
+            "type": "likert",
+            "required": true,
+            "subscale": "nightmares",
+            "conditionalOn": "SLEEP50_32 > 1",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_37",
+            "number": 37,
+            "question": "It is too light in my bedroom during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_38",
+            "number": 38,
+            "question": "It is too noisy in my bedroom during the night.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_39",
+            "number": 39,
+            "question": "I drink alcoholic beverages during the evening.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_40",
+            "number": 40,
+            "question": "I smoke during the evening.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_41",
+            "number": 41,
+            "question": "I use other substances during the evening (e.g., sleep or other medication).",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_42",
+            "number": 42,
+            "question": "I feel sad.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_43",
+            "number": 43,
+            "question": "I have no pleasure or interest in daily occupations.",
+            "type": "likert",
+            "required": true,
+            "subscale": "sleep-hygiene",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_44",
+            "number": 44,
+            "question": "I feel tired at getting up.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_45",
+            "number": 45,
+            "question": "I feel sleepy during the day and struggle to remain alert.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_46",
+            "number": 46,
+            "question": "I would like to have more energy during the day.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_47",
+            "number": 47,
+            "question": "I am told that I am easily irritated.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_48",
+            "number": 48,
+            "question": "I have difficulty in concentrating at work or school.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_49",
+            "number": 49,
+            "question": "I worry whether I sleep enough.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        },
+        {
+            "id": "SLEEP50_50",
+            "number": 50,
+            "question": "Generally, I sleep badly.",
+            "type": "likert",
+            "required": true,
+            "subscale": "daytime-functioning",
+            "options": [
+                { "value": 1, "label": "Not at all", "points": 1 },
+                { "value": 2, "label": "Somewhat", "points": 2 },
+                { "value": 3, "label": "Rather much", "points": 3 },
+                { "value": 4, "label": "Very much", "points": 4 }
+            ]
+        }
+    ],
+
+    "subscales": [
+        {
+            "id": "sleep-apnea",
+            "name": "Sleep Apnea",
+            "section": 1,
+            "items": ["SLEEP50_1", "SLEEP50_2", "SLEEP50_3", "SLEEP50_4", "SLEEP50_5", "SLEEP50_6", "SLEEP50_7", "SLEEP50_8"],
+            "minScore": 8,
+            "maxScore": 32,
+            "description": "Screens for obstructive sleep apnea symptoms"
+        },
+        {
+            "id": "insomnia",
+            "name": "Insomnia",
+            "section": 2,
+            "items": ["SLEEP50_9", "SLEEP50_10", "SLEEP50_11", "SLEEP50_12", "SLEEP50_13", "SLEEP50_14", "SLEEP50_15", "SLEEP50_16"],
+            "minScore": 8,
+            "maxScore": 32,
+            "description": "Screens for insomnia symptoms including sleep onset, maintenance, and early awakening"
+        },
+        {
+            "id": "narcolepsy",
+            "name": "Narcolepsy",
+            "section": 3,
+            "items": ["SLEEP50_17", "SLEEP50_18", "SLEEP50_19", "SLEEP50_20", "SLEEP50_21"],
+            "minScore": 5,
+            "maxScore": 20,
+            "description": "Screens for narcolepsy symptoms including hypnagogic hallucinations, sleep attacks, cataplexy, and sleep paralysis"
+        },
+        {
+            "id": "restless-legs",
+            "name": "Restless Legs Syndrome / PLMD",
+            "section": 4,
+            "items": ["SLEEP50_22", "SLEEP50_23", "SLEEP50_24", "SLEEP50_25"],
+            "minScore": 4,
+            "maxScore": 16,
+            "description": "Screens for restless legs syndrome and periodic limb movement disorder"
+        },
+        {
+            "id": "circadian-rhythm",
+            "name": "Circadian Rhythm Disorder",
+            "section": 5,
+            "items": ["SLEEP50_26", "SLEEP50_27", "SLEEP50_28"],
+            "minScore": 3,
+            "maxScore": 12,
+            "description": "Screens for circadian rhythm sleep disorders including shift work"
+        },
+        {
+            "id": "sleepwalking",
+            "name": "Sleepwalking / Parasomnia",
+            "section": 6,
+            "items": ["SLEEP50_29", "SLEEP50_30", "SLEEP50_31"],
+            "minScore": 3,
+            "maxScore": 12,
+            "description": "Screens for sleepwalking and other NREM parasomnias"
+        },
+        {
+            "id": "nightmares",
+            "name": "Nightmares / REM Behavior",
+            "section": 7,
+            "items": ["SLEEP50_32", "SLEEP50_33", "SLEEP50_34", "SLEEP50_35", "SLEEP50_36"],
+            "minScore": 5,
+            "maxScore": 20,
+            "description": "Screens for nightmare disorder and REM-related parasomnias"
+        },
+        {
+            "id": "sleep-hygiene",
+            "name": "Factors Influencing Sleep",
+            "section": 8,
+            "items": ["SLEEP50_37", "SLEEP50_38", "SLEEP50_39", "SLEEP50_40", "SLEEP50_41", "SLEEP50_42", "SLEEP50_43"],
+            "minScore": 7,
+            "maxScore": 28,
+            "description": "Assesses environmental, substance, and mood factors affecting sleep"
+        },
+        {
+            "id": "daytime-functioning",
+            "name": "Impact of Sleep / Daytime Functioning",
+            "section": 9,
+            "items": ["SLEEP50_44", "SLEEP50_45", "SLEEP50_46", "SLEEP50_47", "SLEEP50_48", "SLEEP50_49", "SLEEP50_50"],
+            "minScore": 7,
+            "maxScore": 28,
+            "description": "Assesses daytime consequences of sleep problems"
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "minimal",
+            "label": "Minimal Sleep Problems",
+            "min": 50,
+            "max": 87,
+            "color": "#22c55e",
+            "description": "Few or no significant sleep problems indicated."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Sleep Problems",
+            "min": 88,
+            "max": 125,
+            "color": "#eab308",
+            "description": "Some sleep difficulties present."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Sleep Problems",
+            "min": 126,
+            "max": 163,
+            "color": "#f97316",
+            "description": "Moderate sleep difficulties requiring attention."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Sleep Problems",
+            "min": 164,
+            "max": 200,
+            "color": "#dc2626",
+            "description": "Significant sleep problems requiring clinical evaluation."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum scores for each subscale separately. Higher scores indicate more symptoms in that domain.",
+        "clinicalUse": "Used as a comprehensive screening tool to identify which sleep disorder domains may require further clinical evaluation.",
+        "subscaleInterpretation": "Elevated subscale scores suggest the need for targeted assessment for that specific sleep disorder category.",
+        "note": "Items 33-36 are conditional on endorsing item 32 (frightening dreams). If item 32 = 1, skip to item 37."
+    },
+
+    "references": [
+        {
+            "citation": "Spoormaker VI, Verbeek I, van den Bout J, Klip EC. Initial validation of the SLEEP-50 questionnaire. Behav Sleep Med. 2005;3(4):227-246.",
+            "doi": "10.1207/s15402010bsm0304_4"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Spoormaker VI, Verbeek I, van den Bout J, Klip EC",
+        "license": "For clinical and research use"
+    }
+}

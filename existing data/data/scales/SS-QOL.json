@@ -1,0 +1,990 @@
+{
+    "id": "SS-QOL",
+    "name": "Stroke Specific Quality of Life Scale",
+    "shortName": "SS-QOL",
+    "version": "1.0",
+    "description": "A patient-reported outcome measure designed to assess health-related quality of life specific to stroke survivors. Covers 12 domains including energy, family roles, language, mobility, mood, personality, self-care, social roles, thinking, upper extremity function, vision, and work/productivity.",
+    "category": "quality-of-life",
+    "recallPeriod": "Past week",
+    "instructions": "Please answer each question based on how you have been doing in the past week. Score each item on a 5-point scale where higher scores indicate better functioning.",
+    "estimatedTime": "10-15 minutes",
+    "scoringType": "sum-subscales",
+    "maxScore": 245,
+    "minScore": 49,
+    "totalItems": 49,
+    "administrationType": "self-report",
+
+    "responseScales": {
+        "help": {
+            "description": "Amount of help needed",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        "trouble": {
+            "description": "Amount of trouble experienced",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        "agreement": {
+            "description": "Level of agreement (reverse scored - disagreement = better)",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        }
+    },
+
+    "questions": [
+        {
+            "id": "SSQOL_E1",
+            "number": 1,
+            "question": "I felt tired most of the time.",
+            "type": "likert",
+            "required": true,
+            "subscale": "energy",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_E2",
+            "number": 2,
+            "question": "I had to stop and rest during the day.",
+            "type": "likert",
+            "required": true,
+            "subscale": "energy",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_E3",
+            "number": 3,
+            "question": "I was too tired to do what I wanted to do.",
+            "type": "likert",
+            "required": true,
+            "subscale": "energy",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_FR1",
+            "number": 4,
+            "question": "I didn't join in activities just for fun with my family.",
+            "type": "likert",
+            "required": true,
+            "subscale": "family-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_FR2",
+            "number": 5,
+            "question": "I felt I was a burden to my family.",
+            "type": "likert",
+            "required": true,
+            "subscale": "family-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_FR3",
+            "number": 6,
+            "question": "My physical condition interfered with my personal life.",
+            "type": "likert",
+            "required": true,
+            "subscale": "family-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_L1",
+            "number": 7,
+            "question": "Did you have trouble speaking? For example, get stuck, stutter, stammer, or slur your words?",
+            "type": "likert",
+            "required": true,
+            "subscale": "language",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_L2",
+            "number": 8,
+            "question": "Did you have trouble speaking clearly enough to use the telephone?",
+            "type": "likert",
+            "required": true,
+            "subscale": "language",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_L3",
+            "number": 9,
+            "question": "Did other people have trouble in understanding what you said?",
+            "type": "likert",
+            "required": true,
+            "subscale": "language",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_L4",
+            "number": 10,
+            "question": "Did you have trouble finding the word you wanted to say?",
+            "type": "likert",
+            "required": true,
+            "subscale": "language",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_L5",
+            "number": 11,
+            "question": "Did you have to repeat yourself so others could understand you?",
+            "type": "likert",
+            "required": true,
+            "subscale": "language",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M1",
+            "number": 12,
+            "question": "Did you have trouble walking?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "note": "If patient can't walk, go to question 15 and score questions 13-14 as 1.",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M2",
+            "number": 13,
+            "question": "Did you lose your balance when bending over to or reaching for something?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M3",
+            "number": 14,
+            "question": "Did you have trouble climbing stairs?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M4",
+            "number": 15,
+            "question": "Did you have to stop and rest more than you would like when walking or using a wheelchair?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M5",
+            "number": 16,
+            "question": "Did you have trouble with standing?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_M6",
+            "number": 17,
+            "question": "Did you have trouble getting out of a chair?",
+            "type": "likert",
+            "required": true,
+            "subscale": "mobility",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_MO1",
+            "number": 18,
+            "question": "I was discouraged about my future.",
+            "type": "likert",
+            "required": true,
+            "subscale": "mood",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_MO2",
+            "number": 19,
+            "question": "I wasn't interested in other people or activities.",
+            "type": "likert",
+            "required": true,
+            "subscale": "mood",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_MO3",
+            "number": 20,
+            "question": "I felt withdrawn from other people.",
+            "type": "likert",
+            "required": true,
+            "subscale": "mood",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_MO4",
+            "number": 21,
+            "question": "I had little confidence in myself.",
+            "type": "likert",
+            "required": true,
+            "subscale": "mood",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_MO5",
+            "number": 22,
+            "question": "I was not interested in food.",
+            "type": "likert",
+            "required": true,
+            "subscale": "mood",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_P1",
+            "number": 23,
+            "question": "I was irritable.",
+            "type": "likert",
+            "required": true,
+            "subscale": "personality",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_P2",
+            "number": 24,
+            "question": "I was impatient with others.",
+            "type": "likert",
+            "required": true,
+            "subscale": "personality",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_P3",
+            "number": 25,
+            "question": "My personality has changed.",
+            "type": "likert",
+            "required": true,
+            "subscale": "personality",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SC1",
+            "number": 26,
+            "question": "Did you need help preparing food?",
+            "type": "likert",
+            "required": true,
+            "subscale": "self-care",
+            "responseScale": "help",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SC2",
+            "number": 27,
+            "question": "Did you need help eating? For example, cutting food or preparing food?",
+            "type": "likert",
+            "required": true,
+            "subscale": "self-care",
+            "responseScale": "help",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SC3",
+            "number": 28,
+            "question": "Did you need help getting dressed? For example, putting on socks or shoes, buttoning buttons, or zipping?",
+            "type": "likert",
+            "required": true,
+            "subscale": "self-care",
+            "responseScale": "help",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SC4",
+            "number": 29,
+            "question": "Did you need help taking a bath or a shower?",
+            "type": "likert",
+            "required": true,
+            "subscale": "self-care",
+            "responseScale": "help",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SC5",
+            "number": 30,
+            "question": "Did you need help to use the toilet?",
+            "type": "likert",
+            "required": true,
+            "subscale": "self-care",
+            "responseScale": "help",
+            "options": [
+                { "value": 1, "label": "Total help", "points": 1 },
+                { "value": 2, "label": "A lot of help", "points": 2 },
+                { "value": 3, "label": "Some help", "points": 3 },
+                { "value": 4, "label": "A little help", "points": 4 },
+                { "value": 5, "label": "No help needed", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SR1",
+            "number": 31,
+            "question": "I didn't go out as often as I would like.",
+            "type": "likert",
+            "required": true,
+            "subscale": "social-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SR2",
+            "number": 32,
+            "question": "I did my hobbies and recreation for shorter periods of time than I would like.",
+            "type": "likert",
+            "required": true,
+            "subscale": "social-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SR3",
+            "number": 33,
+            "question": "I didn't see as many of my friends as I would like.",
+            "type": "likert",
+            "required": true,
+            "subscale": "social-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SR4",
+            "number": 34,
+            "question": "I had sex less often than I would like.",
+            "type": "likert",
+            "required": true,
+            "subscale": "social-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_SR5",
+            "number": 35,
+            "question": "My physical condition interfered with my social life.",
+            "type": "likert",
+            "required": true,
+            "subscale": "social-roles",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_T1",
+            "number": 36,
+            "question": "It was hard for me to concentrate.",
+            "type": "likert",
+            "required": true,
+            "subscale": "thinking",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_T2",
+            "number": 37,
+            "question": "I had trouble remembering things.",
+            "type": "likert",
+            "required": true,
+            "subscale": "thinking",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_T3",
+            "number": 38,
+            "question": "I had to write things down to remember them.",
+            "type": "likert",
+            "required": true,
+            "subscale": "thinking",
+            "responseScale": "agreement",
+            "options": [
+                { "value": 1, "label": "Strongly agree", "points": 1 },
+                { "value": 2, "label": "Moderately agree", "points": 2 },
+                { "value": 3, "label": "Neither agree nor disagree", "points": 3 },
+                { "value": 4, "label": "Moderately disagree", "points": 4 },
+                { "value": 5, "label": "Strongly disagree", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_UE1",
+            "number": 39,
+            "question": "Did you have trouble writing or typing?",
+            "type": "likert",
+            "required": true,
+            "subscale": "upper-extremity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_UE2",
+            "number": 40,
+            "question": "Did you have trouble putting on socks?",
+            "type": "likert",
+            "required": true,
+            "subscale": "upper-extremity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_UE3",
+            "number": 41,
+            "question": "Did you have trouble buttoning buttons?",
+            "type": "likert",
+            "required": true,
+            "subscale": "upper-extremity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_UE4",
+            "number": 42,
+            "question": "Did you have trouble zipping a zipper?",
+            "type": "likert",
+            "required": true,
+            "subscale": "upper-extremity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_UE5",
+            "number": 43,
+            "question": "Did you have trouble opening a jar?",
+            "type": "likert",
+            "required": true,
+            "subscale": "upper-extremity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_V1",
+            "number": 44,
+            "question": "Did you have trouble seeing the television well enough to enjoy a show?",
+            "type": "likert",
+            "required": true,
+            "subscale": "vision",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_V2",
+            "number": 45,
+            "question": "Did you have trouble reaching things because of poor eyesight?",
+            "type": "likert",
+            "required": true,
+            "subscale": "vision",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_V3",
+            "number": 46,
+            "question": "Did you have trouble seeing things off to one side?",
+            "type": "likert",
+            "required": true,
+            "subscale": "vision",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_W1",
+            "number": 47,
+            "question": "Did you have trouble doing daily work around the house?",
+            "type": "likert",
+            "required": true,
+            "subscale": "work-productivity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_W2",
+            "number": 48,
+            "question": "Did you have trouble finishing jobs that you started?",
+            "type": "likert",
+            "required": true,
+            "subscale": "work-productivity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        },
+        {
+            "id": "SSQOL_W3",
+            "number": 49,
+            "question": "Did you have trouble doing the work you used to do?",
+            "type": "likert",
+            "required": true,
+            "subscale": "work-productivity",
+            "responseScale": "trouble",
+            "options": [
+                { "value": 1, "label": "Couldn't do it at all", "points": 1 },
+                { "value": 2, "label": "A lot of trouble", "points": 2 },
+                { "value": 3, "label": "Some trouble", "points": 3 },
+                { "value": 4, "label": "A little trouble", "points": 4 },
+                { "value": 5, "label": "No trouble at all", "points": 5 }
+            ]
+        }
+    ],
+
+    "subscales": [
+        {
+            "id": "energy",
+            "name": "Energy",
+            "items": ["SSQOL_E1", "SSQOL_E2", "SSQOL_E3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Fatigue and energy levels"
+        },
+        {
+            "id": "family-roles",
+            "name": "Family Roles",
+            "items": ["SSQOL_FR1", "SSQOL_FR2", "SSQOL_FR3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Participation in family activities and perceived burden"
+        },
+        {
+            "id": "language",
+            "name": "Language",
+            "items": ["SSQOL_L1", "SSQOL_L2", "SSQOL_L3", "SSQOL_L4", "SSQOL_L5"],
+            "minScore": 5,
+            "maxScore": 25,
+            "description": "Communication and speech difficulties"
+        },
+        {
+            "id": "mobility",
+            "name": "Mobility",
+            "items": ["SSQOL_M1", "SSQOL_M2", "SSQOL_M3", "SSQOL_M4", "SSQOL_M5", "SSQOL_M6"],
+            "minScore": 6,
+            "maxScore": 30,
+            "description": "Walking, balance, transfers, and physical movement"
+        },
+        {
+            "id": "mood",
+            "name": "Mood",
+            "items": ["SSQOL_MO1", "SSQOL_MO2", "SSQOL_MO3", "SSQOL_MO4", "SSQOL_MO5"],
+            "minScore": 5,
+            "maxScore": 25,
+            "description": "Emotional wellbeing and depressive symptoms"
+        },
+        {
+            "id": "personality",
+            "name": "Personality",
+            "items": ["SSQOL_P1", "SSQOL_P2", "SSQOL_P3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Changes in temperament and personality"
+        },
+        {
+            "id": "self-care",
+            "name": "Self Care",
+            "items": ["SSQOL_SC1", "SSQOL_SC2", "SSQOL_SC3", "SSQOL_SC4", "SSQOL_SC5"],
+            "minScore": 5,
+            "maxScore": 25,
+            "description": "Independence in activities of daily living"
+        },
+        {
+            "id": "social-roles",
+            "name": "Social Roles",
+            "items": ["SSQOL_SR1", "SSQOL_SR2", "SSQOL_SR3", "SSQOL_SR4", "SSQOL_SR5"],
+            "minScore": 5,
+            "maxScore": 25,
+            "description": "Social participation and relationships"
+        },
+        {
+            "id": "thinking",
+            "name": "Thinking",
+            "items": ["SSQOL_T1", "SSQOL_T2", "SSQOL_T3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Concentration and memory"
+        },
+        {
+            "id": "upper-extremity",
+            "name": "Upper Extremity Function",
+            "items": ["SSQOL_UE1", "SSQOL_UE2", "SSQOL_UE3", "SSQOL_UE4", "SSQOL_UE5"],
+            "minScore": 5,
+            "maxScore": 25,
+            "description": "Fine motor skills and arm/hand function"
+        },
+        {
+            "id": "vision",
+            "name": "Vision",
+            "items": ["SSQOL_V1", "SSQOL_V2", "SSQOL_V3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Visual function and perception"
+        },
+        {
+            "id": "work-productivity",
+            "name": "Work/Productivity",
+            "items": ["SSQOL_W1", "SSQOL_W2", "SSQOL_W3"],
+            "minScore": 3,
+            "maxScore": 15,
+            "description": "Ability to perform work and household tasks"
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "excellent",
+            "label": "Excellent Quality of Life",
+            "range": { "min": 196, "max": 245 },
+            "color": "#22c55e",
+            "description": "Minimal or no stroke-related impact on quality of life."
+        },
+        {
+            "id": "good",
+            "label": "Good Quality of Life",
+            "range": { "min": 147, "max": 195 },
+            "color": "#84cc16",
+            "description": "Mild stroke-related impact on quality of life."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Quality of Life",
+            "range": { "min": 98, "max": 146 },
+            "color": "#eab308",
+            "description": "Moderate stroke-related impact on quality of life."
+        },
+        {
+            "id": "poor",
+            "label": "Poor Quality of Life",
+            "range": { "min": 49, "max": 97 },
+            "color": "#dc2626",
+            "description": "Significant stroke-related impact on quality of life."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all item scores. Higher scores indicate better quality of life. Domain scores can be calculated by summing items within each subscale.",
+        "totalScoreRange": "49-245 (higher = better QOL)",
+        "domainScoring": "Each domain is scored separately to identify specific areas of difficulty.",
+        "responseFormats": "Three response formats are used: (1) Help needed (Self Care), (2) Trouble experienced (Language, Mobility, Upper Extremity, Vision, Work), (3) Agreement with negative statements (Energy, Family Roles, Mood, Personality, Social Roles, Thinking).",
+        "clinicalUse": "Used to assess stroke-specific quality of life and identify domains requiring intervention. Can track recovery progress over time.",
+        "note": "If patient cannot walk, score Mobility items 2-3 as 1 and proceed to item 4."
+    },
+
+    "references": [
+        {
+            "citation": "Williams LS, Weinberger M, Harris LE, Clark DO, Biller J. Development of a stroke-specific quality of life scale. Stroke. 1999;30(7):1362-1369.",
+            "doi": "10.1161/01.STR.30.7.1362"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Williams LS, Weinberger M, Harris LE, Clark DO, Biller J",
+        "license": "Public domain for clinical and research use"
+    }
+}

@@ -1,0 +1,253 @@
+{
+    "id": "painDETECT",
+    "name": "painDETECT Questionnaire",
+    "shortName": "painDETECT",
+    "version": "1.0",
+    "description": "A validated screening tool for identifying neuropathic pain components in patients with chronic pain. Assesses pain intensity, sensory symptoms, pain pattern, and radiation to determine the likelihood of neuropathic pain.",
+    "category": "pain",
+    "recallPeriod": "Current and past 4 weeks",
+    "instructions": "Mark your main area of pain. Answer questions about pain intensity and sensory symptoms. Select the pattern that best describes your pain and indicate if pain radiates.",
+    "estimatedTime": "5-10 minutes",
+    "scoringType": "paindetect",
+    "maxScore": 38,
+    "totalItems": 12,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "PD_NRS1",
+            "number": 1,
+            "question": "How would you assess your pain now, at this moment?",
+            "type": "nrs",
+            "required": true,
+            "minValue": 0,
+            "maxValue": 10,
+            "minLabel": "None",
+            "maxLabel": "Maximum",
+            "includeInScore": false,
+            "category": "intensity"
+        },
+        {
+            "id": "PD_NRS2",
+            "number": 2,
+            "question": "How strong was the strongest pain during the past 4 weeks?",
+            "type": "nrs",
+            "required": true,
+            "minValue": 0,
+            "maxValue": 10,
+            "minLabel": "None",
+            "maxLabel": "Maximum",
+            "includeInScore": false,
+            "category": "intensity"
+        },
+        {
+            "id": "PD_NRS3",
+            "number": 3,
+            "question": "How strong was the pain during the past 4 weeks on average?",
+            "type": "nrs",
+            "required": true,
+            "minValue": 0,
+            "maxValue": 10,
+            "minLabel": "None",
+            "maxLabel": "Maximum",
+            "includeInScore": false,
+            "category": "intensity"
+        },
+        {
+            "id": "PD_S1",
+            "number": 4,
+            "question": "Do you suffer from a burning sensation (e.g., stinging nettles) in the marked areas?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S2",
+            "number": 5,
+            "question": "Do you have a tingling or prickling sensation in the area of your pain (like crawling ants or electrical tingling)?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S3",
+            "number": 6,
+            "question": "Is light touching (clothing, a blanket) in this area painful?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S4",
+            "number": 7,
+            "question": "Do you have sudden pain attacks in the area of your pain, like electric shocks?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S5",
+            "number": 8,
+            "question": "Is cold or heat (bath water) in this area occasionally painful?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S6",
+            "number": 9,
+            "question": "Do you suffer from a sensation of numbness in the areas that you marked?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_S7",
+            "number": 10,
+            "question": "Does slight pressure in this area, e.g., with a finger, trigger pain?",
+            "type": "likert",
+            "required": true,
+            "category": "sensory",
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "Hardly noticed", "points": 1 },
+                { "value": 2, "label": "Slightly", "points": 2 },
+                { "value": 3, "label": "Moderately", "points": 3 },
+                { "value": 4, "label": "Strongly", "points": 4 },
+                { "value": 5, "label": "Very strongly", "points": 5 }
+            ]
+        },
+        {
+            "id": "PD_PATTERN",
+            "number": 11,
+            "question": "Mark the picture that best describes the course of your pain:",
+            "type": "single-selection",
+            "required": true,
+            "category": "pattern",
+            "options": [
+                { "value": 1, "label": "Persistent pain with slight fluctuations", "points": 0, "description": "Pain is constant with minimal variation" },
+                { "value": 2, "label": "Persistent pain with pain attacks", "points": -1, "description": "Constant background pain with additional pain attacks" },
+                { "value": 3, "label": "Pain attacks without pain between them", "points": 1, "description": "Episodic attacks with pain-free intervals" },
+                { "value": 4, "label": "Pain attacks with pain between them", "points": 1, "description": "Pain attacks superimposed on ongoing pain" }
+            ]
+        },
+        {
+            "id": "PD_RADIATION",
+            "number": 12,
+            "question": "Does your pain radiate to other regions of your body?",
+            "type": "binary",
+            "required": true,
+            "category": "radiation",
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 2 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "nociceptive",
+            "label": "Nociceptive Pain (Neuropathic Unlikely)",
+            "min": -1,
+            "max": 12,
+            "color": "#22c55e",
+            "description": "A neuropathic pain component is unlikely (<15% probability)."
+        },
+        {
+            "id": "unclear",
+            "label": "Unclear/Ambiguous",
+            "min": 13,
+            "max": 18,
+            "color": "#eab308",
+            "description": "Result is ambiguous; however, a neuropathic pain component can be present."
+        },
+        {
+            "id": "neuropathic",
+            "label": "Neuropathic Pain Likely",
+            "min": 19,
+            "max": 38,
+            "color": "#dc2626",
+            "description": "A neuropathic pain component is likely (>90% probability)."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum of 7 sensory symptom scores (0-35) + pain pattern score (-1, 0, or +1) + radiation score (0 or +2). Final score range: -1 to 38.",
+        "components": {
+            "sensorySymptoms": "Items 4-10: Sum of points (range 0-35)",
+            "painPattern": "Item 11: Adds -1, 0, or +1 based on pattern selected",
+            "radiation": "Item 12: Adds +2 if pain radiates"
+        },
+        "cutoffs": {
+            "nociceptive": "≤12: Neuropathic component unlikely (<15%)",
+            "unclear": "13-18: Ambiguous result",
+            "neuropathic": "≥19: Neuropathic component likely (>90%)"
+        },
+        "clinicalNote": "This screening tool does not replace medical diagnostics. It is used for screening the presence of a neuropathic pain component.",
+        "painIntensityScores": "NRS items 1-3 provide clinical information about pain intensity but are not included in the painDETECT score."
+    },
+
+    "references": [
+        {
+            "citation": "Freynhagen R, Baron R, Gockel U, Tölle TR. painDETECT: a new screening questionnaire to identify neuropathic components in patients with back pain. Curr Med Res Opin. 2006;22(10):1911-1920.",
+            "doi": "10.1185/030079906X132488"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Freynhagen R, Baron R, Gockel U, Tölle TR",
+        "copyright": "©2005 Pfizer Pharma GmbH",
+        "license": "For clinical use"
+    }
+}

@@ -1,0 +1,335 @@
+{
+    "id": "MSQ",
+    "name": "Migraine Specific Quality of Life Questionnaire",
+    "shortName": "MSQ v2.1",
+    "version": "2.1",
+    "description": "A 14-item instrument that measures the impact of migraine on quality of life across three domains: Role Function-Restrictive (how migraines limit daily activities), Role Function-Preventive (how migraines prevent daily activities), and Emotional Function (emotional impact of migraines).",
+    "category": "headache",
+    "recallPeriod": "Over the past 4 weeks",
+    "instructions": "While answering the following questions, please think about all migraine attacks you may have had in the past 4 weeks. For each question, select the response that best describes your experience.",
+    "estimatedTime": "5-10 minutes",
+    "scoringType": "msq-transformed",
+    "maxScore": 100,
+    "totalItems": 14,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "MSQ_1",
+            "number": 1,
+            "question": "How often have migraines interfered with how well you dealt with family, friends and others who are close to you?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_2",
+            "number": 2,
+            "question": "How often have migraines interrupted with your leisure time activities such as reading or exercising?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_3",
+            "number": 3,
+            "question": "How often have you had difficulty in performing work or other daily activities?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_4",
+            "number": 4,
+            "question": "How often have migraines kept you from getting as much accomplished as you normally do at work or at home?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_5",
+            "number": 5,
+            "question": "How often have migraines limited your ability to work or do other activities as carefully as you usually do them?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_6",
+            "number": 6,
+            "question": "How often have you had to cancel or delay work or social activities because you were exhausted?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_7",
+            "number": 7,
+            "question": "How often have migraines left you with limited energy levels?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-restrictive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_8",
+            "number": 8,
+            "question": "How often have you had to stop work or other activities?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-preventive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_9",
+            "number": 9,
+            "question": "How often have you needed the help of other people in handling routine tasks such as everyday household chores, doing necessary business, shopping, or caring for others when you had a migraine attack?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-preventive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_10",
+            "number": 10,
+            "question": "How often have you avoided social or family activities to treat your migraine attacks?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-preventive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_11",
+            "number": 11,
+            "question": "How often has it been difficult for you to go to social events such as parties?",
+            "type": "likert",
+            "required": true,
+            "subscale": "role-preventive",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_12",
+            "number": 12,
+            "question": "How often have you felt fed up or frustrated?",
+            "type": "likert",
+            "required": true,
+            "subscale": "emotional",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_13",
+            "number": 13,
+            "question": "How often have you felt like you were a burden on others?",
+            "type": "likert",
+            "required": true,
+            "subscale": "emotional",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        },
+        {
+            "id": "MSQ_14",
+            "number": 14,
+            "question": "How often have you been afraid of letting others down?",
+            "type": "likert",
+            "required": true,
+            "subscale": "emotional",
+            "options": [
+                { "value": 6, "label": "Never", "points": 6 },
+                { "value": 5, "label": "Rarely", "points": 5 },
+                { "value": 4, "label": "Sometimes", "points": 4 },
+                { "value": 3, "label": "Pretty Often", "points": 3 },
+                { "value": 2, "label": "Almost Always", "points": 2 },
+                { "value": 1, "label": "Always", "points": 1 }
+            ]
+        }
+    ],
+
+    "subscales": [
+        {
+            "id": "role-restrictive",
+            "name": "Role Function-Restrictive (RR)",
+            "items": ["MSQ_1", "MSQ_2", "MSQ_3", "MSQ_4", "MSQ_5", "MSQ_6", "MSQ_7"],
+            "rawScoreRange": "7-42",
+            "transformedRange": "0-100",
+            "formula": "(Raw Score - 7) × 100 / 35",
+            "description": "Measures how migraines limit or restrict daily activities (7 items)"
+        },
+        {
+            "id": "role-preventive",
+            "name": "Role Function-Preventive (RP)",
+            "items": ["MSQ_8", "MSQ_9", "MSQ_10", "MSQ_11"],
+            "rawScoreRange": "4-24",
+            "transformedRange": "0-100",
+            "formula": "(Raw Score - 4) × 100 / 20",
+            "description": "Measures how migraines prevent daily activities (4 items)"
+        },
+        {
+            "id": "emotional",
+            "name": "Emotional Function (EF)",
+            "items": ["MSQ_12", "MSQ_13", "MSQ_14"],
+            "rawScoreRange": "3-18",
+            "transformedRange": "0-100",
+            "formula": "(Raw Score - 3) × 100 / 15",
+            "description": "Measures the emotional impact of migraines (3 items)"
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "severe-impact",
+            "label": "Severe Impact",
+            "min": 0,
+            "max": 30,
+            "color": "#dc2626",
+            "description": "Migraines have a severe impact on quality of life."
+        },
+        {
+            "id": "moderate-impact",
+            "label": "Moderate Impact",
+            "min": 31,
+            "max": 50,
+            "color": "#f97316",
+            "description": "Migraines have a moderate impact on quality of life."
+        },
+        {
+            "id": "mild-impact",
+            "label": "Mild Impact",
+            "min": 51,
+            "max": 70,
+            "color": "#eab308",
+            "description": "Migraines have a mild impact on quality of life."
+        },
+        {
+            "id": "minimal-impact",
+            "label": "Minimal/No Impact",
+            "min": 71,
+            "max": 100,
+            "color": "#22c55e",
+            "description": "Migraines have minimal to no impact on quality of life."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Each subscale is scored separately. Raw scores are transformed to 0-100 scale. Higher transformed scores indicate better quality of life (less migraine impact).",
+        "transformationFormulas": {
+            "RR": "(Sum of items 1-7 minus 7) × 100 / 35",
+            "RP": "(Sum of items 8-11 minus 4) × 100 / 20",
+            "EF": "(Sum of items 12-14 minus 3) × 100 / 15"
+        },
+        "scoreInterpretation": "0 = maximum migraine impact, 100 = no migraine impact on that domain",
+        "minimallyImportantDifference": "A change of 5 points on any subscale is considered clinically meaningful."
+    },
+
+    "references": [
+        {
+            "citation": "Martin BC, Pathak DS, Sharfman MI, et al. Validity and reliability of the migraine-specific quality of life questionnaire (MSQ Version 2.1). Headache. 2000;40(3):204-215.",
+            "doi": "10.1046/j.1526-4610.2000.00030.x"
+        },
+        {
+            "citation": "Jhingran P, Osterhaus JT, Miller DW, Cady RK, Davis LA. Development and validation of the Migraine-Specific Quality of Life Questionnaire. Headache. 1998;38(4):295-302."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "GlaxoSmithKline",
+        "license": "Proprietary - for clinical use"
+    }
+}

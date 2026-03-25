@@ -1,0 +1,216 @@
+{
+    "id": "FSS",
+    "name": "Fatigue Severity Scale",
+    "shortName": "FSS",
+    "version": "1.0",
+    "description": "A 9-item self-report questionnaire that measures the severity of fatigue and its effect on a person's activities and lifestyle. Widely used in neurological conditions including multiple sclerosis, lupus, and chronic fatigue syndrome.",
+    "category": "fatigue",
+    "recallPeriod": "During the past week",
+    "instructions": "Read each statement and select a number from 1 to 7, depending on how appropriate the statement applies to you over the preceding week. A low value (1) indicates strong disagreement, a high value (7) indicates strong agreement.",
+    "estimatedTime": "3-5 minutes",
+    "scoringType": "mean",
+    "maxScore": 7,
+    "minScore": 1,
+    "totalItems": 9,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "FSS_1",
+            "number": 1,
+            "question": "My motivation is lower when I am fatigued.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_2",
+            "number": 2,
+            "question": "Exercise brings on my fatigue.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_3",
+            "number": 3,
+            "question": "I am easily fatigued.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_4",
+            "number": 4,
+            "question": "Fatigue interferes with my physical functioning.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_5",
+            "number": 5,
+            "question": "Fatigue causes frequent problems for me.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_6",
+            "number": 6,
+            "question": "My fatigue prevents sustained physical functioning.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_7",
+            "number": 7,
+            "question": "Fatigue interferes with carrying out certain duties and responsibilities.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_8",
+            "number": 8,
+            "question": "Fatigue is among my three most disabling symptoms.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        },
+        {
+            "id": "FSS_9",
+            "number": 9,
+            "question": "Fatigue interferes with my work, family, or social life.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "1 - Strongly disagree", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4 - Neutral", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7 - Strongly agree", "points": 7 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-fatigue",
+            "label": "No Significant Fatigue",
+            "range": { "min": 1.0, "max": 2.9 },
+            "color": "#22c55e",
+            "description": "No clinically significant fatigue."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Fatigue",
+            "range": { "min": 3.0, "max": 3.9 },
+            "color": "#84cc16",
+            "description": "Borderline fatigue, may warrant monitoring."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Fatigue",
+            "range": { "min": 4.0, "max": 4.9 },
+            "color": "#eab308",
+            "description": "Clinically significant fatigue present."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Fatigue",
+            "range": { "min": 5.0, "max": 7.0 },
+            "color": "#dc2626",
+            "description": "Severe fatigue significantly impacting daily functioning."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Calculate the mean of all 9 responses (sum of scores ÷ 9). Score range: 1-7.",
+        "clinicalCutoff": "A mean score ≥4 indicates clinically significant fatigue.",
+        "populationNorms": "Healthy adults typically score 2-3. Patients with chronic conditions often score 4-6.",
+        "clinicalUse": "Widely used in multiple sclerosis, systemic lupus erythematosus, chronic fatigue syndrome, Parkinson's disease, and other conditions associated with fatigue.",
+        "minimumClinicallyImportantDifference": "A change of 0.5-1.0 points in mean score is generally considered clinically meaningful."
+    },
+
+    "references": [
+        {
+            "citation": "Krupp LB, LaRocca NG, Muir-Nash J, Steinberg AD. The fatigue severity scale. Application to patients with multiple sclerosis and systemic lupus erythematosus. Arch Neurol. 1989;46(10):1121-1123.",
+            "doi": "10.1001/archneur.1989.00520460115022"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Krupp LB, LaRocca NG, Muir-Nash J, Steinberg AD",
+        "license": "Public domain for clinical and research use"
+    }
+}

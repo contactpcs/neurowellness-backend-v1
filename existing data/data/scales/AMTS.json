@@ -1,0 +1,196 @@
+{
+    "id": "AMTS",
+    "name": "Abbreviated Mental Test Score",
+    "shortName": "AMTS",
+    "version": "1.0",
+    "description": "A rapid screening tool introduced by Hodkinson in 1972 to assess elderly patients for the possibility of dementia or delirium. Consists of 10 questions testing orientation, memory, and concentration.",
+    "category": "cognitive",
+    "recallPeriod": "Current cognitive status",
+    "instructions": "Ask each question clearly. Score 1 point for each correct answer, 0 for incorrect or no response. The address recall should be tested at the end after all other questions.",
+    "estimatedTime": "3-5 minutes",
+    "scoringType": "sum",
+    "maxScore": 10,
+    "totalItems": 10,
+    "cutoff": 6,
+    "scoreDirection": "higher-is-better",
+    "administrationType": "clinician-administered",
+
+    "questions": [
+        {
+            "id": "AMTS_1",
+            "number": 1,
+            "question": "What is your age?",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_2",
+            "number": 2,
+            "question": "What is the time to the nearest hour?",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_3",
+            "number": 3,
+            "question": "Give the patient an address to remember (e.g., 42 West Street) - to be recalled at end of test",
+            "type": "instruction",
+            "required": false,
+            "scoredInTotal": false,
+            "options": [
+                { "value": 1, "label": "Address given", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_4",
+            "number": 4,
+            "question": "What is the year?",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_5",
+            "number": 5,
+            "question": "What is the name of this place? (hospital, clinic, or home address)",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_6",
+            "number": 6,
+            "question": "Can the patient recognize two persons? (doctor, nurse, carer, relative)",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct (identifies both)", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_7",
+            "number": 7,
+            "question": "What is your date of birth? (day and month sufficient)",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_8",
+            "number": 8,
+            "question": "In what year did World War I begin? (1914)",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct (1914)", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_9",
+            "number": 9,
+            "question": "Name the present monarch/prime minister/president",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_10",
+            "number": 10,
+            "question": "Count backwards from 20 down to 1",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct (no errors, no prompts)", "points": 1 },
+                { "value": 0, "label": "Incorrect (errors or unable)", "points": 0 }
+            ]
+        },
+        {
+            "id": "AMTS_11",
+            "number": 11,
+            "question": "Recall the address given earlier (e.g., 42 West Street)",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Correct", "points": 1 },
+                { "value": 0, "label": "Incorrect", "points": 0 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "normal",
+            "label": "Normal Cognition",
+            "min": 8,
+            "max": 10,
+            "color": "#22c55e",
+            "description": "No significant cognitive impairment detected."
+        },
+        {
+            "id": "mild-impairment",
+            "label": "Mild Impairment",
+            "min": 7,
+            "max": 7,
+            "color": "#eab308",
+            "description": "Borderline score; further assessment may be warranted."
+        },
+        {
+            "id": "significant-impairment",
+            "label": "Significant Impairment",
+            "min": 4,
+            "max": 6,
+            "color": "#f97316",
+            "description": "Score suggests possible delirium or dementia; further diagnostic testing required."
+        },
+        {
+            "id": "severe-impairment",
+            "label": "Severe Impairment",
+            "min": 0,
+            "max": 3,
+            "color": "#ef4444",
+            "description": "Severe cognitive impairment likely; urgent further assessment needed."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum of correct answers. Range: 0-10. Higher scores indicate better cognitive function.",
+        "cutoffScore": "A score of 6 or less suggests delirium or dementia, although further diagnostic tests are necessary to confirm.",
+        "clinicalNotes": "This is a screening tool only. A low score warrants further investigation with more comprehensive cognitive assessments (e.g., MMSE, MoCA). Consider acute causes of confusion (delirium) before diagnosing dementia."
+    },
+
+    "references": [
+        {
+            "citation": "Hodkinson HM. Evaluation of a mental test score for assessment of mental impairment in the elderly. Age Ageing. 1972;1(4):233-238.",
+            "url": "https://doi.org/10.1093/ageing/1.4.233"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Hodkinson HM",
+        "license": "Public domain for clinical use"
+    }
+}

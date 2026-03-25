@@ -1,0 +1,420 @@
+{
+    "id": "DHI",
+    "name": "Dizziness Handicap Inventory",
+    "shortName": "DHI",
+    "version": "1.0",
+    "description": "A self-assessment questionnaire designed to evaluate the self-perceived handicapping effects of dizziness on daily life, incorporating functional, physical, and emotional impacts.",
+    "category": "vestibular",
+    "recallPeriod": "During the last month",
+    "instructions": "Please answer each question as it pertains to your dizziness or unsteadiness problems. Consider your condition during the last month.",
+    "estimatedTime": "5-10 minutes",
+    "scoringType": "sum",
+    "maxScore": 100,
+    "totalItems": 25,
+    "cutoff": 10,
+
+    "domains": {
+        "physical": {
+            "name": "Physical",
+            "items": [0, 3, 7, 10, 12, 16, 24],
+            "maxScore": 28,
+            "description": "Physical aspects of dizziness triggered by movements or positions"
+        },
+        "emotional": {
+            "name": "Emotional",
+            "items": [1, 8, 9, 14, 17, 19, 20, 21, 22],
+            "maxScore": 36,
+            "description": "Emotional consequences of dizziness"
+        },
+        "functional": {
+            "name": "Functional",
+            "items": [2, 4, 5, 6, 11, 13, 15, 18, 23],
+            "maxScore": 36,
+            "description": "Functional limitations in daily activities due to dizziness"
+        }
+    },
+
+    "questions": [
+        {
+            "id": "DHI_1",
+            "number": 1,
+            "question": "Does looking up increase your problem?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_2",
+            "number": 2,
+            "question": "Because of your problem, do you feel frustrated?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_3",
+            "number": 3,
+            "question": "Because of your problem, do you restrict your travel for business or recreation?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_4",
+            "number": 4,
+            "question": "Does walking down the aisle of a supermarket increase your problems?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_5",
+            "number": 5,
+            "question": "Because of your problem, do you have difficulty getting into or out of bed?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_6",
+            "number": 6,
+            "question": "Does your problem significantly restrict your participation in social activities, such as going out to dinner, going to the movies, dancing, or going to parties?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_7",
+            "number": 7,
+            "question": "Because of your problem, do you have difficulty reading?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_8",
+            "number": 8,
+            "question": "Does performing more ambitious activities such as sports, dancing, household chores (sweeping or putting dishes away) increase your problems?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_9",
+            "number": 9,
+            "question": "Because of your problem, are you afraid to leave your home without having someone accompany you?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_10",
+            "number": 10,
+            "question": "Because of your problem, have you been embarrassed in front of others?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_11",
+            "number": 11,
+            "question": "Do quick movements of your head increase your problem?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_12",
+            "number": 12,
+            "question": "Because of your problem, do you avoid heights?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_13",
+            "number": 13,
+            "question": "Does turning over in bed increase your problem?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_14",
+            "number": 14,
+            "question": "Because of your problem, is it difficult for you to do strenuous housework or yard work?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_15",
+            "number": 15,
+            "question": "Because of your problem, are you afraid people may think you are intoxicated?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_16",
+            "number": 16,
+            "question": "Because of your problem, is it difficult for you to go for a walk by yourself?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_17",
+            "number": 17,
+            "question": "Does walking down a sidewalk increase your problem?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_18",
+            "number": 18,
+            "question": "Because of your problem, is it difficult for you to concentrate?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_19",
+            "number": 19,
+            "question": "Because of your problem, is it difficult for you to walk around your house in the dark?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_20",
+            "number": 20,
+            "question": "Because of your problem, are you afraid to stay home alone?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_21",
+            "number": 21,
+            "question": "Because of your problem, do you feel handicapped?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_22",
+            "number": 22,
+            "question": "Has the problem placed stress on your relationships with members of your family or friends?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_23",
+            "number": 23,
+            "question": "Because of your problem, are you depressed?",
+            "domain": "emotional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_24",
+            "number": 24,
+            "question": "Does your problem interfere with your job or household responsibilities?",
+            "domain": "functional",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        },
+        {
+            "id": "DHI_25",
+            "number": 25,
+            "question": "Does bending over increase your problem?",
+            "domain": "physical",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 2, "label": "Sometimes", "points": 2 },
+                { "value": 4, "label": "Yes", "points": 4 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-handicap",
+            "label": "No Handicap",
+            "min": 0,
+            "max": 10,
+            "color": "#22c55e",
+            "description": "No significant dizziness-related handicap."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Handicap",
+            "min": 11,
+            "max": 34,
+            "color": "#eab308",
+            "description": "Mild dizziness-related handicap; balance specialist referral may be warranted."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Handicap",
+            "min": 35,
+            "max": 52,
+            "color": "#f97316",
+            "description": "Moderate dizziness-related handicap affecting daily activities."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Handicap",
+            "min": 53,
+            "max": 100,
+            "color": "#ef4444",
+            "description": "Severe dizziness-related handicap with significant functional impairment."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all items. No=0, Sometimes=2, Yes=4. Range: 0-100.",
+        "referralThreshold": "Scores greater than 10 points should be referred to balance specialists for further evaluation.",
+        "subscaleScoring": "Physical (7 items, max 28), Emotional (9 items, max 36), Functional (9 items, max 36)",
+        "clinicalNotes": "The DHI provides both a total score and subscale scores to help identify the nature of the patient's dizziness-related difficulties."
+    },
+
+    "references": [
+        {
+            "citation": "Jacobson GP, Newman CW. The development of the Dizziness Handicap Inventory. Arch Otolaryngol Head Neck Surg. 1990;116:424-427.",
+            "url": "https://doi.org/10.1001/archotol.1990.01870040046011"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Jacobson GP, Newman CW",
+        "license": "Used with permission from GP Jacobson"
+    }
+}

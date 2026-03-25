@@ -1,0 +1,232 @@
+{
+    "id": "PHQ-9",
+    "name": "Patient Health Questionnaire-9",
+    "shortName": "PHQ-9",
+    "description": "A self-administered depression screening and severity measure",
+    "version": "1.0",
+    "recallPeriod": "Over the last 2 weeks",
+    "scoringType": "sum",
+    "maxScore": 27,
+    "maxItemScore": 3,
+    
+    "questions": [
+        {
+            "index": 0,
+            "label": "Little interest or pleasure in doing things?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 1,
+            "label": "Feeling down, depressed, or hopeless?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 2,
+            "label": "Trouble falling or staying asleep, or sleeping too much?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 3,
+            "label": "Feeling tired or having little energy?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 4,
+            "label": "Poor appetite or overeating?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 5,
+            "label": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 6,
+            "label": "Trouble concentrating on things, such as reading the newspaper or watching television?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 7,
+            "label": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 8,
+            "label": "Thoughts that you would be better off dead, or of hurting yourself in some way?",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not at all" },
+                { "value": 1, "label": "Several days" },
+                { "value": 2, "label": "More than half the days" },
+                { "value": 3, "label": "Nearly every day" }
+            ]
+        },
+        {
+            "index": 9,
+            "label": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+            "type": "functional",
+            "required": true,
+            "scoredInTotal": false,
+            "options": [
+                { "value": 0, "label": "Not difficult at all" },
+                { "value": 1, "label": "Somewhat difficult" },
+                { "value": 2, "label": "Very difficult" },
+                { "value": 3, "label": "Extremely difficult" }
+            ]
+        }
+    ],
+    
+    "severityBands": [
+        {
+            "min": 0,
+            "max": 4,
+            "level": "minimal",
+            "label": "Minimal Depression",
+            "description": "Symptoms suggest minimal or no depression"
+        },
+        {
+            "min": 5,
+            "max": 9,
+            "level": "mild",
+            "label": "Mild Depression",
+            "description": "Symptoms suggest mild depression; watchful waiting and repeat PHQ-9 at follow-up"
+        },
+        {
+            "min": 10,
+            "max": 14,
+            "level": "moderate",
+            "label": "Moderate Depression",
+            "description": "Symptoms suggest moderate depression; treatment plan should be considered"
+        },
+        {
+            "min": 15,
+            "max": 19,
+            "level": "moderately-severe",
+            "label": "Moderately Severe Depression",
+            "description": "Symptoms suggest moderately severe depression; active treatment is recommended"
+        },
+        {
+            "min": 20,
+            "max": 27,
+            "level": "severe",
+            "label": "Severe Depression",
+            "description": "Symptoms suggest severe depression; immediate initiation of treatment is recommended"
+        }
+    ],
+    
+    "riskRules": [
+        {
+            "questionIndex": 8,
+            "operator": ">=",
+            "threshold": 2,
+            "type": "suicide_risk",
+            "severity": "high",
+            "message": "PHQ-9 Q9 (suicidal ideation) score ≥ 2 indicates elevated suicide risk requiring clinical attention"
+        },
+        {
+            "questionIndex": 8,
+            "operator": ">=",
+            "threshold": 1,
+            "type": "suicide_ideation_present",
+            "severity": "moderate",
+            "message": "PHQ-9 Q9 indicates presence of suicidal thoughts"
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The PHQ-9 can be used to make a tentative depression diagnosis and monitor symptom severity over time. For a provisional diagnosis of Major Depressive Disorder: Q1 or Q2 must be answered 'More than half the days' or 'Nearly every day', AND five or more of Q1-Q9 total must be answered 'More than half the days' or 'Nearly every day' (count Q9 if present at all).",
+        "diagnosticCriteria": {
+            "majorDepression": {
+                "description": "Major Depressive Disorder (provisional)",
+                "requires": "Q1 or Q2 ≥ 2, AND 5+ questions from Q1-Q9 scored ≥ 2 (Q9 counts if ≥ 1)"
+            },
+            "otherDepression": {
+                "description": "Other Depressive Syndrome (provisional)",
+                "requires": "Q1 or Q2 ≥ 2, AND 2-4 questions from Q1-Q9 scored ≥ 2 (Q9 counts if ≥ 1)"
+            }
+        },
+        "functionalImpairment": {
+            "description": "Q10 assesses functional impairment and is not scored in the total but provides clinical context",
+            "levels": {
+                "0": "No functional impairment",
+                "1": "Mild functional impairment",
+                "2": "Moderate functional impairment - supports need for treatment",
+                "3": "Severe functional impairment - strongly supports need for treatment"
+            }
+        },
+        "actions": {
+            "minimal": "None; may not require treatment",
+            "mild": "Watchful waiting; repeat PHQ-9 at follow-up. Use clinical judgment about treatment based on duration of symptoms and functional impairment",
+            "moderate": "Treatment plan using antidepressant and/or psychotherapy. Consider counseling, follow-up and/or pharmacotherapy",
+            "moderately-severe": "Active treatment with pharmacotherapy and/or psychotherapy. Antidepressant and/or psychotherapy are indicated",
+            "severe": "Immediate initiation of pharmacotherapy and psychotherapy. If severe impairment, history of poor response, or if patient preference, refer to mental health specialist for treatment and/or collaborative management"
+        },
+        "monitoringGuidelines": {
+            "description": "PHQ-9 should be repeated at each visit to monitor treatment response",
+            "responseDefinition": "A 50% reduction in PHQ-9 score from baseline indicates treatment response",
+            "remissionDefinition": "PHQ-9 score < 5 indicates remission",
+            "treatmentGoal": "Aim for remission (score < 5) within 8-12 weeks of treatment initiation"
+        },
+        "references": [
+            "Kroenke K, Spitzer RL, Williams JB. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613.",
+            "Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues"
+        ]
+    }
+}

@@ -1,0 +1,263 @@
+{
+    "id": "DN4",
+    "name": "Douleur Neuropathique 4 Questions",
+    "shortName": "DN4",
+    "description": "A 10-item screening tool for neuropathic pain combining patient interview (7 items) and clinical examination (3 items)",
+    "version": "1.0",
+    "recallPeriod": "Current pain",
+    "scoringType": "sum",
+    "maxScore": 10,
+    "cutoffScore": 4,
+    
+    "instructions": "This questionnaire is to be completed by the clinician. The first two questions are answered by the patient during the interview. The last two questions require a brief clinical examination of the painful area.",
+    
+    "sections": [
+        {
+            "id": "interview",
+            "name": "Interview of the Patient",
+            "description": "Questions about pain characteristics and associated symptoms",
+            "type": "self_report",
+            "items": 7
+        },
+        {
+            "id": "examination",
+            "name": "Examination of the Patient",
+            "description": "Clinical examination of the painful area",
+            "type": "clinical_examination",
+            "items": 3
+        }
+    ],
+    
+    "questions": [
+        {
+            "index": 0,
+            "section": "interview",
+            "group": "Q1",
+            "groupLabel": "Does the pain have one or more of the following characteristics?",
+            "label": "Burning",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 1,
+            "section": "interview",
+            "group": "Q1",
+            "groupLabel": "Does the pain have one or more of the following characteristics?",
+            "label": "Painful cold",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 2,
+            "section": "interview",
+            "group": "Q1",
+            "groupLabel": "Does the pain have one or more of the following characteristics?",
+            "label": "Electric shocks",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 3,
+            "section": "interview",
+            "group": "Q2",
+            "groupLabel": "Is the pain associated with one or more of the following symptoms in the same area?",
+            "label": "Tingling",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 4,
+            "section": "interview",
+            "group": "Q2",
+            "groupLabel": "Is the pain associated with one or more of the following symptoms in the same area?",
+            "label": "Pins and needles",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 5,
+            "section": "interview",
+            "group": "Q2",
+            "groupLabel": "Is the pain associated with one or more of the following symptoms in the same area?",
+            "label": "Numbness",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 6,
+            "section": "interview",
+            "group": "Q2",
+            "groupLabel": "Is the pain associated with one or more of the following symptoms in the same area?",
+            "label": "Itching",
+            "type": "binary",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 7,
+            "section": "examination",
+            "group": "Q3",
+            "groupLabel": "Is the pain located in an area where the physical examination may reveal one or more of the following characteristics?",
+            "label": "Hypoesthesia to touch (decreased sensation to light touch)",
+            "type": "clinical-binary",
+            "required": true,
+            "examinerAdministered": true,
+            "examinationMethod": "Test with cotton wool or soft brush. Compare painful area to contralateral or adjacent normal area.",
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 8,
+            "section": "examination",
+            "group": "Q3",
+            "groupLabel": "Is the pain located in an area where the physical examination may reveal one or more of the following characteristics?",
+            "label": "Hypoesthesia to pinprick (decreased sensation to pinprick)",
+            "type": "clinical-binary",
+            "required": true,
+            "examinerAdministered": true,
+            "examinationMethod": "Test with a sharp object (e.g., wooden cocktail stick). Compare painful area to contralateral or adjacent normal area.",
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        },
+        {
+            "index": 9,
+            "section": "examination",
+            "group": "Q4",
+            "groupLabel": "In the painful area, can the pain be caused or increased by:",
+            "label": "Brushing (pain caused or increased by light brushing - allodynia)",
+            "type": "clinical-binary",
+            "required": true,
+            "examinerAdministered": true,
+            "examinationMethod": "Lightly brush the painful area with a soft brush, cotton wool, or finger. Record if this causes or increases pain.",
+            "options": [
+                { "value": 0, "label": "No", "points": 0 },
+                { "value": 1, "label": "Yes", "points": 1 }
+            ]
+        }
+    ],
+    
+    "scoringAlgorithm": {
+        "method": "sum",
+        "calculation": "Sum of all 10 items (each scored 0 or 1)",
+        "interviewItems": "Items 1-7 (max 7 points)",
+        "examinationItems": "Items 8-10 (max 3 points)",
+        "totalMax": 10
+    },
+    
+    "severityBands": [
+        {
+            "min": 0,
+            "max": 3,
+            "level": "nociceptive",
+            "label": "Nociceptive Pain Likely",
+            "description": "Score below cutoff; neuropathic pain is unlikely. Pain is likely nociceptive in origin."
+        },
+        {
+            "min": 4,
+            "max": 10,
+            "level": "neuropathic",
+            "label": "Neuropathic Pain Likely",
+            "description": "Score at or above cutoff; neuropathic pain mechanisms are likely contributing. Consider neuropathic pain treatments."
+        }
+    ],
+    
+    "riskRules": [
+        {
+            "type": "total_score",
+            "operator": ">=",
+            "threshold": 4,
+            "severity": "moderate",
+            "message": "DN4 score ≥ 4 indicates neuropathic pain is likely. Consider neuropathic pain treatments (anticonvulsants, SNRIs, TCAs, topical agents)."
+        },
+        {
+            "type": "interview_only",
+            "operator": ">=",
+            "threshold": 3,
+            "severity": "low",
+            "message": "Interview section score ≥ 3 suggests possible neuropathic component. Clinical examination recommended for confirmation."
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The DN4 (Douleur Neuropathique 4) is a validated screening tool for neuropathic pain. It combines patient-reported symptoms (7 items) with clinical examination findings (3 items). A score of 4 or more out of 10 has high sensitivity and specificity for identifying neuropathic pain.",
+        "cutoffExplanation": {
+            "threshold": 4,
+            "sensitivity": "82.9%",
+            "specificity": "89.9%",
+            "description": "A cutoff of ≥4/10 provides optimal discrimination between nociceptive and neuropathic pain with good sensitivity and specificity."
+        },
+        "interviewOnlyUse": {
+            "description": "The 7-item interview section (DN4-interview) can be used alone as a screening tool when clinical examination is not feasible",
+            "cutoff": 3,
+            "sensitivity": "78%",
+            "specificity": "81%"
+        },
+        "symptomDescriptors": {
+            "Q1_pain_characteristics": {
+                "burning": "Spontaneous burning sensation",
+                "painful_cold": "Spontaneous painful cold sensation",
+                "electric_shocks": "Paroxysmal electric shock-like pain"
+            },
+            "Q2_associated_symptoms": {
+                "tingling": "Paresthesia - tingling sensation",
+                "pins_and_needles": "Paresthesia - pins and needles",
+                "numbness": "Hypoesthesia - decreased sensation",
+                "itching": "Dysesthesia - itching in painful area"
+            }
+        },
+        "examinationNotes": {
+            "hypoesthesia_touch": "Reduced sensation to light touch compared to normal area indicates sensory loss",
+            "hypoesthesia_pinprick": "Reduced sensation to pinprick compared to normal area indicates sensory loss",
+            "allodynia": "Pain provoked by normally non-painful stimulus (light brushing) indicates central sensitization"
+        },
+        "treatmentImplications": {
+            "nociceptive": "Standard analgesics (NSAIDs, paracetamol, opioids) may be effective",
+            "neuropathic": "Consider first-line neuropathic agents: pregabalin, gabapentin, duloxetine, amitriptyline. Topical lidocaine or capsaicin for localized pain."
+        },
+        "actions": {
+            "nociceptive": "Neuropathic mechanisms unlikely. Treat with standard analgesic approaches appropriate to pain severity and cause.",
+            "neuropathic": "Neuropathic mechanisms likely. Initiate neuropathic pain treatment. Consider referral to pain specialist if refractory."
+        },
+        "limitations": [
+            "Screening tool only - not diagnostic",
+            "Examination items require clinical assessment",
+            "Mixed pain states may have both nociceptive and neuropathic components",
+            "May not capture all neuropathic pain presentations"
+        ],
+        "references": [
+            "Bouhassira D, Attal N, Alchaar H, et al. Comparison of pain syndromes associated with nervous or somatic lesions and development of a new neuropathic pain diagnostic questionnaire (DN4). Pain. 2005;114(1-2):29-36.",
+            "Bouhassira D, Attal N, Fermanian J, et al. Development and validation of the Neuropathic Pain Symptom Inventory. Pain. 2004;108(3):248-257."
+        ]
+    }
+}

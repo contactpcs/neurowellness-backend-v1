@@ -1,0 +1,312 @@
+{
+    "id": "HDRS",
+    "name": "Hamilton Depression Rating Scale",
+    "shortName": "HDRS-17",
+    "version": "1.0",
+    "description": "The most widely used clinician-administered depression assessment scale. The 17-item version assesses symptoms of depression experienced over the past week, with emphasis on melancholic and physical symptoms.",
+    "category": "depression",
+    "recallPeriod": "Over the past week",
+    "instructions": "For each item, select the one cue which best characterizes the patient based on a structured clinical interview. Be sure to record the answers in the appropriate spaces.",
+    "estimatedTime": "20-30 minutes",
+    "scoringType": "sum",
+    "maxScore": 52,
+    "totalItems": 17,
+    "administrationType": "clinician-administered",
+
+    "questions": [
+        {
+            "id": "HDRS_1",
+            "number": 1,
+            "question": "Depressed Mood (sadness, hopeless, helpless, worthless)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Absent", "points": 0 },
+                { "value": 1, "label": "These feeling states indicated only on questioning", "points": 1 },
+                { "value": 2, "label": "These feeling states spontaneously reported verbally", "points": 2 },
+                { "value": 3, "label": "Communicates feeling states non-verbally (facial expression, posture, voice, tendency to weep)", "points": 3 },
+                { "value": 4, "label": "Patient reports virtually only these feeling states in spontaneous verbal and non-verbal communication", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_2",
+            "number": 2,
+            "question": "Feelings of Guilt",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Absent", "points": 0 },
+                { "value": 1, "label": "Self reproach, feels he/she has let people down", "points": 1 },
+                { "value": 2, "label": "Ideas of guilt or rumination over past errors or sinful deeds", "points": 2 },
+                { "value": 3, "label": "Present illness is a punishment. Delusions of guilt", "points": 3 },
+                { "value": 4, "label": "Hears accusatory or denunciatory voices and/or experiences threatening visual hallucinations", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_3",
+            "number": 3,
+            "question": "Suicide",
+            "type": "likert",
+            "required": true,
+            "riskItem": true,
+            "options": [
+                { "value": 0, "label": "Absent", "points": 0 },
+                { "value": 1, "label": "Feels life is not worth living", "points": 1 },
+                { "value": 2, "label": "Wishes he/she were dead or any thoughts of possible death to self", "points": 2 },
+                { "value": 3, "label": "Ideas or gestures of suicide", "points": 3 },
+                { "value": 4, "label": "Attempts at suicide (any serious attempt rates 4)", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_4",
+            "number": 4,
+            "question": "Insomnia: Early in the Night",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty falling asleep", "points": 0 },
+                { "value": 1, "label": "Complains of occasional difficulty falling asleep (more than 1/2 hour)", "points": 1 },
+                { "value": 2, "label": "Complains of nightly difficulty falling asleep", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_5",
+            "number": 5,
+            "question": "Insomnia: Middle of the Night",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "Patient complains of being restless and disturbed during the night", "points": 1 },
+                { "value": 2, "label": "Waking during the night – any getting out of bed rates 2 (except for voiding)", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_6",
+            "number": 6,
+            "question": "Insomnia: Early Hours of the Morning",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "Waking in early hours of the morning but goes back to sleep", "points": 1 },
+                { "value": 2, "label": "Unable to fall asleep again if he/she gets out of bed", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_7",
+            "number": 7,
+            "question": "Work and Activities",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "Thoughts and feelings of incapacity, fatigue or weakness related to activities, work or hobbies", "points": 1 },
+                { "value": 2, "label": "Loss of interest in activity, hobbies or work – directly reported or indirect in listlessness, indecision, vacillation", "points": 2 },
+                { "value": 3, "label": "Decrease in actual time spent in activities or decrease in productivity (less than 3 hours/day in activities)", "points": 3 },
+                { "value": 4, "label": "Stopped working because of present illness. Engages in no activities except routine chores, or fails to perform routine chores unassisted", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_8",
+            "number": 8,
+            "question": "Retardation (slowness of thought and speech, impaired ability to concentrate, decreased motor activity)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal speech and thought", "points": 0 },
+                { "value": 1, "label": "Slight retardation during the interview", "points": 1 },
+                { "value": 2, "label": "Obvious retardation during the interview", "points": 2 },
+                { "value": 3, "label": "Interview difficult", "points": 3 },
+                { "value": 4, "label": "Complete stupor", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_9",
+            "number": 9,
+            "question": "Agitation",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Fidgetiness", "points": 1 },
+                { "value": 2, "label": "Playing with hands, hair, etc.", "points": 2 },
+                { "value": 3, "label": "Moving about, can't sit still", "points": 3 },
+                { "value": 4, "label": "Hand wringing, nail biting, hair-pulling, biting of lips", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_10",
+            "number": 10,
+            "question": "Anxiety Psychic",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "Subjective tension and irritability", "points": 1 },
+                { "value": 2, "label": "Worrying about minor matters", "points": 2 },
+                { "value": 3, "label": "Apprehensive attitude apparent in face or speech", "points": 3 },
+                { "value": 4, "label": "Fears expressed without questioning", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_11",
+            "number": 11,
+            "question": "Anxiety Somatic (physiological concomitants: GI symptoms, cardiovascular, respiratory, urinary frequency, sweating)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Absent", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Moderate", "points": 2 },
+                { "value": 3, "label": "Severe", "points": 3 },
+                { "value": 4, "label": "Incapacitating", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_12",
+            "number": 12,
+            "question": "Somatic Symptoms Gastro-Intestinal",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Loss of appetite but eating without staff encouragement. Heavy feelings in abdomen", "points": 1 },
+                { "value": 2, "label": "Difficulty eating without staff urging. Requests or requires laxatives or medication for bowels or GI symptoms", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_13",
+            "number": 13,
+            "question": "General Somatic Symptoms",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Heaviness in limbs, back or head. Backaches, headaches, muscle aches. Loss of energy and fatigability", "points": 1 },
+                { "value": 2, "label": "Any clear-cut symptom rates 2", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_14",
+            "number": 14,
+            "question": "Genital Symptoms (loss of libido, menstrual disturbances)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Absent", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Severe", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_15",
+            "number": 15,
+            "question": "Hypochondriasis",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not present", "points": 0 },
+                { "value": 1, "label": "Self-absorption (bodily)", "points": 1 },
+                { "value": 2, "label": "Preoccupation with health", "points": 2 },
+                { "value": 3, "label": "Frequent complaints, requests for help, etc.", "points": 3 },
+                { "value": 4, "label": "Hypochondriacal delusions", "points": 4 }
+            ]
+        },
+        {
+            "id": "HDRS_16",
+            "number": 16,
+            "question": "Loss of Weight (rate according to patient report or weekly measurements)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No weight loss / Less than 1 lb weight loss in week", "points": 0 },
+                { "value": 1, "label": "Probable weight loss associated with present illness / Greater than 1 lb weight loss in week", "points": 1 },
+                { "value": 2, "label": "Definite (according to patient) weight loss / Greater than 2 lb weight loss in week", "points": 2 }
+            ]
+        },
+        {
+            "id": "HDRS_17",
+            "number": 17,
+            "question": "Insight",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Acknowledges being depressed and ill", "points": 0 },
+                { "value": 1, "label": "Acknowledges illness but attributes cause to bad food, climate, overwork, virus, need for rest, etc.", "points": 1 },
+                { "value": 2, "label": "Denies being ill at all", "points": 2 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "normal",
+            "label": "Normal / Remission",
+            "min": 0,
+            "max": 7,
+            "color": "#22c55e",
+            "description": "Within normal range or in clinical remission."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Depression",
+            "min": 8,
+            "max": 13,
+            "color": "#eab308",
+            "description": "Mild depressive symptoms."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Depression",
+            "min": 14,
+            "max": 18,
+            "color": "#f97316",
+            "description": "Moderate depressive symptoms."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Depression",
+            "min": 19,
+            "max": 22,
+            "color": "#dc2626",
+            "description": "Severe depressive symptoms."
+        },
+        {
+            "id": "very-severe",
+            "label": "Very Severe Depression",
+            "min": 23,
+            "max": 52,
+            "color": "#ef4444",
+            "description": "Very severe depressive symptoms requiring urgent clinical attention."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all 17 item scores. Range: 0-52.",
+        "remissionCriteria": "A score of 0-7 is generally accepted as within normal range or clinical remission.",
+        "trialEntry": "A score of 20 or higher (at least moderate severity) is usually required for entry into clinical trials.",
+        "clinicalNotes": "Item 3 (Suicide) should be carefully assessed as a risk indicator. The HDRS emphasizes melancholic and physical symptoms; atypical symptoms (hypersomnia, hyperphagia) are not assessed.",
+        "riskItems": "Item 3 (Suicide) - scores of 3 or 4 indicate significant suicide risk requiring immediate clinical attention."
+    },
+
+    "references": [
+        {
+            "citation": "Hamilton M. A rating scale for depression. J Neurol Neurosurg Psychiatry. 1960;23:56-62.",
+            "url": "https://doi.org/10.1136/jnnp.23.1.56"
+        },
+        {
+            "citation": "Hamilton M. Development of a rating scale for primary depressive illness. Br J Soc Clin Psychol. 1967;6(4):278-96."
+        },
+        {
+            "citation": "Williams JB. A structured interview guide for the Hamilton Depression Rating Scale. Arch Gen Psychiatry. 1988;45(8):742-7."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Hamilton M",
+        "license": "Public domain"
+    }
+}

@@ -1,0 +1,310 @@
+{
+    "id": "PFS-16",
+    "name": "Parkinson's Disease Fatigue Scale",
+    "shortName": "PFS-16",
+    "version": "1.0",
+    "description": "A 16-item scale specifically designed to assess fatigue and its impact in patients with Parkinson's disease. Measures both the presence and severity of fatigue experienced over the past two weeks.",
+    "category": "fatigue",
+    "recallPeriod": "Over the past two weeks",
+    "instructions": "Printed below are a series of statements about fatigue and the impact that it can have. How well do the statements describe your own feelings and experiences over the past two weeks? Read each item and decide how much you agree or disagree with it. Tick only one box for each item and try not to miss any out.",
+    "estimatedTime": "5-10 minutes",
+    "scoringType": "pfs-dual",
+    "maxScore": 80,
+    "maxScoreBinary": 16,
+    "totalItems": 16,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "PFS_1",
+            "number": 1,
+            "question": "I have to rest during the day",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_2",
+            "number": 2,
+            "question": "My life is restricted by fatigue",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_3",
+            "number": 3,
+            "question": "I get tired more quickly than other people I know",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_4",
+            "number": 4,
+            "question": "Fatigue is one of my three worst symptoms",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_5",
+            "number": 5,
+            "question": "I feel completely exhausted",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_6",
+            "number": 6,
+            "question": "Fatigue makes me reluctant to socialise",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_7",
+            "number": 7,
+            "question": "It takes me longer to get things done because of fatigue",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_8",
+            "number": 8,
+            "question": "I have a feeling of heaviness",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_9",
+            "number": 9,
+            "question": "If I wasn't so tired I could do more things",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_10",
+            "number": 10,
+            "question": "Everything I do is an effort",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_11",
+            "number": 11,
+            "question": "I feel tired for much of the time",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_12",
+            "number": 12,
+            "question": "I feel totally drained",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_13",
+            "number": 13,
+            "question": "Fatigue makes it difficult for me to cope with everyday activities",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_14",
+            "number": 14,
+            "question": "I feel tired even when I haven't done anything",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_15",
+            "number": 15,
+            "question": "Because of fatigue I do less in my day than I would like",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        },
+        {
+            "id": "PFS_16",
+            "number": 16,
+            "question": "I get so tired I want to lie down wherever I am",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Strongly disagree", "points": 1, "binaryPoints": 0 },
+                { "value": 2, "label": "Disagree", "points": 2, "binaryPoints": 0 },
+                { "value": 3, "label": "Do not agree or disagree", "points": 3, "binaryPoints": 0 },
+                { "value": 4, "label": "Agree", "points": 4, "binaryPoints": 1 },
+                { "value": 5, "label": "Strongly agree", "points": 5, "binaryPoints": 1 }
+            ]
+        }
+    ],
+
+    "scoringMethods": [
+        {
+            "id": "method1",
+            "name": "Full Likert Scoring",
+            "description": "Sum of all item scores using 1-5 Likert values",
+            "range": "16-80",
+            "higherMeaning": "Greater fatigue severity"
+        },
+        {
+            "id": "method2",
+            "name": "Binary Scoring",
+            "description": "Strongly disagree/Disagree/Neutral = 0, Agree/Strongly agree = 1",
+            "range": "0-16",
+            "cutoff": "≥8 indicates presence of significant fatigue",
+            "higherMeaning": "More fatigue symptoms endorsed"
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-significant-fatigue",
+            "label": "No Significant Fatigue",
+            "min": 0,
+            "max": 7,
+            "color": "#22c55e",
+            "description": "Binary score <8: No significant fatigue present.",
+            "scoringMethod": "binary"
+        },
+        {
+            "id": "significant-fatigue",
+            "label": "Significant Fatigue",
+            "min": 8,
+            "max": 16,
+            "color": "#dc2626",
+            "description": "Binary score ≥8: Significant fatigue is present.",
+            "scoringMethod": "binary"
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod1": {
+            "method": "Sum all 16 items using Likert values (1-5). Range: 16-80.",
+            "interpretation": "Higher scores indicate more severe fatigue."
+        },
+        "scoringMethod2": {
+            "method": "Binary scoring: Strongly disagree/Disagree/Neutral = 0, Agree/Strongly agree = 1. Range: 0-16.",
+            "cutoff": "A score of ≥8 indicates the presence of significant fatigue.",
+            "interpretation": "Used for identifying clinically significant fatigue in Parkinson's disease."
+        },
+        "clinicalUse": "Specifically designed for Parkinson's disease patients. Can be used to monitor fatigue over time and evaluate treatment response."
+    },
+
+    "references": [
+        {
+            "citation": "Brown RG, Dittner A, Findley L, Wessely SC. The Parkinson fatigue scale. Parkinsonism Relat Disord. 2005;11(1):49-55.",
+            "doi": "10.1016/j.parkreldis.2004.07.007"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Richard G Brown",
+        "copyright": "© Richard G Brown 2004",
+        "license": "Permission is given for use in clinical management and in not-for-profit research. All other users should contact the copyright holder."
+    }
+}

@@ -1,0 +1,181 @@
+{
+    "id": "AIS",
+    "name": "Athens Insomnia Scale",
+    "shortName": "AIS",
+    "version": "1.0",
+    "description": "A self-assessment psychometric instrument designed for quantifying sleep difficulty based on ICD-10 criteria for insomnia.",
+    "category": "sleep",
+    "recallPeriod": "During the last month (at least 3 times per week)",
+    "instructions": "This scale is intended to record your own assessment of any sleep difficulty you might have experienced. Please indicate your estimate of any difficulty, provided that it occurred at least three times per week during the last month.",
+    "estimatedTime": "3-5 minutes",
+    "scoringType": "sum",
+    "maxScore": 24,
+    "totalItems": 8,
+    "cutoff": 6,
+
+    "questions": [
+        {
+            "id": "AIS_1",
+            "number": 1,
+            "question": "Sleep induction (time it takes you to fall asleep after turning off the lights)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No problem", "points": 0 },
+                { "value": 1, "label": "Slightly delayed", "points": 1 },
+                { "value": 2, "label": "Markedly delayed", "points": 2 },
+                { "value": 3, "label": "Very delayed or did not sleep at all", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_2",
+            "number": 2,
+            "question": "Awakenings during the night",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No problem", "points": 0 },
+                { "value": 1, "label": "Minor problem", "points": 1 },
+                { "value": 2, "label": "Considerable problem", "points": 2 },
+                { "value": 3, "label": "Serious problem or did not sleep at all", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_3",
+            "number": 3,
+            "question": "Final awakening earlier than desired",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not earlier", "points": 0 },
+                { "value": 1, "label": "A little earlier", "points": 1 },
+                { "value": 2, "label": "Markedly earlier", "points": 2 },
+                { "value": 3, "label": "Much earlier or did not sleep at all", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_4",
+            "number": 4,
+            "question": "Total sleep duration",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Sufficient", "points": 0 },
+                { "value": 1, "label": "Slightly insufficient", "points": 1 },
+                { "value": 2, "label": "Markedly insufficient", "points": 2 },
+                { "value": 3, "label": "Very insufficient or did not sleep at all", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_5",
+            "number": 5,
+            "question": "Overall quality of sleep (no matter how long you slept)",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Satisfactory", "points": 0 },
+                { "value": 1, "label": "Slightly unsatisfactory", "points": 1 },
+                { "value": 2, "label": "Markedly unsatisfactory", "points": 2 },
+                { "value": 3, "label": "Very unsatisfactory or did not sleep at all", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_6",
+            "number": 6,
+            "question": "Sense of well-being during the day",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal", "points": 0 },
+                { "value": 1, "label": "Slightly decreased", "points": 1 },
+                { "value": 2, "label": "Markedly decreased", "points": 2 },
+                { "value": 3, "label": "Very decreased", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_7",
+            "number": 7,
+            "question": "Functioning (physical and mental) during the day",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal", "points": 0 },
+                { "value": 1, "label": "Slightly decreased", "points": 1 },
+                { "value": 2, "label": "Markedly decreased", "points": 2 },
+                { "value": 3, "label": "Very decreased", "points": 3 }
+            ]
+        },
+        {
+            "id": "AIS_8",
+            "number": 8,
+            "question": "Sleepiness during the day",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "None", "points": 0 },
+                { "value": 1, "label": "Mild", "points": 1 },
+                { "value": 2, "label": "Considerable", "points": 2 },
+                { "value": 3, "label": "Intense", "points": 3 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "no-insomnia",
+            "label": "No Insomnia",
+            "min": 0,
+            "max": 5,
+            "color": "#22c55e",
+            "description": "Score below cutoff; no clinically significant insomnia indicated."
+        },
+        {
+            "id": "mild-insomnia",
+            "label": "Mild Insomnia",
+            "min": 6,
+            "max": 9,
+            "color": "#eab308",
+            "description": "Score at or above cutoff; mild insomnia symptoms present."
+        },
+        {
+            "id": "moderate-insomnia",
+            "label": "Moderate Insomnia",
+            "min": 10,
+            "max": 15,
+            "color": "#f97316",
+            "description": "Moderate insomnia symptoms requiring attention."
+        },
+        {
+            "id": "severe-insomnia",
+            "label": "Severe Insomnia",
+            "min": 16,
+            "max": 24,
+            "color": "#ef4444",
+            "description": "Severe insomnia symptoms; clinical intervention recommended."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum of all 8 items. Range: 0-24. A shorter 5-item version (items 1-5) can also be used with range 0-15.",
+        "cutoffScore": "A score of 6 or higher indicates insomnia (90% sensitivity in distinguishing patients from controls).",
+        "clinicalNotes": "The first 5 items assess nighttime sleep problems, while items 6-8 assess daytime consequences. Higher scores indicate more severe insomnia."
+    },
+
+    "references": [
+        {
+            "citation": "Soldatos CR, Dikeos DG, Paparrigopoulos TJ. Athens Insomnia Scale: validation of an instrument based on ICD-10 criteria. J Psychosom Res. 2000;48(6):555-560.",
+            "url": "https://doi.org/10.1016/S0022-3999(00)00095-7"
+        },
+        {
+            "citation": "Soldatos CR, Dikeos DG, Paparrigopoulos TJ. The diagnostic validity of the Athens Insomnia Scale. J Psychosom Res. 2003;55(3):263-267.",
+            "url": "https://doi.org/10.1016/S0022-3999(02)00604-9"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Soldatos CR, Dikeos DG, Paparrigopoulos TJ",
+        "license": "Public domain for clinical use"
+    }
+}

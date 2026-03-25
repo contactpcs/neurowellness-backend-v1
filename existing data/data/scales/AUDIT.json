@@ -1,0 +1,310 @@
+{
+    "id": "AUDIT",
+    "name": "Alcohol Use Disorders Identification Test",
+    "shortName": "AUDIT",
+    "description": "A 10-item screening tool developed by the World Health Organization (WHO) to assess alcohol consumption, drinking behaviors, and alcohol-related problems.",
+    "version": "1.0",
+    "author": "World Health Organization (WHO)",
+    "recallPeriod": "Past year",
+    "administrationTime": "2-5 minutes",
+    "scoringType": "sum",
+    "maxScore": 40,
+    "minScore": 0,
+    "maxItemScore": 4,
+    
+    "instructions": "Please answer the following questions about your alcohol use. Try to answer as honestly as possible. All responses are confidential.",
+    
+    "questions": [
+        {
+            "index": 0,
+            "label": "How often do you have a drink containing alcohol?",
+            "type": "likert",
+            "required": true,
+            "domain": "consumption",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Monthly or less" },
+                { "value": 2, "label": "2-4 times a month" },
+                { "value": 3, "label": "2-3 times a week" },
+                { "value": 4, "label": "4 or more times a week" }
+            ],
+            "skipLogic": {
+                "condition": "value === 0",
+                "action": "skipToEnd",
+                "message": "No further questions needed as patient does not drink alcohol."
+            }
+        },
+        {
+            "index": 1,
+            "label": "How many drinks containing alcohol do you have on a typical day when you are drinking?",
+            "type": "likert",
+            "required": true,
+            "domain": "consumption",
+            "options": [
+                { "value": 0, "label": "1 or 2" },
+                { "value": 1, "label": "3 or 4" },
+                { "value": 2, "label": "5 or 6" },
+                { "value": 3, "label": "7 to 9" },
+                { "value": 4, "label": "10 or more" }
+            ]
+        },
+        {
+            "index": 2,
+            "label": "How often do you have six or more drinks on one occasion?",
+            "type": "likert",
+            "required": true,
+            "domain": "consumption",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 3,
+            "label": "How often during the last year have you found that you were not able to stop drinking once you had started?",
+            "type": "likert",
+            "required": true,
+            "domain": "dependence",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 4,
+            "label": "How often during the last year have you failed to do what was normally expected of you because of drinking?",
+            "type": "likert",
+            "required": true,
+            "domain": "dependence",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 5,
+            "label": "How often during the last year have you needed a first drink in the morning to get yourself going after a heavy drinking session?",
+            "type": "likert",
+            "required": true,
+            "domain": "dependence",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 6,
+            "label": "How often during the last year have you had a feeling of guilt or remorse after drinking?",
+            "type": "likert",
+            "required": true,
+            "domain": "harm",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 7,
+            "label": "How often during the last year have you been unable to remember what happened the night before because of your drinking?",
+            "type": "likert",
+            "required": true,
+            "domain": "harm",
+            "options": [
+                { "value": 0, "label": "Never" },
+                { "value": 1, "label": "Less than monthly" },
+                { "value": 2, "label": "Monthly" },
+                { "value": 3, "label": "Weekly" },
+                { "value": 4, "label": "Daily or almost daily" }
+            ]
+        },
+        {
+            "index": 8,
+            "label": "Have you or someone else been injured because of your drinking?",
+            "type": "likert",
+            "required": true,
+            "domain": "harm",
+            "options": [
+                { "value": 0, "label": "No" },
+                { "value": 2, "label": "Yes, but not in the last year" },
+                { "value": 4, "label": "Yes, during the last year" }
+            ]
+        },
+        {
+            "index": 9,
+            "label": "Has a relative, friend, doctor, or other health care worker been concerned about your drinking or suggested you cut down?",
+            "type": "likert",
+            "required": true,
+            "domain": "harm",
+            "options": [
+                { "value": 0, "label": "No" },
+                { "value": 2, "label": "Yes, but not in the last year" },
+                { "value": 4, "label": "Yes, during the last year" }
+            ]
+        }
+    ],
+    
+    "domains": [
+        {
+            "id": "consumption",
+            "name": "Hazardous Alcohol Use",
+            "description": "Questions 1-3 assess the frequency and quantity of alcohol consumption",
+            "questionIndices": [0, 1, 2],
+            "maxScore": 12
+        },
+        {
+            "id": "dependence",
+            "name": "Dependence Symptoms",
+            "description": "Questions 4-6 assess symptoms of alcohol dependence",
+            "questionIndices": [3, 4, 5],
+            "maxScore": 12
+        },
+        {
+            "id": "harm",
+            "name": "Harmful Alcohol Use",
+            "description": "Questions 7-10 assess harmful consequences of alcohol use",
+            "questionIndices": [6, 7, 8, 9],
+            "maxScore": 16
+        }
+    ],
+    
+    "severityBands": [
+        {
+            "min": 0,
+            "max": 7,
+            "level": "minimal",
+            "label": "Low Risk",
+            "color": "#4CAF50",
+            "description": "Low risk drinking or abstinence. Alcohol education may be appropriate.",
+            "recommendation": "Reinforce current drinking patterns or abstinence."
+        },
+        {
+            "min": 8,
+            "max": 15,
+            "level": "moderate",
+            "label": "Hazardous Drinking",
+            "color": "#FF9800",
+            "description": "Hazardous or harmful alcohol use. Brief intervention is recommended.",
+            "recommendation": "Simple advice focusing on reduction of hazardous drinking."
+        },
+        {
+            "min": 16,
+            "max": 19,
+            "level": "moderately-severe",
+            "label": "Harmful Drinking",
+            "color": "#FF5722",
+            "description": "High level of alcohol problems. Brief counseling and continued monitoring recommended.",
+            "recommendation": "Brief counseling plus continued monitoring."
+        },
+        {
+            "min": 20,
+            "max": 40,
+            "level": "severe",
+            "label": "Possible Alcohol Dependence",
+            "color": "#F44336",
+            "description": "Warrants further diagnostic evaluation for alcohol dependence. Referral to specialist recommended.",
+            "recommendation": "Referral to specialist for diagnostic evaluation and treatment."
+        }
+    ],
+    
+    "riskRules": [
+        {
+            "id": "audit_high_risk",
+            "questionIndex": -1,
+            "operator": ">=",
+            "threshold": 20,
+            "type": "alcohol_dependence_flag",
+            "severity": "high",
+            "message": "AUDIT score ≥ 20 indicates possible alcohol dependence - specialist referral recommended"
+        },
+        {
+            "id": "morning_drinking",
+            "questionIndex": 5,
+            "operator": ">=",
+            "threshold": 2,
+            "type": "dependence_symptom",
+            "severity": "high",
+            "message": "Regular morning drinking indicates possible physical dependence"
+        },
+        {
+            "id": "injury_recent",
+            "questionIndex": 8,
+            "operator": "===",
+            "threshold": 4,
+            "type": "harm_flag",
+            "severity": "high",
+            "message": "Alcohol-related injury in the past year - safety counseling needed"
+        },
+        {
+            "id": "others_concerned",
+            "questionIndex": 9,
+            "operator": "===",
+            "threshold": 4,
+            "type": "social_concern",
+            "severity": "moderate",
+            "message": "Others have expressed concern about drinking in the past year"
+        },
+        {
+            "id": "binge_drinking",
+            "questionIndex": 2,
+            "operator": ">=",
+            "threshold": 3,
+            "type": "binge_pattern",
+            "severity": "moderate",
+            "message": "Weekly or more frequent binge drinking (6+ drinks) detected"
+        },
+        {
+            "id": "audit_c_positive",
+            "type": "composite",
+            "condition": "responses[0] + responses[1] + responses[2] >= 5",
+            "severity": "moderate",
+            "message": "AUDIT-C (first 3 questions) score ≥ 5 indicates hazardous drinking in men (≥4 for women)"
+        }
+    ],
+    
+    "subscales": [
+        {
+            "id": "AUDIT-C",
+            "name": "AUDIT-C (Consumption)",
+            "description": "Brief 3-item screen focusing on alcohol consumption",
+            "questionIndices": [0, 1, 2],
+            "maxScore": 12,
+            "cutoffs": {
+                "men": 4,
+                "women": 3,
+                "general": 5
+            }
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The AUDIT was developed by the World Health Organization (WHO) as a simple method of screening for excessive drinking and to assist in brief assessment. It helps identify persons with hazardous and harmful patterns of alcohol consumption.",
+        "scoring": "Each question is scored from 0-4, except questions 9 and 10 which are scored 0, 2, or 4. Total score range is 0-40.",
+        "cutoffs": {
+            "hazardous": 8,
+            "harmful": 16,
+            "dependence": 20
+        },
+        "genderConsiderations": "Women generally show harm at lower drinking levels than men. Some clinicians use lower cutoff scores (e.g., 7) for women.",
+        "auditC": "The first three questions (AUDIT-C) can be used as a brief screen. A score of 4+ in men or 3+ in women suggests hazardous drinking.",
+        "limitations": "Self-report measure; may be affected by social desirability bias. Cultural factors may influence responses.",
+        "references": [
+            "Saunders JB, Aasland OG, Babor TF, et al. Development of the Alcohol Use Disorders Identification Test (AUDIT). Addiction. 1993;88:791-804.",
+            "Babor TF, Higgins-Biddle JC, Saunders JB, Monteiro MG. AUDIT: The Alcohol Use Disorders Identification Test: Guidelines for Use in Primary Care. 2nd ed. Geneva: World Health Organization; 2001."
+        ]
+    }
+}

@@ -1,0 +1,186 @@
+{
+    "id": "MIDAS",
+    "name": "Migraine Disability Assessment",
+    "shortName": "MIDAS",
+    "version": "1.0",
+    "description": "A validated questionnaire to assess headache-related disability over the past 3 months. Measures the impact of headaches on work, household activities, and social/leisure activities to help guide treatment decisions.",
+    "category": "headache",
+    "recallPeriod": "Over the last 3 months",
+    "instructions": "Please answer the following questions about ALL your headaches you have had over the last 3 months. Write your answer in the box next to each question. Write zero if you did not do the activity in the last 3 months.",
+    "estimatedTime": "5 minutes",
+    "scoringType": "sum-numeric",
+    "maxScore": null,
+    "totalItems": 5,
+    "supplementaryItems": 2,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "MIDAS_1",
+            "number": 1,
+            "question": "On how many days in the last 3 months did you miss work or school because of your headaches?",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": true
+        },
+        {
+            "id": "MIDAS_2",
+            "number": 2,
+            "question": "How many days in the last 3 months was your productivity at work or school reduced by half or more because of your headaches? (Do not include days you counted in question 1 where you missed work or school)",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": true
+        },
+        {
+            "id": "MIDAS_3",
+            "number": 3,
+            "question": "On how many days in the last 3 months did you not do household work because of your headaches?",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": true
+        },
+        {
+            "id": "MIDAS_4",
+            "number": 4,
+            "question": "How many days in the last 3 months was your productivity in household work reduced by half or more because of your headaches? (Do not include days you counted in question 3 where you did not do household work)",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": true
+        },
+        {
+            "id": "MIDAS_5",
+            "number": 5,
+            "question": "On how many days in the last 3 months did you miss family, social or leisure activities because of your headaches?",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": true
+        },
+        {
+            "id": "MIDAS_A",
+            "number": "A",
+            "question": "On how many days in the last 3 months did you have a headache? (If a headache lasted more than 1 day, count each day)",
+            "type": "numeric",
+            "required": true,
+            "unit": "days",
+            "minValue": 0,
+            "maxValue": 90,
+            "includeInScore": false,
+            "supplementary": true
+        },
+        {
+            "id": "MIDAS_B",
+            "number": "B",
+            "question": "On a scale of 0–10, on average how painful were these headaches? (Where 0 = no pain at all, and 10 = pain as bad as it can be)",
+            "type": "numeric",
+            "required": true,
+            "minValue": 0,
+            "maxValue": 10,
+            "includeInScore": false,
+            "supplementary": true
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "grade-i",
+            "label": "Grade I - Minimal or Infrequent Disability",
+            "min": 0,
+            "max": 5,
+            "color": "#22c55e",
+            "description": "Low medical need. Simple over-the-counter analgesics may be effective. Consider triptan therapy if failed on simple analgesics or have infrequent but severe migraine."
+        },
+        {
+            "id": "grade-ii",
+            "label": "Grade II - Mild or Infrequent Disability",
+            "min": 6,
+            "max": 10,
+            "color": "#eab308",
+            "description": "Moderate medical need. May require acute prescription medication. Consider first-line triptan medication if headaches are severe or if failed on simple analgesics."
+        },
+        {
+            "id": "grade-iii",
+            "label": "Grade III - Moderate Disability",
+            "min": 11,
+            "max": 20,
+            "color": "#f97316",
+            "description": "High medical need. Significant disability with severe impact on life. Specific acute therapy such as triptan is usually most appropriate. Consider prophylactic treatment."
+        },
+        {
+            "id": "grade-iv",
+            "label": "Grade IV - Severe Disability",
+            "min": 21,
+            "max": 270,
+            "color": "#dc2626",
+            "description": "High medical need. Severe disability with major life impact. Triptan therapy recommended if suitable. Prophylactic treatment should be considered. Very high scores may indicate high frequency of non-migraine headache."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum questions 1-5 (total days of disability). Questions A and B provide supplementary clinical information but are not included in the MIDAS score.",
+        "grades": {
+            "I": "0-5 days: Minimal or infrequent disability",
+            "II": "6-10 days: Mild or infrequent disability",
+            "III": "11-20 days: Moderate disability",
+            "IV": "21+ days: Severe disability"
+        },
+        "supplementaryQuestions": {
+            "A": "Headache frequency - provides information about headache days",
+            "B": "Average pain intensity (0-10 NRS) - provides information about headache severity"
+        },
+        "clinicalUse": "MIDAS grade predicts treatment needs and helps guide therapy selection. Take completed questionnaire to physician for treatment planning."
+    },
+
+    "domains": [
+        {
+            "id": "work-school",
+            "name": "Work/School",
+            "items": ["MIDAS_1", "MIDAS_2"],
+            "description": "Days missed or with reduced productivity at work/school"
+        },
+        {
+            "id": "household",
+            "name": "Household Work",
+            "items": ["MIDAS_3", "MIDAS_4"],
+            "description": "Days missed or with reduced productivity in household work"
+        },
+        {
+            "id": "social-leisure",
+            "name": "Family/Social/Leisure",
+            "items": ["MIDAS_5"],
+            "description": "Days missed from family, social, or leisure activities"
+        }
+    ],
+
+    "references": [
+        {
+            "citation": "Stewart WF, Lipton RB, Dowson AJ, Sawyer J. Development and testing of the Migraine Disability Assessment (MIDAS) Questionnaire to assess headache-related disability. Neurology. 2001;56(6 Suppl 1):S20-28.",
+            "doi": "10.1212/WNL.56.suppl_1.S20"
+        },
+        {
+            "citation": "Stewart WF, Lipton RB, Kolodner K, Liberman J, Sawyer J. Reliability of the migraine disability assessment score in a population-based sample of headache sufferers. Cephalalgia. 1999;19(2):107-114."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Stewart WF, Lipton RB",
+        "copyright": "Innovative Medical Research 1997",
+        "license": "For clinical use"
+    }
+}

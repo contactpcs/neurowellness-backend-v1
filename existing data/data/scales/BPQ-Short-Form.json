@@ -1,0 +1,349 @@
+{
+    "id": "BPQ-Short-Form",
+    "name": "Body Perception Questionnaire Autonomic Symptoms Short Form",
+    "shortName": "BPQ-20 ANS",
+    "version": "2015",
+    "author": "Stephen W. Porges",
+    "copyright": "© 1993, 2015 Stephen W. Porges",
+    "description": "A 20-item self-report measure that assesses autonomic nervous system symptoms. It measures how often the body's autonomic stress response is activated.",
+    "category": "autonomic",
+    "recallPeriod": "In your daily life",
+    "instructions": "In your daily life, how often are you aware of the following sensations? Please rate yourself on each of the statements below.",
+    "estimatedTime": "5-7 minutes",
+    "scoringType": "sum",
+    "maxScore": 100,
+    "minScore": 20,
+    "totalItems": 20,
+    "administrationType": "self-report",
+
+    "questions": [
+        {
+            "id": "BPQ20_1",
+            "number": 1,
+            "question": "I have difficulty coordinating breathing and eating.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_2",
+            "number": 2,
+            "question": "When I am eating, I have difficulty talking.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_3",
+            "number": 3,
+            "question": "My heart often beats irregularly.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_4",
+            "number": 4,
+            "question": "When I eat, food feels dry and sticks to my mouth and throat.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_5",
+            "number": 5,
+            "question": "I feel shortness of breath.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_6",
+            "number": 6,
+            "question": "I have difficulty coordinating breathing with talking.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_7",
+            "number": 7,
+            "question": "When I eat, I have difficulty swallowing, chewing, and/or sucking with breathing.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_8",
+            "number": 8,
+            "question": "I have a persistent cough that interferes with my talking and eating.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_9",
+            "number": 9,
+            "question": "I gag from the saliva in my mouth.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_10",
+            "number": 10,
+            "question": "I have chest pains.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_11",
+            "number": 11,
+            "question": "I gag when I eat.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_12",
+            "number": 12,
+            "question": "When I talk, I often feel I should cough or swallow the saliva in my mouth.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_13",
+            "number": 13,
+            "question": "When I breathe, I feel like I cannot get enough oxygen.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_14",
+            "number": 14,
+            "question": "I have difficulty controlling my eyes.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_15",
+            "number": 15,
+            "question": "I feel like vomiting.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_16",
+            "number": 16,
+            "question": "I have 'sour' stomach.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_17",
+            "number": 17,
+            "question": "I am constipated.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_18",
+            "number": 18,
+            "question": "I have indigestion.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_19",
+            "number": 19,
+            "question": "After eating I have digestion problems.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        },
+        {
+            "id": "BPQ20_20",
+            "number": 20,
+            "question": "I have diarrhea.",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "Never", "points": 1 },
+                { "value": 2, "label": "Occasionally", "points": 2 },
+                { "value": 3, "label": "Sometimes", "points": 3 },
+                { "value": 4, "label": "Usually", "points": 4 },
+                { "value": 5, "label": "Always", "points": 5 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "occasional",
+            "label": "Occasional Activation",
+            "min": 20,
+            "max": 42,
+            "color": "#22c55e",
+            "description": "Your autonomic stress response system activates only occasionally. This is within normal range."
+        },
+        {
+            "id": "frequent",
+            "label": "Frequent Activation",
+            "min": 43,
+            "max": 100,
+            "color": "#f97316",
+            "description": "Your autonomic stress response system may be active often. This may be normal if this is a time of high stress for you."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Add up values for all 20 questions. Total score range: 20-100.",
+        "cutoffScore": 42,
+        "cutoffPercentile": "80th percentile",
+        "clinicalNotes": "The autonomic nervous system coordinates how the human brain and body work together to react to challenges in everyday life. Sometimes autonomic reactions may happen without your awareness, though you may feel the effects in specific parts of your body. At certain times in their life, these body reactions may be sensitive and easily triggered. This score provides a measure of how often your body's autonomic stress response is activated.",
+        "interpretationGuidelines": {
+            "20-42": "Autonomic stress response system activates only occasionally (80th percentile or lower).",
+            "43-100": "Autonomic stress response system may be active often. May be normal during times of high stress."
+        }
+    },
+
+    "references": [
+        {
+            "citation": "Porges SW. Body Perception Questionnaire. Laboratory of Developmental Assessment, University of Maryland, 1993.",
+            "note": "Original development"
+        },
+        {
+            "citation": "Cabrera A, Kolacz J, Pailhez G, Bulbena-Cabre A, Bulbena A, Porges SW. Assessing body awareness and autonomic reactivity: Factor structure and psychometric properties of the Body Perception Questionnaire-Short Form (BPQ-SF). Int J Methods Psychiatr Res. 2018;27(2):e1596.",
+            "doi": "10.1002/mpr.1596"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-16",
+        "updatedAt": "2026-02-16",
+        "author": "Stephen W. Porges",
+        "license": "© 1993, 2015 Stephen W. Porges"
+    }
+}

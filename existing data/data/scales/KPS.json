@@ -1,0 +1,157 @@
+{
+    "id": "KPS",
+    "name": "Karnofsky Performance Status Scale",
+    "shortName": "KPS",
+    "version": "1.0",
+    "description": "An assessment tool for functional impairment used to understand patient needs, ability to carry out daily activities, and to assess patient prognosis. Widely used in oncology and palliative care settings.",
+    "category": "functional-status",
+    "recallPeriod": "Current status",
+    "instructions": "Select the description that best represents the patient's current functional status and ability to carry out daily activities.",
+    "estimatedTime": "2-5 minutes",
+    "scoringType": "single-selection",
+    "maxScore": 100,
+    "minScore": 0,
+    "totalItems": 1,
+    "administrationType": "clinician-rated",
+
+    "questions": [
+        {
+            "id": "KPS_1",
+            "number": 1,
+            "question": "Select the patient's current Karnofsky Performance Status:",
+            "type": "single-selection",
+            "required": true,
+            "options": [
+                { 
+                    "value": 100, 
+                    "label": "100% - No complaints; no evidence of disease", 
+                    "points": 100,
+                    "category": "Able to carry on normal activity and to work. No special care needed."
+                },
+                { 
+                    "value": 90, 
+                    "label": "90% - Able to carry on normal activity; minor signs or symptoms of disease", 
+                    "points": 90,
+                    "category": "Able to carry on normal activity and to work. No special care needed."
+                },
+                { 
+                    "value": 80, 
+                    "label": "80% - Normal activity with effort; some signs or symptoms of disease", 
+                    "points": 80,
+                    "category": "Able to carry on normal activity and to work. No special care needed."
+                },
+                { 
+                    "value": 70, 
+                    "label": "70% - Cares for self; unable to carry on normal activity or to do active work", 
+                    "points": 70,
+                    "category": "Unable to work; able to live at home and care for most personal needs; varying amount of assistance needed."
+                },
+                { 
+                    "value": 60, 
+                    "label": "60% - Requires occasional assistance but is able to care for most personal needs", 
+                    "points": 60,
+                    "category": "Unable to work; able to live at home and care for most personal needs; varying amount of assistance needed."
+                },
+                { 
+                    "value": 50, 
+                    "label": "50% - Requires considerable assistance and frequent medical care", 
+                    "points": 50,
+                    "category": "Unable to work; able to live at home and care for most personal needs; varying amount of assistance needed."
+                },
+                { 
+                    "value": 40, 
+                    "label": "40% - Disabled; requires special care and assistance", 
+                    "points": 40,
+                    "category": "Unable to care for self; requires equivalent of institutional or hospital care; disease may be progressing rapidly."
+                },
+                { 
+                    "value": 30, 
+                    "label": "30% - Severely disabled; hospital admission indicated although death not imminent", 
+                    "points": 30,
+                    "category": "Unable to care for self; requires equivalent of institutional or hospital care; disease may be progressing rapidly."
+                },
+                { 
+                    "value": 20, 
+                    "label": "20% - Very sick; hospital admission necessary; active supportive treatment necessary", 
+                    "points": 20,
+                    "category": "Unable to care for self; requires equivalent of institutional or hospital care; disease may be progressing rapidly."
+                },
+                { 
+                    "value": 10, 
+                    "label": "10% - Moribund; fatal processes progressing rapidly", 
+                    "points": 10,
+                    "category": "Unable to care for self; requires equivalent of institutional or hospital care; disease may be progressing rapidly."
+                },
+                { 
+                    "value": 0, 
+                    "label": "0% - Dead", 
+                    "points": 0,
+                    "category": "Deceased"
+                }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "fully-functional",
+            "label": "Fully Functional",
+            "min": 80,
+            "max": 100,
+            "color": "#22c55e",
+            "description": "Able to carry on normal activity and to work. No special care needed."
+        },
+        {
+            "id": "ambulatory",
+            "label": "Ambulatory / Unable to Work",
+            "min": 50,
+            "max": 70,
+            "color": "#eab308",
+            "description": "Unable to work; able to live at home and care for most personal needs; varying amount of assistance needed."
+        },
+        {
+            "id": "disabled",
+            "label": "Disabled / Requires Care",
+            "min": 30,
+            "max": 40,
+            "color": "#f97316",
+            "description": "Unable to care for self; requires equivalent of institutional or hospital care."
+        },
+        {
+            "id": "critical",
+            "label": "Critical / End of Life",
+            "min": 0,
+            "max": 20,
+            "color": "#dc2626",
+            "description": "Very sick or moribund; fatal processes may be progressing rapidly."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Single selection from 0% to 100% in 10% increments. Higher scores indicate better functional status.",
+        "clinicalCategories": {
+            "ableToWork": "80-100%: Able to carry on normal activity and work",
+            "unableToWork": "50-70%: Unable to work but can live at home with varying assistance",
+            "unableToCareSelf": "10-40%: Unable to care for self, requires institutional/hospital care",
+            "deceased": "0%: Dead"
+        },
+        "prognosticValue": "KPS is a strong predictor of survival and treatment tolerance in various disease states, particularly in oncology.",
+        "clinicalUse": "Used to determine eligibility for clinical trials, guide treatment decisions, and estimate prognosis."
+    },
+
+    "references": [
+        {
+            "citation": "Karnofsky DA, Burchenal JH. The clinical evaluation of chemotherapeutic agents in cancer. In: MacLeod CM, ed. Evaluation of Chemotherapeutic Agents. New York: Columbia University Press; 1949:191-205."
+        },
+        {
+            "citation": "Schag CC, Heinrich RL, Ganz PA. Karnofsky performance status revisited: reliability, validity, and guidelines. J Clin Oncol. 1984;2(3):187-193."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Karnofsky DA, Burchenal JH",
+        "license": "Public domain"
+    }
+}

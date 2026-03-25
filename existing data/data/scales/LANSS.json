@@ -1,0 +1,209 @@
+{
+    "id": "LANSS",
+    "name": "Leeds Assessment of Neuropathic Symptoms and Signs",
+    "shortName": "LANSS",
+    "description": "A pain scale to determine whether nerves carrying pain signals are working normally, helping identify neuropathic pain mechanisms",
+    "version": "1.0",
+    "recallPeriod": "Over the last week",
+    "scoringType": "weighted-sum",
+    "maxScore": 24,
+    "cutoffScore": 12,
+    
+    "instructions": "This pain scale can help to determine whether the nerves that are carrying your pain signals are working normally or not. It is important to find this out in case different treatments are needed to control your pain.",
+    
+    "sections": [
+        {
+            "id": "pain_questionnaire",
+            "name": "Part A: Pain Questionnaire",
+            "description": "Think about how your pain has felt over the last week. Please say whether any of the descriptions match your pain exactly.",
+            "type": "self_report"
+        },
+        {
+            "id": "sensory_testing",
+            "name": "Part B: Sensory Testing",
+            "description": "Skin sensitivity examination comparing the painful area with a contralateral or adjacent non-painful area for the presence of allodynia and an altered pin-prick threshold (PPT).",
+            "type": "clinical_examination"
+        }
+    ],
+    
+    "questions": [
+        {
+            "index": 0,
+            "section": "pain_questionnaire",
+            "label": "Does your pain feel like strange, unpleasant sensations in your skin? Words like pricking, tingling, pins and needles might describe these sensations.",
+            "type": "binary-weighted",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "NO - My pain doesn't really feel like this" },
+                { "value": 5, "label": "YES - I get these sensations quite a lot" }
+            ]
+        },
+        {
+            "index": 1,
+            "section": "pain_questionnaire",
+            "label": "Does your pain make the skin in the painful area look different from normal? Words like mottled or looking more red or pink might describe the appearance.",
+            "type": "binary-weighted",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "NO - My pain doesn't affect the colour of my skin" },
+                { "value": 5, "label": "YES - I've noticed that the pain does make my skin look different from normal" }
+            ]
+        },
+        {
+            "index": 2,
+            "section": "pain_questionnaire",
+            "label": "Does your pain make the affected skin abnormally sensitive to touch? Getting unpleasant sensations when lightly stroking the skin, or getting pain when wearing tight clothes might describe the abnormal sensitivity.",
+            "type": "binary-weighted",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "NO - My pain doesn't make my skin abnormally sensitive in that area" },
+                { "value": 3, "label": "YES - My skin seems abnormally sensitive to touch in that area" }
+            ]
+        },
+        {
+            "index": 3,
+            "section": "pain_questionnaire",
+            "label": "Does your pain come on suddenly and in bursts for no apparent reason when you're still? Words like electric shocks, jumping and bursting describe these sensations.",
+            "type": "binary-weighted",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "NO - My pain doesn't really feel like this" },
+                { "value": 2, "label": "YES - I get these sensations quite a lot" }
+            ]
+        },
+        {
+            "index": 4,
+            "section": "pain_questionnaire",
+            "label": "Does your pain feel as if the skin temperature in the painful area has changed abnormally? Words like hot and burning describe these sensations.",
+            "type": "binary-weighted",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "NO - I don't really get these sensations" },
+                { "value": 1, "label": "YES - I get these sensations quite a lot" }
+            ]
+        },
+        {
+            "index": 5,
+            "section": "sensory_testing",
+            "label": "ALLODYNIA: Examine the response to lightly stroking cotton wool across the non-painful area and then the painful area. If normal sensations are experienced in the non-painful site, but pain or unpleasant sensations (tingling, nausea) are experienced in the painful area when stroking, allodynia is present.",
+            "type": "clinical-binary-weighted",
+            "required": true,
+            "examinerAdministered": true,
+            "options": [
+                { "value": 0, "label": "NO - Normal sensation in both areas" },
+                { "value": 5, "label": "YES - Allodynia in painful area only" }
+            ]
+        },
+        {
+            "index": 6,
+            "section": "sensory_testing",
+            "label": "ALTERED PIN-PRICK THRESHOLD: Determine the pin-prick threshold by comparing the response to a 23 gauge (blue) needle mounted inside a 2ml syringe barrel placed gently on to the skin in a non-painful and then painful area. If a sharp pin-prick is felt in the non-painful area, but a different sensation is experienced in the painful area (e.g., none/blunt only = raised PPT, or very painful = lowered PPT), an altered PPT is present.",
+            "type": "clinical-binary-weighted",
+            "required": true,
+            "examinerAdministered": true,
+            "options": [
+                { "value": 0, "label": "NO - Equal sensation in both areas" },
+                { "value": 3, "label": "YES - Altered PPT in painful area" }
+            ]
+        }
+    ],
+    
+    "scoringWeights": {
+        "painQuestionnaire": {
+            "q1_dysesthesia": { "no": 0, "yes": 5 },
+            "q2_skin_color": { "no": 0, "yes": 5 },
+            "q3_touch_sensitivity": { "no": 0, "yes": 3 },
+            "q4_sudden_bursts": { "no": 0, "yes": 2 },
+            "q5_temperature": { "no": 0, "yes": 1 }
+        },
+        "sensoryTesting": {
+            "allodynia": { "no": 0, "yes": 5 },
+            "altered_ppt": { "no": 0, "yes": 3 }
+        },
+        "maxPartA": 16,
+        "maxPartB": 8,
+        "maxTotal": 24
+    },
+    
+    "severityBands": [
+        {
+            "min": 0,
+            "max": 11,
+            "level": "nociceptive",
+            "label": "Nociceptive Pain Likely",
+            "description": "Neuropathic mechanisms are unlikely to be contributing to the patient's pain. Pain is likely nociceptive in origin."
+        },
+        {
+            "min": 12,
+            "max": 24,
+            "level": "neuropathic",
+            "label": "Neuropathic Pain Likely",
+            "description": "Neuropathic mechanisms are likely to be contributing to the patient's pain. Consider treatments targeting neuropathic pain."
+        }
+    ],
+    
+    "riskRules": [
+        {
+            "type": "total_score",
+            "operator": ">=",
+            "threshold": 12,
+            "severity": "moderate",
+            "message": "LANSS score ≥ 12 indicates neuropathic pain mechanisms are likely contributing. Consider neuropathic pain treatments (anticonvulsants, antidepressants, topical agents)."
+        },
+        {
+            "type": "symptom_pattern",
+            "questionIndices": [0, 3],
+            "condition": "both_positive",
+            "severity": "moderate",
+            "message": "Presence of dysesthesia and spontaneous pain episodes suggests significant neuropathic component"
+        },
+        {
+            "type": "clinical_finding",
+            "questionIndex": 5,
+            "operator": "==",
+            "threshold": 5,
+            "severity": "moderate",
+            "message": "Allodynia detected on clinical examination - key indicator of central sensitization"
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The LANSS Pain Scale combines self-reported symptoms (Part A) with bedside sensory testing (Part B) to identify pain of predominantly neuropathic origin. A score of 12 or more suggests neuropathic mechanisms are likely contributing to the patient's pain.",
+        "cutoffExplanation": {
+            "threshold": 12,
+            "sensitivity": "85%",
+            "specificity": "80%",
+            "description": "A cutoff of ≥12 provides good discrimination between nociceptive and neuropathic pain. The scale correctly identifies neuropathic pain in approximately 85% of cases."
+        },
+        "symptomDescriptors": {
+            "dysesthesia": "Strange, unpleasant sensations (pricking, tingling, pins and needles)",
+            "autonomic_changes": "Skin color changes (mottled, red, pink appearance)",
+            "allodynia": "Abnormal sensitivity to touch, pain from light stroking or tight clothes",
+            "paroxysmal_pain": "Sudden bursts of pain (electric shocks, jumping, bursting)",
+            "thermal_sensations": "Abnormal temperature sensations (hot, burning)"
+        },
+        "sensoryTestingNotes": {
+            "allodynia_test": "Compare response to cotton wool stroking between painful and non-painful areas. Allodynia present if pain/unpleasant sensation occurs only in painful area.",
+            "ppt_test": "Use 23-gauge needle in 2ml syringe barrel. Compare pin-prick sensation between areas. Altered PPT if sensation differs (blunted or hyperalgesic) in painful area.",
+            "equipment": "Cotton wool, 23-gauge (blue) needle, 2ml syringe barrel"
+        },
+        "treatmentImplications": {
+            "nociceptive": "Standard analgesics (NSAIDs, paracetamol, opioids) may be effective",
+            "neuropathic": "Consider first-line neuropathic agents: gabapentinoids (pregabalin, gabapentin), SNRIs (duloxetine, venlafaxine), TCAs (amitriptyline). Topical lidocaine or capsaicin for localized pain. Standard analgesics often less effective alone."
+        },
+        "actions": {
+            "nociceptive": "Neuropathic mechanisms unlikely. Treat with standard analgesic approaches appropriate to pain severity and cause. Monitor for development of neuropathic features.",
+            "neuropathic": "Neuropathic mechanisms likely. Initiate or optimize neuropathic pain treatment. Consider specialist referral if refractory. Address underlying cause if identifiable."
+        },
+        "limitations": [
+            "Requires clinical examination component (Part B) for full accuracy",
+            "Mixed pain presentations may have both nociceptive and neuropathic components",
+            "Does not identify specific neuropathic pain etiology",
+            "Self-report section (Part A) can be used alone but with reduced accuracy"
+        ],
+        "references": [
+            "Bennett M. The LANSS Pain Scale: the Leeds assessment of neuropathic symptoms and signs. Pain. 2001;92(1-2):147-157.",
+            "Bennett MI, Smith BH, Torrance N, Potter J. The S-LANSS score for identifying pain of predominantly neuropathic origin: validation for use in clinical and postal research. J Pain. 2005;6(3):149-158."
+        ]
+    }
+}

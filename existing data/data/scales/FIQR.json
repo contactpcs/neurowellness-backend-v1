@@ -1,0 +1,592 @@
+{
+    "id": "FIQR",
+    "name": "Revised Fibromyalgia Impact Questionnaire",
+    "shortName": "FIQR",
+    "version": "2.0",
+    "description": "A self-report measure that assesses the impact of fibromyalgia on physical function, overall impact, and symptom severity over the past week.",
+    "category": "fibromyalgia",
+    "recallPeriod": "Over the past 7 days",
+    "instructions": "Please complete all three sections of this questionnaire about how fibromyalgia has affected you over the past 7 days.",
+    "estimatedTime": "5-7 minutes",
+    "scoringType": "fiqr-weighted",
+    "maxScore": 100,
+    "totalItems": 21,
+
+    "sections": [
+        {
+            "id": "function",
+            "name": "Section 1: Physical Function",
+            "instruction": "For each of the following 9 questions, check the box that best indicates how much your fibromyalgia made it difficult to perform each of the following activities during the past 7 days. If you did not perform a particular activity in the last 7 days, rate the difficulty for the last time you performed the activity. If you can't perform an activity, check the last box."
+        },
+        {
+            "id": "overall",
+            "name": "Section 2: Overall Impact",
+            "instruction": "For each of the following 2 questions, check the box that best describes the overall impact of your fibromyalgia over the last 7 days."
+        },
+        {
+            "id": "symptoms",
+            "name": "Section 3: Symptom Severity",
+            "instruction": "For each of the following 10 questions, select the box that best indicates your intensity of these common fibromyalgia symptoms over the past 7 days."
+        }
+    ],
+
+    "domains": {
+        "function": {
+            "name": "Physical Function",
+            "items": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "maxRaw": 90,
+            "divisor": 3,
+            "maxWeighted": 30,
+            "description": "Ability to perform daily physical activities"
+        },
+        "overall": {
+            "name": "Overall Impact",
+            "items": [9, 10],
+            "maxRaw": 20,
+            "divisor": 1,
+            "maxWeighted": 20,
+            "description": "Overall impact of fibromyalgia on daily life"
+        },
+        "symptoms": {
+            "name": "Symptom Severity",
+            "items": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            "maxRaw": 100,
+            "divisor": 2,
+            "maxWeighted": 50,
+            "description": "Severity of fibromyalgia symptoms"
+        }
+    },
+
+    "questions": [
+        {
+            "id": "FIQR_1",
+            "number": 1,
+            "question": "Brush or comb your hair",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_2",
+            "number": 2,
+            "question": "Walk continuously for 20 minutes",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_3",
+            "number": 3,
+            "question": "Prepare a homemade meal",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_4",
+            "number": 4,
+            "question": "Vacuum, scrub or sweep floors",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_5",
+            "number": 5,
+            "question": "Lift and carry a bag full of groceries",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_6",
+            "number": 6,
+            "question": "Climb one flight of stairs",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_7",
+            "number": 7,
+            "question": "Change bed sheets",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_8",
+            "number": 8,
+            "question": "Sit in a chair for 45 minutes",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_9",
+            "number": 9,
+            "question": "Go shopping for groceries",
+            "type": "likert",
+            "domain": "function",
+            "section": "function",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No difficulty", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very difficult", "points": 10 },
+                { "value": 11, "label": "Not applicable", "points": 10, "notApplicable": true }
+            ]
+        },
+        {
+            "id": "FIQR_10",
+            "number": 10,
+            "question": "Fibromyalgia prevented me from accomplishing goals for the week",
+            "type": "likert",
+            "domain": "overall",
+            "section": "overall",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Always", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_11",
+            "number": 11,
+            "question": "I was completely overwhelmed by my fibromyalgia symptoms",
+            "type": "likert",
+            "domain": "overall",
+            "section": "overall",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Never", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Always", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_12",
+            "number": 12,
+            "question": "Please rate your level of pain",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No pain", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Unbearable pain", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_13",
+            "number": 13,
+            "question": "Please rate your level of energy",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Lots of energy", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "No energy", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_14",
+            "number": 14,
+            "question": "Please rate your level of stiffness",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No stiffness", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Severe stiffness", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_15",
+            "number": 15,
+            "question": "Please rate the quality of your sleep",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Awoke well rested", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Awoke very tired", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_16",
+            "number": 16,
+            "question": "Please rate your level of depression",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No depression", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very depressed", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_17",
+            "number": 17,
+            "question": "Please rate your level of memory problems",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Good memory", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very poor memory", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_18",
+            "number": 18,
+            "question": "Please rate your level of anxiety",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Not anxious", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very anxious", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_19",
+            "number": 19,
+            "question": "Please rate your level of tenderness to touch",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No tenderness", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Very tender", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_20",
+            "number": 20,
+            "question": "Please rate your level of balance problems",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No imbalance", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Severe imbalance", "points": 10 }
+            ]
+        },
+        {
+            "id": "FIQR_21",
+            "number": 21,
+            "question": "Please rate your level of sensitivity to loud noises, bright lights, odors and cold",
+            "type": "likert",
+            "domain": "symptoms",
+            "section": "symptoms",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "No sensitivity", "points": 0 },
+                { "value": 1, "label": "1", "points": 1 },
+                { "value": 2, "label": "2", "points": 2 },
+                { "value": 3, "label": "3", "points": 3 },
+                { "value": 4, "label": "4", "points": 4 },
+                { "value": 5, "label": "5", "points": 5 },
+                { "value": 6, "label": "6", "points": 6 },
+                { "value": 7, "label": "7", "points": 7 },
+                { "value": 8, "label": "8", "points": 8 },
+                { "value": 9, "label": "9", "points": 9 },
+                { "value": 10, "label": "Extreme sensitivity", "points": 10 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "minimal",
+            "label": "Minimal Impact",
+            "min": 0,
+            "max": 24,
+            "color": "#22c55e",
+            "description": "Minimal impact of fibromyalgia on daily life."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Impact",
+            "min": 25,
+            "max": 49,
+            "color": "#84cc16",
+            "description": "Mild impact of fibromyalgia affecting some daily activities."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Impact",
+            "min": 50,
+            "max": 74,
+            "color": "#eab308",
+            "description": "Moderate impact of fibromyalgia significantly affecting daily life."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Impact",
+            "min": 75,
+            "max": 100,
+            "color": "#ef4444",
+            "description": "Severe impact of fibromyalgia with major limitations in daily functioning."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "The FIQR uses weighted domain scoring: (1) Physical Function (Q1-9): sum raw scores and divide by 3 (max 30 points). (2) Overall Impact (Q10-11): sum raw scores directly (max 20 points). (3) Symptom Severity (Q12-21): sum raw scores and divide by 2 (max 50 points). Total FIQR = Function + Overall + Symptoms (range 0-100).",
+        "domainScoring": {
+            "function": "Sum of Q1-9 ÷ 3 = 0-30 points",
+            "overall": "Sum of Q10-11 = 0-20 points",
+            "symptoms": "Sum of Q12-21 ÷ 2 = 0-50 points"
+        },
+        "clinicalSignificance": "Higher scores indicate greater fibromyalgia impact. A change of approximately 14% from baseline is considered clinically meaningful. Scores >45 generally indicate substantial impairment."
+    },
+
+    "references": [
+        {
+            "citation": "Bennett RM, Friend R, Jones KD, Ward R, Han BK, Ross RL. The Revised Fibromyalgia Impact Questionnaire (FIQR): validation and psychometric properties. Arthritis Res Ther. 2009;11(4):R120.",
+            "doi": "10.1186/ar2783"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-16",
+        "updatedAt": "2026-02-16",
+        "author": "Bennett RM et al.",
+        "license": "Free for clinical use"
+    }
+}

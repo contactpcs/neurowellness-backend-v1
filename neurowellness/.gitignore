@@ -1,0 +1,104 @@
+# ──────────────────────────────────────────────
+# Environment / Secrets  ← MOST IMPORTANT
+# ──────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ──────────────────────────────────────────────
+# Python / Backend
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+wheels/
+sdist/
+MANIFEST
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Linting
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# ──────────────────────────────────────────────
+# Node / Frontend
+# ──────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+.cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Lock files (keep only one — remove the others)
+# If using npm: keep package-lock.json, gitignore yarn.lock and pnpm-lock.yaml
+yarn.lock
+pnpm-lock.yaml
+
+# ──────────────────────────────────────────────
+# OS & Editors
+# ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ──────────────────────────────────────────────
+# Logs & temp files
+# ──────────────────────────────────────────────
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ──────────────────────────────────────────────
+# Database / Uploads
+# ──────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+uploads/
+media/

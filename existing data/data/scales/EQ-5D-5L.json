@@ -1,0 +1,232 @@
+{
+    "id": "EQ-5D-5L",
+    "name": "EuroQol 5-Dimension 5-Level",
+    "shortName": "EQ-5D-5L",
+    "description": "A standardized measure of health-related quality of life consisting of 5 dimensions with 5 severity levels each, plus a visual analogue scale (EQ-VAS)",
+    "version": "1.0",
+    "recallPeriod": "Today",
+    "scoringType": "profile-and-vas",
+    "maxScore": 10,
+    
+    "instructions": "Under each heading, please tick the ONE box that best describes your health TODAY.",
+    
+    "sections": [
+        {
+            "id": "descriptive",
+            "name": "Descriptive System",
+            "description": "5 dimensions describing health state",
+            "type": "profile"
+        },
+        {
+            "id": "vas",
+            "name": "EQ Visual Analogue Scale",
+            "description": "Self-rated health on a 0-10 scale",
+            "type": "vas"
+        }
+    ],
+    
+    "questions": [
+        {
+            "index": 0,
+            "section": "descriptive",
+            "dimension": "mobility",
+            "label": "MOBILITY",
+            "question": "Please indicate which statement best describes your mobility today.",
+            "type": "single-choice",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "I have no problems in walking about" },
+                { "value": 2, "label": "I have slight problems in walking about" },
+                { "value": 3, "label": "I have moderate problems in walking about" },
+                { "value": 4, "label": "I have severe problems in walking about" },
+                { "value": 5, "label": "I am unable to walk about" }
+            ]
+        },
+        {
+            "index": 1,
+            "section": "descriptive",
+            "dimension": "self_care",
+            "label": "SELF-CARE",
+            "question": "Please indicate which statement best describes your ability to wash and dress yourself today.",
+            "type": "single-choice",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "I have no problems washing or dressing myself" },
+                { "value": 2, "label": "I have slight problems washing or dressing myself" },
+                { "value": 3, "label": "I have moderate problems washing or dressing myself" },
+                { "value": 4, "label": "I have severe problems washing or dressing myself" },
+                { "value": 5, "label": "I am unable to wash or dress myself" }
+            ]
+        },
+        {
+            "index": 2,
+            "section": "descriptive",
+            "dimension": "usual_activities",
+            "label": "USUAL ACTIVITIES",
+            "question": "Please indicate which statement best describes your ability to do your usual activities today (e.g. work, study, housework, family or leisure activities).",
+            "type": "single-choice",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "I have no problems doing my usual activities" },
+                { "value": 2, "label": "I have slight problems doing my usual activities" },
+                { "value": 3, "label": "I have moderate problems doing my usual activities" },
+                { "value": 4, "label": "I have severe problems doing my usual activities" },
+                { "value": 5, "label": "I am unable to do my usual activities" }
+            ]
+        },
+        {
+            "index": 3,
+            "section": "descriptive",
+            "dimension": "pain_discomfort",
+            "label": "PAIN / DISCOMFORT",
+            "question": "Please indicate which statement best describes your pain or discomfort today.",
+            "type": "single-choice",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "I have no pain or discomfort" },
+                { "value": 2, "label": "I have slight pain or discomfort" },
+                { "value": 3, "label": "I have moderate pain or discomfort" },
+                { "value": 4, "label": "I have severe pain or discomfort" },
+                { "value": 5, "label": "I have extreme pain or discomfort" }
+            ]
+        },
+        {
+            "index": 4,
+            "section": "descriptive",
+            "dimension": "anxiety_depression",
+            "label": "ANXIETY / DEPRESSION",
+            "question": "Please indicate which statement best describes your anxiety or depression today.",
+            "type": "single-choice",
+            "required": true,
+            "options": [
+                { "value": 1, "label": "I am not anxious or depressed" },
+                { "value": 2, "label": "I am slightly anxious or depressed" },
+                { "value": 3, "label": "I am moderately anxious or depressed" },
+                { "value": 4, "label": "I am severely anxious or depressed" },
+                { "value": 5, "label": "I am extremely anxious or depressed" }
+            ]
+        },
+        {
+            "index": 5,
+            "section": "vas",
+            "dimension": "eq_vas",
+            "label": "YOUR HEALTH TODAY",
+            "question": "We would like to know how good or bad your health is TODAY. This scale is numbered from 0 to 10. 10 means the best health you can imagine. 0 means the worst health you can imagine. Please indicate on this scale how your health is TODAY.",
+            "type": "visual-analogue-scale",
+            "required": true,
+            "min": 0,
+            "max": 10,
+            "minLabel": "The worst health you can imagine",
+            "maxLabel": "The best health you can imagine"
+        }
+    ],
+    
+    "scoringAlgorithm": {
+        "method": "profile-plus-vas",
+        "healthStateProfile": {
+            "description": "The 5-digit health state profile is formed by combining the level (1-5) selected for each dimension",
+            "format": "XXXXX where each X is the level (1-5) for each dimension in order: Mobility, Self-Care, Usual Activities, Pain/Discomfort, Anxiety/Depression",
+            "example": "11111 = perfect health on all dimensions, 55555 = worst state on all dimensions",
+            "totalPossibleStates": 3125
+        },
+        "indexValue": {
+            "description": "Health state profiles can be converted to a single index value using country-specific value sets",
+            "note": "Index values require application of EuroQol value sets which vary by country",
+            "range": "Typically ranges from negative values (states worse than dead) to 1.0 (full health)"
+        },
+        "vasScore": {
+            "description": "Self-rated health on a 0-10 scale",
+            "range": "0 (worst imaginable) to 10 (best imaginable)"
+        }
+    },
+    
+    "severityLevels": {
+        "1": { "label": "No problems", "description": "No difficulty or symptoms" },
+        "2": { "label": "Slight problems", "description": "Mild difficulty or symptoms" },
+        "3": { "label": "Moderate problems", "description": "Moderate difficulty or symptoms" },
+        "4": { "label": "Severe problems", "description": "Severe difficulty or symptoms" },
+        "5": { "label": "Extreme problems / Unable", "description": "Extreme difficulty or complete inability" }
+    },
+    
+    "riskRules": [
+        {
+            "dimension": "mobility",
+            "operator": ">=",
+            "threshold": 4,
+            "severity": "moderate",
+            "message": "Severe mobility impairment reported - may require mobility aids or assistance"
+        },
+        {
+            "dimension": "self_care",
+            "operator": ">=",
+            "threshold": 4,
+            "severity": "moderate",
+            "message": "Severe self-care impairment - may require personal care assistance"
+        },
+        {
+            "dimension": "pain_discomfort",
+            "operator": ">=",
+            "threshold": 4,
+            "severity": "moderate",
+            "message": "Severe pain/discomfort reported - pain management review recommended"
+        },
+        {
+            "dimension": "anxiety_depression",
+            "operator": ">=",
+            "threshold": 4,
+            "severity": "high",
+            "message": "Severe anxiety/depression reported - mental health assessment recommended"
+        },
+        {
+            "type": "vas",
+            "operator": "<=",
+            "threshold": 3,
+            "severity": "moderate",
+            "message": "Very low self-rated health (VAS ≤3) - comprehensive health review recommended"
+        }
+    ],
+    
+    "interpretation": {
+        "clinicalNotes": "The EQ-5D-5L is a standardized instrument for measuring health-related quality of life. It provides a descriptive profile of health across 5 dimensions and a self-rated health score (EQ-VAS). The 5L version has 5 levels per dimension, providing greater sensitivity than the original 3L version.",
+        "dimensions": {
+            "mobility": "Ability to walk about",
+            "self_care": "Ability to wash and dress oneself",
+            "usual_activities": "Ability to perform work, study, housework, family or leisure activities",
+            "pain_discomfort": "Level of pain or discomfort experienced",
+            "anxiety_depression": "Level of anxiety or depression experienced"
+        },
+        "profileInterpretation": {
+            "11111": "Full health - no problems in any dimension",
+            "examples": [
+                "21111 = Slight mobility problems only",
+                "11112 = Slight anxiety/depression only",
+                "33333 = Moderate problems in all dimensions"
+            ]
+        },
+        "vasInterpretation": {
+            "8-10": "Good to excellent self-rated health",
+            "6-7": "Moderate self-rated health",
+            "4-5": "Fair self-rated health",
+            "2-3": "Poor self-rated health",
+            "0-1": "Very poor self-rated health"
+        },
+        "clinicalApplications": [
+            "Measuring health status in clinical practice",
+            "Monitoring treatment outcomes",
+            "Health economic evaluations (QALY calculations)",
+            "Population health surveys",
+            "Clinical trials outcome measure"
+        ],
+        "limitations": [
+            "Does not capture all aspects of health (e.g., cognition, social function)",
+            "Index values require country-specific value sets",
+            "VAS may be influenced by current mood and expectations",
+            "5-level version is more sensitive but may increase respondent burden slightly"
+        ],
+        "references": [
+            "Herdman M, Gudex C, Lloyd A, et al. Development and preliminary testing of the new five-level version of EQ-5D (EQ-5D-5L). Qual Life Res. 2011;20(10):1727-1736.",
+            "EuroQol Group. EuroQol - a new facility for the measurement of health-related quality of life. Health Policy. 1990;16(3):199-208.",
+            "© 2009 EuroQol Group. EQ-5D™ is a trade mark of the EuroQol Group."
+        ]
+    }
+}

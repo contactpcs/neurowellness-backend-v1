@@ -1,0 +1,232 @@
+{
+    "id": "SARA",
+    "name": "Scale for the Assessment and Rating of Ataxia",
+    "shortName": "SARA",
+    "version": "1.0",
+    "description": "A clinical scale developed to assess the severity of cerebellar ataxia. It is a semi-quantitative scale based on clinical examination of gait, stance, sitting, speech, finger chase, nose-finger test, fast alternating hand movements, and heel-shin slide.",
+    "category": "ataxia",
+    "recallPeriod": "Current assessment",
+    "instructions": "The examiner rates each item based on direct observation of the patient's performance. Each item has specific scoring criteria that should be followed exactly.",
+    "estimatedTime": "15-20 minutes",
+    "scoringType": "sum",
+    "maxScore": 40,
+    "minScore": 0,
+    "totalItems": 8,
+    "administrationType": "clinician-rated",
+
+    "questions": [
+        {
+            "id": "SARA_1",
+            "number": 1,
+            "question": "Gait",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient is asked to walk at a safe distance from a wall, including a half-turn (turn around to face opposite direction), and to walk in tandem (heel to toe) without support.",
+            "options": [
+                { "value": 0, "label": "Normal, no difficulties in walking, turning, or walking tandem (up to one misstep allowed)", "points": 0 },
+                { "value": 1, "label": "Slight difficulties, only visible when walking 10 consecutive steps in tandem", "points": 1 },
+                { "value": 2, "label": "Clearly abnormal, tandem walking >10 steps not possible", "points": 2 },
+                { "value": 3, "label": "Considerable staggering, difficulties in half-turn, but without support", "points": 3 },
+                { "value": 4, "label": "Marked staggering, intermittent support of the wall required", "points": 4 },
+                { "value": 5, "label": "Severe staggering, permanent support of one stick or light support by one arm required", "points": 5 },
+                { "value": 6, "label": "Walking >10m only with strong support (two special sticks or stroller or accompanying person)", "points": 6 },
+                { "value": 7, "label": "Walking <10m only with strong support (two special sticks or stroller or accompanying person)", "points": 7 },
+                { "value": 8, "label": "Unable to walk, even supported", "points": 8 }
+            ]
+        },
+        {
+            "id": "SARA_2",
+            "number": 2,
+            "question": "Stance",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient is asked to stand (1) in natural position, (2) with feet together in parallel (big toes touching each other), and (3) in tandem (both feet on one line, no space between heel and toe). Patient removes shoes, eyes are open. For each condition, three trials are allowed. The best trial is rated.",
+            "options": [
+                { "value": 0, "label": "Normal, able to stand in tandem for >10 seconds", "points": 0 },
+                { "value": 1, "label": "Able to stand with feet together without sway, but not in tandem for >10 seconds", "points": 1 },
+                { "value": 2, "label": "Able to stand with feet together for >10 seconds, but only with sway", "points": 2 },
+                { "value": 3, "label": "Able to stand for >10 seconds without support in natural position, but not with feet together", "points": 3 },
+                { "value": 4, "label": "Able to stand for >10 seconds in natural position only with intermittent support", "points": 4 },
+                { "value": 5, "label": "Able to stand for >10 seconds in natural position only with constant support of one arm", "points": 5 },
+                { "value": 6, "label": "Unable to stand for >10 seconds even with constant support of one arm", "points": 6 }
+            ]
+        },
+        {
+            "id": "SARA_3",
+            "number": 3,
+            "question": "Sitting",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient is asked to sit on an examination bed without support of feet, eyes open, arms outstretched to the front.",
+            "options": [
+                { "value": 0, "label": "Normal, no difficulties sitting >10 seconds", "points": 0 },
+                { "value": 1, "label": "Slight difficulties, intermittent sway", "points": 1 },
+                { "value": 2, "label": "Constant sway, but able to sit >10 seconds without support", "points": 2 },
+                { "value": 3, "label": "Able to sit for >10 seconds only with intermittent support", "points": 3 },
+                { "value": 4, "label": "Unable to sit for >10 seconds without continuous support", "points": 4 }
+            ]
+        },
+        {
+            "id": "SARA_4",
+            "number": 4,
+            "question": "Speech disturbance",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Speech is assessed during normal conversation.",
+            "options": [
+                { "value": 0, "label": "Normal", "points": 0 },
+                { "value": 1, "label": "Suggestion of speech disturbance", "points": 1 },
+                { "value": 2, "label": "Impaired speech, but easy to understand", "points": 2 },
+                { "value": 3, "label": "Occasional words difficult to understand", "points": 3 },
+                { "value": 4, "label": "Many words difficult to understand", "points": 4 },
+                { "value": 5, "label": "Only single words understandable", "points": 5 },
+                { "value": 6, "label": "Speech unintelligible / anarthria", "points": 6 }
+            ]
+        },
+        {
+            "id": "SARA_5",
+            "number": 5,
+            "question": "Finger chase",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient sits comfortably. Examiner sits in front and performs 5 sudden and fast pointing movements in unpredictable directions in a frontal plane, at about 50% arm reach of the patient. Patient is asked to follow the movements with the index finger as fast and precisely as possible. Average performance of the last 3 movements is rated.",
+            "scoringNote": "Rate each side separately, then calculate mean (rounded up to nearest integer)",
+            "options": [
+                { "value": 0, "label": "No dysmetria", "points": 0 },
+                { "value": 1, "label": "Dysmetria, under/overshooting target <5 cm", "points": 1 },
+                { "value": 2, "label": "Dysmetria, under/overshooting target <15 cm", "points": 2 },
+                { "value": 3, "label": "Dysmetria, under/overshooting target >15 cm", "points": 3 },
+                { "value": 4, "label": "Unable to perform 5 pointing movements", "points": 4 }
+            ]
+        },
+        {
+            "id": "SARA_6",
+            "number": 6,
+            "question": "Nose-finger test",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient sits comfortably. Patient is asked to point repeatedly from their nose to the examiner's finger which is at about 90% arm reach. Movements are performed at moderate speed. Average performance of last 3 movements is rated.",
+            "scoringNote": "Rate each side separately, then calculate mean (rounded up to nearest integer)",
+            "options": [
+                { "value": 0, "label": "No tremor", "points": 0 },
+                { "value": 1, "label": "Tremor with amplitude <2 cm", "points": 1 },
+                { "value": 2, "label": "Tremor with amplitude <5 cm", "points": 2 },
+                { "value": 3, "label": "Tremor with amplitude >5 cm", "points": 3 },
+                { "value": 4, "label": "Unable to perform 5 pointing movements", "points": 4 }
+            ]
+        },
+        {
+            "id": "SARA_7",
+            "number": 7,
+            "question": "Fast alternating hand movements",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient sits comfortably. Patient is asked to perform 10 cycles of repetitive pronation/supination movements of the hand, as fast and as precisely as possible. Movement is demonstrated at a speed of approximately 10 cycles in 7 seconds. Time for performance of 10 cycles is measured.",
+            "scoringNote": "Rate each side separately, then calculate mean (rounded up to nearest integer)",
+            "options": [
+                { "value": 0, "label": "Normal, no irregularities (performs <10 seconds)", "points": 0 },
+                { "value": 1, "label": "Slightly irregular (performs <10 seconds)", "points": 1 },
+                { "value": 2, "label": "Clearly irregular, single movements difficult to distinguish, or relevant interruptions, but performs <10 seconds", "points": 2 },
+                { "value": 3, "label": "Very irregular, single movements difficult to distinguish, or relevant interruptions, performs >10 seconds", "points": 3 },
+                { "value": 4, "label": "Unable to complete 10 cycles", "points": 4 }
+            ]
+        },
+        {
+            "id": "SARA_8",
+            "number": 8,
+            "question": "Heel-shin slide",
+            "type": "clinician-rating",
+            "required": true,
+            "weight": 1,
+            "instructions": "Patient lies on examination bed, without sight of legs. Patient is asked to lift one leg, point with the heel to the opposite knee, slide down along the shin to the ankle, and lay the leg back on the bed. The task is performed 3 times. Sliding down should be performed at 1 second per shin length.",
+            "scoringNote": "Rate each side separately, then calculate mean (rounded up to nearest integer)",
+            "options": [
+                { "value": 0, "label": "Normal, no lateral deviation", "points": 0 },
+                { "value": 1, "label": "Slightly abnormal, lateral deviation <2 cm", "points": 1 },
+                { "value": 2, "label": "Clearly abnormal, lateral deviation 2-5 cm", "points": 2 },
+                { "value": 3, "label": "Severely abnormal, lateral deviation >5 cm", "points": 3 },
+                { "value": 4, "label": "Unable to perform the task", "points": 4 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "none",
+            "label": "No Ataxia",
+            "range": { "min": 0, "max": 0 },
+            "color": "#22c55e",
+            "description": "No evidence of cerebellar ataxia."
+        },
+        {
+            "id": "minimal",
+            "label": "Minimal Ataxia",
+            "range": { "min": 0.5, "max": 7.5 },
+            "color": "#84cc16",
+            "description": "Minimal cerebellar dysfunction."
+        },
+        {
+            "id": "mild",
+            "label": "Mild Ataxia",
+            "range": { "min": 8, "max": 15.5 },
+            "color": "#eab308",
+            "description": "Mild cerebellar ataxia with noticeable functional impact."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Ataxia",
+            "range": { "min": 16, "max": 24 },
+            "color": "#f97316",
+            "description": "Moderate cerebellar ataxia with significant functional limitations."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Ataxia",
+            "range": { "min": 24.5, "max": 40 },
+            "color": "#dc2626",
+            "description": "Severe cerebellar ataxia with major disability."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all item scores. For items 5-8 (limb kinetic functions), rate each side separately and calculate the arithmetic mean, rounded up to the nearest integer. Total score range: 0-40.",
+        "itemBreakdown": {
+            "gait": "0-8 points",
+            "stance": "0-6 points",
+            "sitting": "0-4 points",
+            "speech": "0-6 points",
+            "fingerChase": "0-4 points (mean of both sides)",
+            "noseFingerTest": "0-4 points (mean of both sides)",
+            "fastAlternatingHandMovements": "0-4 points (mean of both sides)",
+            "heelShinSlide": "0-4 points (mean of both sides)"
+        },
+        "clinicalUse": "Used to quantify cerebellar ataxia severity in conditions such as spinocerebellar ataxia (SCA), Friedreich's ataxia, multiple sclerosis, and stroke affecting the cerebellum.",
+        "minimumClinicallyImportantDifference": "A change of 1-2 points is generally considered clinically meaningful.",
+        "reliability": "High inter-rater reliability (ICC 0.98) and test-retest reliability (ICC 0.90)."
+    },
+
+    "references": [
+        {
+            "citation": "Schmitz-Hübsch T, du Montcel ST, Baliko L, et al. Scale for the assessment and rating of ataxia: development of a new clinical scale. Neurology. 2006;66(11):1717-1720.",
+            "doi": "10.1212/01.wnl.0000219042.60538.92"
+        },
+        {
+            "citation": "Weyer A, Abele M, Schmitz-Hübsch T, et al. Reliability and validity of the scale for the assessment and rating of ataxia: a study in 64 ataxia patients. Mov Disord. 2007;22(11):1633-1637.",
+            "doi": "10.1002/mds.21544"
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Schmitz-Hübsch T et al.",
+        "license": "Free for clinical and research use"
+    }
+}

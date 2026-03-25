@@ -1,0 +1,238 @@
+{
+    "id": "DSRS",
+    "name": "Dementia Severity Rating Scale",
+    "shortName": "DSRS",
+    "version": "1.0",
+    "description": "A caregiver-rated scale designed to assess the severity of dementia across multiple functional and cognitive domains.",
+    "category": "dementia",
+    "recallPeriod": "Current functioning (most of the time)",
+    "instructions": "In each section, please circle the number that most closely applies to the participant. This is a general form, so no one description may be exactly right - please circle the answer that seems to apply most of the time. Please circle only one number per section, and be sure to answer all questions.",
+    "estimatedTime": "10-15 minutes",
+    "scoringType": "sum",
+    "maxScore": 54,
+    "totalItems": 12,
+    "administrationType": "informant-rated",
+
+    "questions": [
+        {
+            "id": "DSRS_1",
+            "number": 1,
+            "question": "Memory",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal memory", "points": 0 },
+                { "value": 1, "label": "Occasionally forgets things that they were told recently. Does not cause many problems", "points": 1 },
+                { "value": 2, "label": "Mild consistent forgetfulness. Remembers recent events but often forgets parts", "points": 2 },
+                { "value": 3, "label": "Moderate memory loss. Worse for recent events. May not remember something you just told them. Causes problems with everyday activities", "points": 3 },
+                { "value": 4, "label": "Substantial memory loss. Quickly forgets recent or newly-learned things. Can only remember things that they have known for a long time", "points": 4 },
+                { "value": 5, "label": "Does not remember basic facts like the day of the week, when last meal was eaten or what the next meal will be", "points": 5 },
+                { "value": 6, "label": "Does not remember even the most basic things", "points": 6 }
+            ]
+        },
+        {
+            "id": "DSRS_2",
+            "number": 2,
+            "question": "Speech and Language",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal ability to talk and to understand others", "points": 0 },
+                { "value": 1, "label": "Sometimes cannot find a word, but able to carry on conversations", "points": 1 },
+                { "value": 2, "label": "Often forgets words. May use the wrong word in its place. Some trouble expressing thoughts and giving answers", "points": 2 },
+                { "value": 3, "label": "Usually answers questions using sentences but rarely starts a conversation", "points": 3 },
+                { "value": 4, "label": "Answers questions, but responses are often hard to understand or don't make sense. Usually able to follow simple instructions", "points": 4 },
+                { "value": 5, "label": "Speech often does not make sense. Cannot answer questions or follow instructions", "points": 5 },
+                { "value": 6, "label": "Does not respond most of the time", "points": 6 }
+            ]
+        },
+        {
+            "id": "DSRS_3",
+            "number": 3,
+            "question": "Recognition of Family Members",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal - recognizes people and generally knows who they are", "points": 0 },
+                { "value": 1, "label": "Usually recognizes grandchildren, cousins or relatives who are not seen frequently but may not recall how they are related", "points": 1 },
+                { "value": 2, "label": "Usually does not recognize family members who are not seen frequently. Is often confused about how family members such as grandchildren, nieces, or nephews are related to them", "points": 2 },
+                { "value": 3, "label": "Sometimes does not recognize close family members or others who they see frequently. May not recognize their children, brothers, or sisters who are not seen on a regular basis", "points": 3 },
+                { "value": 4, "label": "Frequently does not recognize spouse or caregiver", "points": 4 },
+                { "value": 5, "label": "No recognition or awareness of the presence of others", "points": 5 }
+            ]
+        },
+        {
+            "id": "DSRS_4",
+            "number": 4,
+            "question": "Orientation to Time",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal awareness of time of day and day of week", "points": 0 },
+                { "value": 1, "label": "Some confusion about what time it is or what day of the week, but not severe enough to interfere with everyday activities", "points": 1 },
+                { "value": 2, "label": "Frequently confused about time of day", "points": 2 },
+                { "value": 3, "label": "Almost always confused about the time of day", "points": 3 },
+                { "value": 4, "label": "Seems completely unaware of time", "points": 4 }
+            ]
+        },
+        {
+            "id": "DSRS_5",
+            "number": 5,
+            "question": "Orientation to Place",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal awareness of where they are even in new places", "points": 0 },
+                { "value": 1, "label": "Sometimes disoriented in new places", "points": 1 },
+                { "value": 2, "label": "Frequently disoriented in new places", "points": 2 },
+                { "value": 3, "label": "Usually disoriented, even in familiar places. May forget that they are already at home", "points": 3 },
+                { "value": 4, "label": "Almost always confused about place", "points": 4 }
+            ]
+        },
+        {
+            "id": "DSRS_6",
+            "number": 6,
+            "question": "Ability to Make Decisions",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal - as able to make decisions as before", "points": 0 },
+                { "value": 1, "label": "Only some difficulty making decisions that arise in day-to-day life", "points": 1 },
+                { "value": 2, "label": "Moderate difficulty. Gets confused when things get complicated or plans change", "points": 2 },
+                { "value": 3, "label": "Rarely makes any important decisions. Gets confused easily", "points": 3 },
+                { "value": 4, "label": "Not able to understand what is happening most of the time", "points": 4 }
+            ]
+        },
+        {
+            "id": "DSRS_7",
+            "number": 7,
+            "question": "Social and Community Activity",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal - acts the same with people as before", "points": 0 },
+                { "value": 1, "label": "Only mild problems that are not really important, but clearly acts differently from previous years", "points": 1 },
+                { "value": 2, "label": "Can still take part in community activities without help. May appear normal to people who don't know them", "points": 2 },
+                { "value": 3, "label": "Often has trouble dealing with people outside the home without help from caregiver. Usually can participate in quiet home activities with friends. The problem is clear to anyone who sees them", "points": 3 },
+                { "value": 4, "label": "No longer takes part in any real way in activities at home involving other people. Can only deal with the primary caregiver", "points": 4 },
+                { "value": 5, "label": "Little or no response even to primary caregiver", "points": 5 }
+            ]
+        },
+        {
+            "id": "DSRS_8",
+            "number": 8,
+            "question": "Home Activities and Responsibilities",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal. No decline in ability to do things around the house", "points": 0 },
+                { "value": 1, "label": "Some problems with home activities. May have more trouble with money management (paying bills) and fixing things. Can still go to a store, cook or clean. Still watches TV or reads a newspaper with interest and understanding", "points": 1 },
+                { "value": 2, "label": "Makes mistakes with easy tasks like going to a store, cooking or cleaning. Losing interest in the newspaper, TV or radio. Often can't follow a long conversation on a single topic", "points": 2 },
+                { "value": 3, "label": "Not able to shop, cook or clean without a lot of help. Does not understand the newspaper or the TV. Cannot follow a conversation", "points": 3 },
+                { "value": 4, "label": "No longer does any home-based activities", "points": 4 }
+            ]
+        },
+        {
+            "id": "DSRS_9",
+            "number": 9,
+            "question": "Personal Care - Cleanliness",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal. Takes care of self as well as they used to", "points": 0 },
+                { "value": 1, "label": "Sometimes forgets to wash, shave, comb hair, or may dress in wrong type of clothes. Not as neat as they used to be", "points": 1 },
+                { "value": 2, "label": "Requires help with dressing, washing and personal grooming", "points": 2 },
+                { "value": 3, "label": "Totally dependent on help for personal care", "points": 3 }
+            ]
+        },
+        {
+            "id": "DSRS_10",
+            "number": 10,
+            "question": "Eating",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal, does not need help in eating food that is served to them", "points": 0 },
+                { "value": 1, "label": "May need help cutting food or have trouble with some foods, but basically able to eat by themselves", "points": 1 },
+                { "value": 2, "label": "Generally able to feed themselves but may require some help. May lose interest during the meal", "points": 2 },
+                { "value": 3, "label": "Needs to be fed. May have trouble swallowing", "points": 3 }
+            ]
+        },
+        {
+            "id": "DSRS_11",
+            "number": 11,
+            "question": "Control of Urination and Bowels",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal - does not have problems controlling urination or bowels except for physical problems", "points": 0 },
+                { "value": 1, "label": "Rarely fails to control urination (generally less than one accident per month)", "points": 1 },
+                { "value": 2, "label": "Occasional failure to control urination (about once a week or less)", "points": 2 },
+                { "value": 3, "label": "Frequently fails to control urination (more than once a week)", "points": 3 },
+                { "value": 4, "label": "Generally fails to control urination and frequently cannot control bowels", "points": 4 }
+            ]
+        },
+        {
+            "id": "DSRS_12",
+            "number": 12,
+            "question": "Ability to Get from Place to Place",
+            "type": "likert",
+            "required": true,
+            "options": [
+                { "value": 0, "label": "Normal, able to get around on their own. (May have physical problems that require a cane or walker)", "points": 0 },
+                { "value": 1, "label": "Sometimes gets confused when driving or taking public transportation, especially in new places. Able to walk places alone", "points": 1 },
+                { "value": 2, "label": "Cannot drive or take public transportation alone, even in familiar places. Can walk alone outside for short distances. Might get lost if walking too far from home", "points": 2 },
+                { "value": 3, "label": "Cannot be left outside alone. Can get around the house without getting lost or confused", "points": 3 },
+                { "value": 4, "label": "Gets confused and needs help finding their way around the house", "points": 4 },
+                { "value": 5, "label": "Almost always in a bed or chair. May be able to walk a few steps with help, but lacks sense of direction", "points": 5 },
+                { "value": 6, "label": "Always in bed. Unable to sit or stand", "points": 6 }
+            ]
+        }
+    ],
+
+    "severityBands": [
+        {
+            "id": "mild",
+            "label": "Mild Dementia",
+            "min": 0,
+            "max": 18,
+            "color": "#eab308",
+            "description": "Mild cognitive and functional impairment."
+        },
+        {
+            "id": "moderate",
+            "label": "Moderate Dementia",
+            "min": 19,
+            "max": 36,
+            "color": "#f97316",
+            "description": "Moderate cognitive and functional impairment requiring significant assistance."
+        },
+        {
+            "id": "severe",
+            "label": "Severe Dementia",
+            "min": 37,
+            "max": 54,
+            "color": "#ef4444",
+            "description": "Severe cognitive and functional impairment; dependent for most activities."
+        }
+    ],
+
+    "interpretation": {
+        "scoringMethod": "Sum all 12 section scores. Range: 0-54.",
+        "severityLevels": "0-18: Mild, 19-36: Moderate, 37-54: Severe",
+        "clinicalNotes": "This scale is completed by a caregiver or informant who knows the patient well. It assesses functional and cognitive decline across multiple domains relevant to dementia."
+    },
+
+    "references": [
+        {
+            "citation": "Clark CM, Ewbank DC. Performance of the Dementia Severity Rating Scale: A caregiver questionnaire for rating severity in Alzheimer disease. Alzheimer Dis Assoc Disord. 1996;10(1):31-39."
+        }
+    ],
+
+    "metadata": {
+        "createdAt": "2026-02-11",
+        "updatedAt": "2026-02-11",
+        "author": "Clark CM, Ewbank DC",
+        "license": "Public domain for clinical use"
+    }
+}
