@@ -14,11 +14,19 @@ async def my_scores(
     current_user: dict = Depends(get_current_user),
 ):
     admin = get_supabase_admin()
-    result = admin.table("assessment_scores").select(
-        "id, total_score, max_possible, overall_severity, overall_severity_label, "
-        "scale_summaries, calculated_at"
-    ).eq("patient_id", current_user["id"]).order(
-        "calculated_at", desc=True
+    # Get final results for all instances belonging to this patient
+    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
+        "patient_id", current_user["id"]
+    ).execute().data
+    instance_ids = [i["instance_id"] for i in instances]
+    if not instance_ids:
+        return paginated_response([], 0, skip, limit)
+
+    result = admin.table("prs_final_results").select(
+        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
+        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
+    ).in_("instance_id", instance_ids).order(
+        "time_stamp", desc=True
     ).range(skip, skip + limit - 1).execute()
     return paginated_response(result.data, len(result.data), skip, limit)
 
@@ -26,20 +34,34 @@ async def my_scores(
 @router.get("/me/summary")
 async def my_score_summary(current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    scores = admin.table("assessment_scores").select(
-        "id, total_score, max_possible, overall_severity, overall_severity_label, "
-        "scale_summaries, calculated_at"
-    ).eq("patient_id", current_user["id"]).order("calculated_at", desc=True).execute().data
+    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
+        "patient_id", current_user["id"]
+    ).execute().data
+    instance_ids = [i["instance_id"] for i in instances]
+    if not instance_ids:
+        return success_response([])
+
+    scores = admin.table("prs_final_results").select(
+        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
+        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
+    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute().data
     return success_response(scores)
 
 
 @router.get("/patient/{patient_id}/summary")
 async def patient_score_summary(patient_id: str, current_user: dict = Depends(require_doctor)):
     admin = get_supabase_admin()
-    scores = admin.table("assessment_scores").select(
-        "id, total_score, max_possible, overall_severity, overall_severity_label, "
-        "scale_summaries, calculated_at"
-    ).eq("patient_id", patient_id).order("calculated_at", desc=True).execute().data
+    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
+        "patient_id", patient_id
+    ).execute().data
+    instance_ids = [i["instance_id"] for i in instances]
+    if not instance_ids:
+        return success_response([])
+
+    scores = admin.table("prs_final_results").select(
+        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
+        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
+    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute().data
     return success_response(scores)
 
 
@@ -51,19 +73,24 @@ async def patient_scores(
     current_user: dict = Depends(require_doctor),
 ):
     admin = get_supabase_admin()
-    scores = admin.table("assessment_scores").select(
-        "*, assessment_sessions(id, taken_by, started_at, completed_at)"
+    instances = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, initiated_by, status, started_at, completed_at"
     ).eq("patient_id", patient_id).order(
-        "calculated_at", desc=True
+        "started_at", desc=True
     ).range(skip, skip + limit - 1).execute().data
 
-    for score in scores:
-        session = score.get("assessment_sessions") or {}
-        session_id = session.get("id")
-        if session_id:
-            responses = admin.table("assessment_responses").select(
-                "question_index, response_value, response_label"
-            ).eq("assessment_session_id", session_id).order("question_index").execute().data
-            score["responses"] = responses
+    for inst in instances:
+        # Attach scale results
+        scale_results = admin.table("prs_scale_results").select(
+            "scale_result_id, scale_id, calculated_value, max_possible, percentage, "
+            "severity_level, severity_label"
+        ).eq("instance_id", inst["instance_id"]).execute().data
+        inst["scale_results"] = scale_results
 
-    return paginated_response(scores, len(scores), skip, limit)
+        # Attach responses
+        responses = admin.table("prs_responses").select(
+            "question_id, given_response, response_value"
+        ).eq("instance_id", inst["instance_id"]).execute().data
+        inst["responses"] = responses
+
+    return paginated_response(instances, len(instances), skip, limit)

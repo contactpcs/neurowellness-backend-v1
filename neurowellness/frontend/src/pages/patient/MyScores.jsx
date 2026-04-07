@@ -31,34 +31,34 @@ export default function MyScores() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr>
-                  {['Scale', 'Score', 'Max', 'Severity', 'Date'].map(h => (
+                  {['Assessment', 'Score', 'Max', 'Severity', 'Date'].map(h => (
                     <th key={h} style={{ textAlign: 'left', padding: '12px 16px', background: '#f9fafb', color: '#6b7280', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {scores.map((s, i) => {
-                  const color = sevColor(s.severity_level)
+                  const color = sevColor(s.overall_severity)
                   return (
                     <tr key={i}>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', fontWeight: '600' }}>
-                        {s.prs_scales?.name || '—'}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', fontWeight: '600', fontSize: '12px', color: '#6b7280' }}>
+                        {s.instance_id || '—'}
                       </td>
                       <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', fontWeight: '700', fontSize: '16px', color: '#111827' }}>
-                        {s.total_score}
+                        {s.calculated_value}
                       </td>
                       <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', color: '#6b7280' }}>
                         {s.max_possible}
                       </td>
                       <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6' }}>
-                        {s.severity_label ? (
+                        {s.overall_severity_label ? (
                           <span style={{ background: color + '20', color, borderRadius: '12px', padding: '3px 10px', fontWeight: '600', fontSize: '12px' }}>
-                            {s.severity_label}
+                            {s.overall_severity_label}
                           </span>
                         ) : '—'}
                       </td>
                       <td style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', color: '#6b7280' }}>
-                        {s.calculated_at ? new Date(s.calculated_at).toLocaleDateString() : '—'}
+                        {s.time_stamp ? new Date(s.time_stamp).toLocaleDateString() : '—'}
                       </td>
                     </tr>
                   )

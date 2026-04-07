@@ -4,7 +4,7 @@ import api from '../lib/api'
 export const usePrsStore = create((set, get) => ({
   scales: [],
   conditions: [],
-  activeSession: null,   // { assessment_session_id, scale: { ...scale, questions, branches } }
+  activeSession: null,   // { instance_id, scale_id, scale: { ...scale, questions, options } }
   currentQuestionIndex: 0,
   responses: {},
   submittedScore: null,
@@ -25,15 +25,15 @@ export const usePrsStore = create((set, get) => ({
     const body = { scale_id, taken_by }
     if (patient_id) body.patient_id = patient_id
     const res = await api.post('/prs/assessment/start', body)
-    const { assessment_session_id, scale } = res.data.data
+    const { instance_id, scale } = res.data.data
     set({
-      activeSession: { assessment_session_id, scale_id, scale },
+      activeSession: { instance_id, scale_id, scale },
       currentQuestionIndex: 0,
       responses: {},
       submittedScore: null,
       isLoading: false,
     })
-    return { assessment_session_id, scale }
+    return { instance_id, scale }
   },
 
   setResponse: (question_index, value, label = null) => {
@@ -56,7 +56,7 @@ export const usePrsStore = create((set, get) => ({
   goToQuestion: (index) => set({ currentQuestionIndex: index }),
 
   submitAssessment: async () => {
-    const { activeSession, responses, scale_id } = get()
+    const { activeSession, responses } = get()
     if (!activeSession) throw new Error('No active session')
     set({ isLoading: true })
     const responseList = Object.entries(responses).map(([idx, r]) => ({
@@ -65,7 +65,7 @@ export const usePrsStore = create((set, get) => ({
       response_label: r.label,
     }))
     const res = await api.post('/prs/assessment/submit', {
-      assessment_session_id: activeSession.assessment_session_id,
+      instance_id: activeSession.instance_id,
       scale_id: activeSession.scale_id,
       responses: responseList,
     })

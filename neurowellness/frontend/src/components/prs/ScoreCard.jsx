@@ -19,8 +19,14 @@ export default function ScoreCard({ score, scaleName }) {
 
   if (!score) return null
 
-  const dashPath = role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard'
-  const pct = score.max_possible ? Math.round((score.total_score / score.max_possible) * 100) : null
+  const dashPaths = {
+    doctor: '/doctor/dashboard',
+    receptionist: '/receptionist/dashboard',
+    clinical_assistant: '/clinical-assistant/dashboard',
+  }
+  const dashPath = dashPaths[role] || '/patient/dashboard'
+  const scoreValue = score.calculated_value ?? score.total_score  // support both v5 and v6
+  const pct = score.percentage != null ? score.percentage : (score.max_possible ? Math.round((scoreValue / score.max_possible) * 100) : null)
   const color = getSeverityColor(score.severity_level)
 
   const subscales = score.subscale_scores && typeof score.subscale_scores === 'object'
@@ -36,7 +42,7 @@ export default function ScoreCard({ score, scaleName }) {
 
         <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', background: '#f9fafb', borderRadius: '12px', padding: '24px 40px', marginBottom: '24px' }}>
           <span style={{ fontSize: '48px', fontWeight: '800', color: '#111827', lineHeight: 1 }}>
-            {score.total_score}
+            {scoreValue}
           </span>
           {score.max_possible > 0 && (
             <span style={{ color: '#9ca3af', fontSize: '16px', marginTop: '4px' }}>
@@ -89,7 +95,7 @@ export default function ScoreCard({ score, scaleName }) {
           Back to Dashboard
         </button>
         <button
-          onClick={() => { resetAssessment(); navigate(role === 'patient' ? '/patient/assessments' : '/doctor/patients') }}
+          onClick={() => { resetAssessment(); navigate(role === 'patient' ? '/patient/assessments' : role === 'receptionist' ? '/receptionist/patients' : role === 'clinical_assistant' ? '/clinical-assistant/patients' : '/doctor/patients') }}
           style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
         >
           Take Another Assessment

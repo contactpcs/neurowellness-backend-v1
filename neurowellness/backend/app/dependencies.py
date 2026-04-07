@@ -68,3 +68,6 @@ def require_role(allowed_roles: list):
 require_doctor = require_role(["doctor", "admin"])
 require_patient = require_role(["patient"])
 require_admin = require_role(["admin"])
+require_clinical_assistant = require_role(["clinical_assistant", "admin"])
+require_receptionist = require_role(["receptionist", "admin"])
+require_staff = require_role(["doctor", "clinical_assistant", "receptionist", "admin"])

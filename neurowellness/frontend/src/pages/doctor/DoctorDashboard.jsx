@@ -84,9 +84,9 @@ export default function DoctorDashboard() {
             <tbody>
               {recent_completed_assessments.map((a, i) => (
                 <tr key={i}>
-                  <td style={S.td}>{a.total_score} / {a.max_possible}</td>
+                  <td style={S.td}>{a.calculated_value} / {a.max_possible}</td>
                   <td style={S.td}>{a.overall_severity_label || '—'}</td>
-                  <td style={S.td}>{a.calculated_at ? new Date(a.calculated_at).toLocaleDateString() : '—'}</td>
+                  <td style={S.td}>{a.time_stamp ? new Date(a.time_stamp).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
             </tbody>

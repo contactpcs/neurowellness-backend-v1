@@ -17,7 +17,7 @@ export default function AssessmentPage() {
 
   const scaleId = searchParams.get('scale_id')
   const patientId = searchParams.get('patient_id')
-  const takenBy = searchParams.get('taken_by') || (role === 'doctor' && patientId ? 'doctor_on_behalf' : 'patient')
+  const takenBy = searchParams.get('taken_by') || ((role === 'doctor' || role === 'clinical_assistant') && patientId ? 'doctor_on_behalf' : 'patient')
 
   useEffect(() => {
     if (!scaleId) { navigate(-1); return }
@@ -46,7 +46,7 @@ export default function AssessmentPage() {
         {submittedScore && (
           <ScoreCard
             score={submittedScore}
-            scaleName={activeSession?.scale?.name || 'Assessment'}
+            scaleName={activeSession?.scale?.scale_name || 'Assessment'}
           />
         )}
 
@@ -55,13 +55,8 @@ export default function AssessmentPage() {
           <div>
             <div style={{ marginBottom: '24px' }}>
               <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>
-                {activeSession?.scale?.name}
+                {activeSession?.scale?.scale_name}
               </h1>
-              {activeSession?.scale?.instructions && (
-                <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '6px', lineHeight: '1.6' }}>
-                  {activeSession.scale.instructions}
-                </p>
-              )}
             </div>
             <ScaleRunner onComplete={() => {}} />
           </div>

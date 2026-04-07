@@ -11,6 +11,8 @@ export default function ProtectedRoute({ children, requiredRole }) {
   if (requiredRole && role !== requiredRole && role !== 'admin') {
     if (role === 'doctor') return <Navigate to="/doctor/dashboard" replace />
     if (role === 'patient') return <Navigate to="/patient/dashboard" replace />
+    if (role === 'receptionist') return <Navigate to="/receptionist/dashboard" replace />
+    if (role === 'clinical_assistant') return <Navigate to="/clinical-assistant/dashboard" replace />
     return <Navigate to="/login" replace />
   }
 

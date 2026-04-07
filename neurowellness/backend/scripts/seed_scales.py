@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Seed PRS scales and conditions from JSON files into Supabase.
+Seed PRS diseases, scales, and disease_scale_map from JSON files into Supabase.
 Usage: python scripts/seed_scales.py --scales-dir PATH --conditions-file PATH
+
+v6: Updated for TEXT-based composite IDs and new schema.
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -14,6 +17,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.database import get_supabase_admin
+
+
+def _scale_code(name):
+    """Extract short code from scale name."""
+    m = re.match(r'^([A-Za-z0-9\-]+(?:\s*v?\d+\.?\d*)?)\s*[-]\s', name)
+    if m:
+        return m.group(1).strip()
+    m2 = re.match(r'^([A-Z][A-Z0-9\-]+(?:\s*\d+)?)\s', name)
+    if m2:
+        return m2.group(1).strip()
+    return re.sub(r'[^A-Z0-9\-]', '', name.upper())
 
 
 def seed_scales(scales_dir: str, conditions_file: str):
@@ -26,89 +40,94 @@ def seed_scales(scales_dir: str, conditions_file: str):
         with open(json_file, "r", encoding="utf-8") as f:
             scale = json.load(f)
 
-        scale_id_str = scale.get("id") or json_file.stem
-        print(f"  Seeding scale: {scale_id_str}...", end="", flush=True)
+        code = scale.get("id") or json_file.stem
+        sid = f"{code}/2026"
+        print(f"  Seeding scale: {sid}...", end="", flush=True)
 
         scale_row = {
-            "scale_id": scale_id_str,
-            "name": scale.get("name", scale_id_str),
-            "short_name": scale.get("shortName", scale_id_str),
-            "description": scale.get("description"),
-            "version": str(scale.get("version", "1.0")),
-            "recall_period": scale.get("recallPeriod"),
-            "instructions": scale.get("instructions"),
-            "scoring_type": scale.get("scoringType") or scale.get("scoringMethod") or "sum",
-            "max_score": scale.get("maxScore"),
-            "max_item_score": scale.get("maxItemScore"),
-            "scored_questions": json.dumps(scale.get("scoredQuestions") or []),
-            "subscales": json.dumps(scale.get("subscales", [])),
-            "domains": json.dumps(scale.get("domains", {})),
-            "components": json.dumps(scale.get("components", [])),
-            "severity_bands": json.dumps(scale.get("severityBands", [])),
-            "risk_rules": json.dumps(scale.get("riskRules", [])),
-            "interpretation": json.dumps(scale.get("interpretation", {})),
-            "is_active": True,
+            "scale_id": sid,
+            "scale_code": code,
+            "scale_name": scale.get("name", code),
+            "is_common_scale": False,
+            "num_diseases_used": 1,
         }
 
-        result = admin.table("prs_scales").upsert(scale_row, on_conflict="scale_id").execute()
-
-        if not result.data:
-            print(f" ERROR: failed to upsert scale {scale_id_str}")
-            continue
-
-        scale_db_id = result.data[0]["id"]
+        admin.table("prs_scales").upsert(scale_row, on_conflict="scale_id").execute()
 
         questions = scale.get("questions", [])
-        question_rows = []
         for idx, q in enumerate(questions):
-            q_idx = q.get("index", idx)
+            q_code = f"{code}/{idx + 1:03d}"
             q_row = {
-                "scale_id": scale_db_id,
-                "question_index": q_idx,
-                "label": q.get("label"),
-                "question_text": q.get("question") or q.get("text") or q.get("label") or f"Question {q_idx + 1}",
-                "question_type": q.get("type", "likert"),
+                "question_id": q_code,
+                "question_code": q_code,
+                "scale_id": sid,
+                "question_text": q.get("question") or q.get("text") or q.get("label") or f"Question {idx + 1}",
+                "answer_type": q.get("type", "likert"),
                 "is_required": q.get("required", True),
-                "scored_in_total": q.get("scoredInTotal", True),
-                "include_in_score": q.get("includeInScore", True),
-                "supplementary": q.get("supplementary", False),
-                "conditional_on": json.dumps(q.get("conditionalOn")) if q.get("conditionalOn") else None,
-                "options": json.dumps(q.get("options", [])),
-                "validation": json.dumps(q.get("validation", {})),
-                "dimension": q.get("dimension"),
+                "display_order": idx,
+                "is_common_scale": False,
             }
-            question_rows.append(q_row)
+            admin.table("prs_questions").upsert(q_row, on_conflict="question_id").execute()
 
-        if question_rows:
-            admin.table("prs_questions").upsert(
-                question_rows, on_conflict="scale_id,question_index"
-            ).execute()
+            # Seed options
+            options = q.get("options", [])
+            for opt_idx, opt in enumerate(options):
+                opt_id = f"{q_code}/{opt_idx + 1:02d}"
+                opt_row = {
+                    "option_id": opt_id,
+                    "question_id": q_code,
+                    "option_label": opt.get("label", str(opt.get("value", opt_idx))),
+                    "option_value": str(opt.get("value", opt_idx)),
+                    "points": opt.get("points", opt.get("value", 0)),
+                    "display_order": opt_idx,
+                    "status": True,
+                }
+                admin.table("prs_options").upsert(opt_row, on_conflict="question_id,option_value").execute()
 
         total_scales += 1
-        total_questions += len(question_rows)
-        print(f" OK ({len(question_rows)} questions)")
+        total_questions += len(questions)
+        print(f" OK ({len(questions)} questions)")
 
-    print(f"\n  Seeding conditions from {conditions_file}...")
+    # ── Seed diseases from conditions file ───────────────────────────────────
+    print(f"\n  Seeding diseases from {conditions_file}...")
     with open(conditions_file, "r", encoding="utf-8") as f:
         condition_map = json.load(f)
 
-    total_conditions = 0
+    total_diseases = 0
     for cond_id, cond_data in condition_map.get("conditions", {}).items():
-        cond_row = {
-            "condition_id": cond_id,
-            "label": cond_data.get("label", cond_id),
-            "description": cond_data.get("description"),
-            "scale_ids": cond_data.get("scales", []),
-            "is_active": True,
+        disease_name = cond_data.get("label", cond_id)
+        did = re.sub(r'[^A-Z0-9/]', '', disease_name.upper().replace("'", "").replace(" ", "")) + "/2026"
+        dcode = re.sub(r'[^A-Z0-9]', '', disease_name.upper().replace("'", ""))
+
+        disease_row = {
+            "disease_id": did,
+            "disease_code": dcode,
+            "disease_name": disease_name,
+            "version": "v1.0",
+            "status": True,
         }
-        admin.table("prs_conditions").upsert(cond_row, on_conflict="condition_id").execute()
-        total_conditions += 1
-        print(f"    OK {cond_id}: {len(cond_data.get('scales', []))} scales")
+        admin.table("prs_diseases").upsert(disease_row, on_conflict="disease_id").execute()
+
+        # Seed disease_scale_map
+        for order, scale_code_val in enumerate(cond_data.get("scales", []), 1):
+            sid = f"{scale_code_val}/2026"
+            dsid = f"{disease_name}/{scale_code_val}"
+            ds_row = {
+                "ds_map_id": dsid,
+                "disease_id": did,
+                "scale_id": sid,
+                "display_order": order,
+                "is_required": True,
+            }
+            admin.table("prs_disease_scale_map").upsert(ds_row, on_conflict="disease_id,scale_id").execute()
+
+        total_diseases += 1
+        print(f"    OK {did}: {len(cond_data.get('scales', []))} scales")
 
     print(f"\nSeeding complete:")
-    print(f"   Scales:     {total_scales}")
-    print(f"   Questions:  {total_questions}")
-    print(f"   Conditions: {total_conditions}")
+    print(f"   Scales:    {total_scales}")
+    print(f"   Questions: {total_questions}")
+    print(f"   Diseases:  {total_diseases}")
 
 
 if __name__ == "__main__":

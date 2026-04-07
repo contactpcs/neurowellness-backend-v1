@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../lib/api'
-import DoctorLayout from '../../components/layout/DoctorLayout'
+import StaffLayout from '../../components/layout/StaffLayout'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const SEVERITY_COLORS = { minimal: '#16a34a', mild: '#ca8a04', moderate: '#ea580c', severe: '#dc2626' }
@@ -13,7 +13,7 @@ const S = {
   tabs: { display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '2px solid #e5e7eb', paddingBottom: '0' },
   tab: (active) => ({
     padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: active ? '700' : '500',
-    color: active ? '#4f46e5' : '#6b7280', borderBottom: active ? '2px solid #4f46e5' : 'none',
+    color: active ? '#7c3aed' : '#6b7280', borderBottom: active ? '2px solid #7c3aed' : 'none',
     background: 'none', border: 'none', marginBottom: '-2px',
   }),
   card: { background: '#fff', borderRadius: '10px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '16px' },
@@ -24,17 +24,17 @@ const S = {
   th: { textAlign: 'left', padding: '10px 12px', background: '#f9fafb', color: '#6b7280', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb' },
   td: { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', color: '#374151' },
   select: { border: '1px solid #d1d5db', borderRadius: '8px', padding: '8px 12px', fontSize: '14px', outline: 'none', flex: 1 },
-  grantBtn: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  grantBtn: { background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
   takeBtn: { background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
   badge: (color) => ({ display: 'inline-block', background: color + '20', color, borderRadius: '12px', padding: '2px 10px', fontSize: '12px', fontWeight: '600' }),
 }
 
-export default function PatientDetail() {
+export default function ClinicalAssistantPatientDetail() {
   const { patientId } = useParams()
   const navigate = useNavigate()
   const [tab, setTab] = useState('overview')
   const [data, setData] = useState(null)
-  const [conditions, setConditions] = useState([])   // disease list for grant picker
+  const [conditions, setConditions] = useState([])
   const [selectedDisease, setSelectedDisease] = useState('')
   const [loading, setLoading] = useState(true)
   const [granting, setGranting] = useState(false)
@@ -43,7 +43,7 @@ export default function PatientDetail() {
 
   useEffect(() => {
     Promise.all([
-      api.get(`/doctors/patients/${patientId}`),
+      api.get(`/staff/patients/${patientId}`),
       api.get('/prs/conditions'),
     ]).then(([r1, r2]) => {
       setData(r1.data.data)
@@ -69,7 +69,7 @@ export default function PatientDetail() {
       })
       const { disease_name, scales_granted } = res.data.data
       setGrantMsg(`Granted ${scales_granted} scales for ${disease_name}`)
-      const r = await api.get(`/doctors/patients/${patientId}`)
+      const r = await api.get(`/staff/patients/${patientId}`)
       setData(r.data.data)
       setSelectedDisease('')
     } catch (e) {
@@ -83,13 +83,11 @@ export default function PatientDetail() {
     navigate(`/assessment?scale_id=${perm.scale_id}&patient_id=${patientId}&taken_by=doctor_on_behalf`)
   }
 
-  if (loading) return <DoctorLayout><LoadingSpinner /></DoctorLayout>
-  if (!data) return <DoctorLayout><p>Patient not found</p></DoctorLayout>
+  if (loading) return <StaffLayout><LoadingSpinner /></StaffLayout>
+  if (!data) return <StaffLayout><p>Patient not found</p></StaffLayout>
 
-  const { patient, permissions, scores_summary } = data
-  const prof = { ...patient }
+  const { patient, permissions = [], scores_summary = [] } = data
 
-  // Group permissions by disease for display
   const permsByDisease = (permissions || []).reduce((acc, p) => {
     const key = p.disease_id || 'Unknown'
     if (!acc[key]) acc[key] = { name: p.prs_diseases?.disease_name || key, scales: [] }
@@ -98,9 +96,9 @@ export default function PatientDetail() {
   }, {})
 
   return (
-    <DoctorLayout>
-      <h1 style={S.h1}>{prof.full_name}</h1>
-      <p style={S.sub}>{prof.email}</p>
+    <StaffLayout>
+      <h1 style={S.h1}>{patient.full_name}</h1>
+      <p style={S.sub}>{patient.email}</p>
 
       <div style={S.tabs}>
         {['overview', 'assessments', 'scores'].map(t => (
@@ -114,10 +112,10 @@ export default function PatientDetail() {
         <div style={S.card}>
           <h2 style={{ fontWeight: '600', marginBottom: '16px', fontSize: '16px' }}>Patient Information</h2>
           {[
-            ['Full Name', prof.full_name],
-            ['Email', prof.email],
-            ['Phone', prof.phone || '—'],
-            ['Gender', prof.gender || '—'],
+            ['Full Name', patient.full_name],
+            ['Email', patient.email],
+            ['Phone', patient.phone || '—'],
+            ['Gender', patient.gender || '—'],
           ].map(([label, value]) => (
             <div key={label} style={S.row}>
               <span style={S.label}>{label}</span>
@@ -129,11 +127,10 @@ export default function PatientDetail() {
 
       {tab === 'assessments' && (
         <>
-          {/* ── Grant section ── */}
           <div style={S.card}>
             <h2 style={{ fontWeight: '600', marginBottom: '4px', fontSize: '15px' }}>Assign Disease Assessment</h2>
             <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '14px' }}>
-              Selecting a disease will automatically grant all its scales and create a session for this patient.
+              Selecting a disease will automatically grant all its scales for this patient.
             </p>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <select
@@ -143,9 +140,7 @@ export default function PatientDetail() {
               >
                 <option value="">Select a disease...</option>
                 {conditions.map(c => (
-                  <option key={c.disease_id} value={c.disease_id}>
-                    {c.disease_name}
-                  </option>
+                  <option key={c.disease_id} value={c.disease_id}>{c.disease_name}</option>
                 ))}
               </select>
               <button
@@ -163,7 +158,6 @@ export default function PatientDetail() {
             )}
           </div>
 
-          {/* ── Granted permissions grouped by disease ── */}
           <div style={S.card}>
             <h2 style={{ fontWeight: '600', marginBottom: '16px', fontSize: '15px' }}>Granted Assessments</h2>
             {!Object.keys(permsByDisease).length ? (
@@ -187,7 +181,7 @@ export default function PatientDetail() {
                           <td style={S.td}>{p.prs_scales?.scale_name || p.scale_id || '—'}</td>
                           <td style={S.td}>
                             <span style={S.badge(
-                              p.status === 'granted' ? '#4f46e5'
+                              p.status === 'granted' ? '#7c3aed'
                               : p.status === 'completed' ? '#16a34a'
                               : '#6b7280'
                             )}>
@@ -242,6 +236,6 @@ export default function PatientDetail() {
           )}
         </div>
       )}
-    </DoctorLayout>
+    </StaffLayout>
   )
 }

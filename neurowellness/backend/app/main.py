@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
-from app.routers import auth, doctors, patients, notifications
+from app.routers import auth, doctors, patients, notifications, staff
 from app.routers.prs import scales, conditions, permissions, assessment, scores
 
 settings = get_settings()
@@ -29,6 +29,7 @@ app.include_router(auth.router, prefix=f"{PREFIX}/auth", tags=["auth"])
 app.include_router(doctors.router, prefix=f"{PREFIX}/doctors", tags=["doctors"])
 app.include_router(patients.router, prefix=f"{PREFIX}/patients", tags=["patients"])
 app.include_router(notifications.router, prefix=f"{PREFIX}/notifications", tags=["notifications"])
+app.include_router(staff.router, prefix=f"{PREFIX}/staff", tags=["staff"])
 app.include_router(scales.router, prefix=f"{PREFIX}/prs/scales", tags=["prs-scales"])
 app.include_router(conditions.router, prefix=f"{PREFIX}/prs/conditions", tags=["prs-conditions"])
 app.include_router(permissions.router, prefix=f"{PREFIX}/prs/permissions", tags=["prs-permissions"])

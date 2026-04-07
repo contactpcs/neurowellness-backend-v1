@@ -50,6 +50,18 @@ export default function Navbar() {
             <Link to="/patient/scores" style={styles.link}>My Scores</Link>
           </>
         )}
+        {role === 'receptionist' && (
+          <>
+            <Link to="/receptionist/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/receptionist/patients" style={styles.link}>Patients</Link>
+          </>
+        )}
+        {role === 'clinical_assistant' && (
+          <>
+            <Link to="/clinical-assistant/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/clinical-assistant/patients" style={styles.link}>Patients</Link>
+          </>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

@@ -63,7 +63,7 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str]) -> Option
 class RegistrationSyncRequest(BaseModel):
     full_name: str
     email: EmailStr
-    role: str  # 'doctor' or 'patient'
+    role: str  # 'doctor', 'patient', 'receptionist', or 'clinical_assistant'
     phone: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -78,6 +78,10 @@ class RegistrationSyncRequest(BaseModel):
     # Patient fields
     medical_history: Optional[str] = None
     emergency_contact: Optional[str] = None
+    # Staff fields
+    employee_id: Optional[str] = None
+    department: Optional[str] = None
+    designation: Optional[str] = None
 
 
 @router.post("/sync-profile")
@@ -89,8 +93,9 @@ async def sync_profile(
     admin = get_supabase_admin()
     user_id = current_user["id"]
 
-    if body.role not in ["doctor", "patient"]:
-        raise HTTPException(status_code=400, detail="Role must be 'doctor' or 'patient'")
+    valid_roles = ["doctor", "patient", "admin", "receptionist", "clinical_assistant"]
+    if body.role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Role must be one of: {valid_roles}")
 
     profile_data = {
         "id": user_id,
@@ -148,6 +153,32 @@ async def sync_profile(
                     "current_patient_count": new_count
                 }).eq("id", assigned_doctor_id).execute()
 
+    elif body.role == "receptionist":
+        admin.table("receptionists").upsert({
+            "id": user_id,
+            "employee_id": body.employee_id,
+            "department": body.department,
+            "designation": body.designation,
+            "is_active": True,
+        }).execute()
+
+    elif body.role == "clinical_assistant":
+        admin.table("clinical_assistants").upsert({
+            "id": user_id,
+            "employee_id": body.employee_id,
+            "department": body.department,
+            "designation": body.designation,
+            "is_active": True,
+        }).execute()
+
+    elif body.role == "admin":
+        admin.table("admins").upsert({
+            "id": user_id,
+            "employee_id": body.employee_id,
+            "department": body.department,
+            "is_active": True,
+        }).execute()
+
     return success_response({"role": body.role, "id": user_id}, "Profile synced successfully")
 
 
@@ -167,7 +198,15 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
     if profile["role"] == "doctor":
         extra = admin.table("doctors").select("*").eq("id", user_id).single().execute().data or {}
-    else:
+    elif profile["role"] == "patient":
         extra = admin.table("patients").select("*").eq("id", user_id).single().execute().data or {}
+    elif profile["role"] == "receptionist":
+        extra = admin.table("receptionists").select("*").eq("id", user_id).single().execute().data or {}
+    elif profile["role"] == "clinical_assistant":
+        extra = admin.table("clinical_assistants").select("*").eq("id", user_id).single().execute().data or {}
+    elif profile["role"] == "admin":
+        extra = admin.table("admins").select("*").eq("id", user_id).single().execute().data or {}
+    else:
+        extra = {}
 
     return success_response({**profile, **extra})

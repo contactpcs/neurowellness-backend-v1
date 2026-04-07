@@ -14,9 +14,10 @@ router = APIRouter()
 
 
 class StartAssessmentRequest(BaseModel):
-    scale_id: str                        # UUID of prs_scales row
+    scale_id: str                        # TEXT PK e.g. "EQ-5D-5L/2026"
+    disease_id: Optional[str] = None     # TEXT PK e.g. "DEPRESSION/ANXIETY/2026"
     taken_by: str = "patient"
-    patient_id: Optional[str] = None    # required when taken_by == doctor_on_behalf
+    patient_id: Optional[str] = None     # required when taken_by == doctor_on_behalf
 
 
 class ResponseItem(BaseModel):
@@ -26,7 +27,7 @@ class ResponseItem(BaseModel):
 
 
 class SubmitAssessmentRequest(BaseModel):
-    assessment_session_id: str
+    instance_id: str                     # TEXT PK e.g. "PAT001/001"
     scale_id: str                        # which scale is being submitted
     responses: List[ResponseItem]
 
@@ -58,58 +59,81 @@ async def start_assessment(
         if not perm:
             raise ForbiddenError("No permission to take this assessment")
         doctor_id = perm[0]["doctor_id"]
-        disease_id = perm[0].get("disease_id")
+        disease_id = perm[0].get("disease_id") or body.disease_id
 
-    elif body.taken_by == "doctor_on_behalf" and role in ["doctor", "admin"]:
+    elif body.taken_by == "doctor_on_behalf" and role in ["doctor", "clinical_assistant", "admin"]:
         if not body.patient_id:
             raise BadRequestError("patient_id is required for doctor_on_behalf")
         patient_id = body.patient_id
         doctor_id = current_user["id"]
-        # Try to find disease_id from any permission for this patient+scale
         perm = admin.table("assessment_permissions").select("disease_id").eq(
             "patient_id", patient_id
         ).eq("scale_id", body.scale_id).execute().data
-        disease_id = perm[0].get("disease_id") if perm else None
+        disease_id = (perm[0].get("disease_id") if perm else None) or body.disease_id
 
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
     # ── Resolve disease_id if not on permission ────────────────────────────────
     if not disease_id:
-        link = admin.table("prs_disease_scales").select("disease_id").eq(
+        link = admin.table("prs_disease_scale_map").select("disease_id").eq(
             "scale_id", body.scale_id
         ).limit(1).execute().data
         disease_id = link[0]["disease_id"] if link else None
     if not disease_id:
         raise BadRequestError("Cannot determine disease for this scale")
 
-    # ── Load scale + questions + branching ────────────────────────────────────
-    scale = admin.table("prs_scales").select("*").eq("id", body.scale_id).single().execute().data
+    # ── Generate instance_id ─────────────────────────────────────────────────
+    # Count existing instances for this patient to determine sequence number
+    existing = admin.table("prs_assessment_instances").select("instance_id").eq(
+        "patient_id", patient_id
+    ).execute().data
+    seq = len(existing) + 1
+
+    # Build patient code from patient count (PAT format)
+    # For now use a hash-based short code since patient_id is UUID
+    instance_id = f"PAT/{patient_id[:8]}/{seq:03d}"
+
+    # ── Load scale + questions ───────────────────────────────────────────────
+    scale = admin.table("prs_scales").select("*").eq("scale_id", body.scale_id).single().execute().data
     if not scale:
         raise NotFoundError("Scale not found")
 
     questions = admin.table("prs_questions").select("*").eq(
         "scale_id", body.scale_id
-    ).order("question_index").execute().data
-
-    branches = admin.table("prs_question_branches").select("*").eq(
-        "scale_id", body.scale_id
     ).order("display_order").execute().data
 
-    # ── Create assessment_session row ─────────────────────────────────────────
-    session_row = {
-        "patient_id": patient_id,
-        "doctor_id": doctor_id,
+    # Load options + normalise shape for frontend
+    for idx, q in enumerate(questions):
+        opts = admin.table("prs_options").select("*").eq(
+            "question_id", q["question_id"]
+        ).order("display_order").execute().data
+        # Normalise to frontend-expected shape: value, label, points
+        q["options"] = [
+            {
+                "value":  o.get("option_value"),
+                "label":  o.get("option_label"),
+                "points": o.get("points", 0),
+            }
+            for o in opts
+        ]
+        # Add convenience fields the frontend uses
+        q["question_index"] = idx
+        q["question_type"]  = q.get("answer_type", "likert")
+
+    # ── Create prs_assessment_instances row ──────────────────────────────────
+    instance_row = {
+        "instance_id": instance_id,
         "disease_id": disease_id,
-        "taken_by": body.taken_by,
+        "patient_id": patient_id,
+        "initiated_by": body.taken_by,
         "status": "in_progress",
     }
-    session_result = admin.table("assessment_sessions").insert(session_row).execute()
-    assessment_session_id = session_result.data[0]["id"]
+    admin.table("prs_assessment_instances").insert(instance_row).execute()
 
     return success_response({
-        "assessment_session_id": assessment_session_id,
-        "scale": {**scale, "questions": questions, "branches": branches},
+        "instance_id": instance_id,
+        "scale": {**scale, "questions": questions},
     })
 
 
@@ -120,174 +144,113 @@ async def submit_assessment(
 ):
     admin = get_supabase_admin()
 
-    # ── Validate session ──────────────────────────────────────────────────────
-    session = admin.table("assessment_sessions").select("*").eq(
-        "id", body.assessment_session_id
+    # ── Validate instance ────────────────────────────────────────────────────
+    instance = admin.table("prs_assessment_instances").select("*").eq(
+        "instance_id", body.instance_id
     ).single().execute().data
-    if not session:
-        raise NotFoundError("Assessment session not found")
-    if session["status"] != "in_progress":
+    if not instance:
+        raise NotFoundError("Assessment instance not found")
+    if instance["status"] != "in_progress":
         raise BadRequestError("Assessment already submitted")
 
     user_id = current_user["id"]
-    if session["patient_id"] != user_id and session["doctor_id"] != user_id:
-        raise ForbiddenError("Not your assessment session")
+    if instance["patient_id"] != user_id:
+        raise ForbiddenError("Not your assessment instance")
 
-    # ── Load scale + questions ────────────────────────────────────────────────
-    scale = admin.table("prs_scales").select("*").eq("id", body.scale_id).single().execute().data
+    # ── Load scale + questions ───────────────────────────────────────────────
+    scale = admin.table("prs_scales").select("*").eq("scale_id", body.scale_id).single().execute().data
     if not scale:
         raise NotFoundError("Scale not found")
 
     questions = admin.table("prs_questions").select("*").eq(
         "scale_id", body.scale_id
-    ).order("question_index").execute().data
+    ).order("display_order").execute().data
 
-    # ── Build scale_config for engine ─────────────────────────────────────────
-    scoring_config = _parse(scale.get("scoring_config")) or {}
+    # Load options + normalise
+    for idx, q in enumerate(questions):
+        opts = admin.table("prs_options").select("*").eq(
+            "question_id", q["question_id"]
+        ).order("display_order").execute().data
+        q["options"] = [
+            {
+                "value":  o.get("option_value"),
+                "label":  o.get("option_label"),
+                "points": o.get("points", 0),
+            }
+            for o in opts
+        ]
+        q["question_index"] = idx
+        q["question_type"]  = q.get("answer_type", "likert")
 
+    # ── Build scale_config for engine ────────────────────────────────────────
     scale_config = {
         "id": scale.get("scale_code"),
-        "scoringMethod": scale.get("scoring_method", "sum"),
-        "scoringType": scale.get("scoring_method", "sum"),
-        "maxScore": scale.get("max_score"),
-        "maxItemScore": scale.get("max_item_score"),
-        "cutoffScore": scale.get("cutoff_score"),
-        "cutoff": scale.get("cutoff_score"),
-        "severityBands": _parse(scale.get("severity_bands")) or [],
-        "riskRules": _parse(scale.get("risk_rules")) or [],
-        # From scoring_config JSONB
-        "subscales": scoring_config.get("subscales", []),
-        "domains": scoring_config.get("domains", {}),
-        "components": scoring_config.get("components", []),
-        "scoredQuestions": scoring_config.get("scoredQuestions", []),
-        "reverseItems": scoring_config.get("reverseItems", []),
-        "partA": scoring_config.get("partA", []),
-        "screeningThreshold": scoring_config.get("screeningThreshold", 4),
+        "scoringMethod": "sum",
+        "scoringType": "sum",
         "questions": [
             {
-                "index": q["question_index"],
-                "type": q["question_type"],
-                "scoredInTotal": q["scored_in_total"],
-                "includeInScore": q["include_in_score"],
-                "supplementary": q["supplementary"],
-                "dimension": q.get("domain_ref"),
-                "options": _parse(q.get("options")) or [],
+                "index": idx,
+                "type": q.get("answer_type", "likert"),
+                "options": q.get("options", []),
             }
-            for q in questions
+            for idx, q in enumerate(questions)
         ],
     }
 
-    # ── Calculate score ───────────────────────────────────────────────────────
+    # ── Calculate score ──────────────────────────────────────────────────────
     responses_dict = {r.question_index: r.response_value for r in body.responses}
     score_result = scale_engine.calculate_score(scale_config, responses_dict)
     severity = scale_engine.get_severity(scale_config, score_result.total)
     risk_flags = scale_engine.detect_risk_flags(scale_config, responses_dict, score_result)
 
-    # ── Save scale_scores ─────────────────────────────────────────────────────
-    scale_score_row = {
-        "assessment_session_id": body.assessment_session_id,
-        "patient_id": session["patient_id"],
-        "disease_id": session["disease_id"],
+    # ── Save prs_scale_results ───────────────────────────────────────────────
+    scale_result_id = f"{body.instance_id}/{body.scale_id}"
+    scale_result_row = {
+        "scale_result_id": scale_result_id,
+        "instance_id": body.instance_id,
         "scale_id": body.scale_id,
-        "total_score": score_result.total,
+        "calculated_value": score_result.total,
         "max_possible": score_result.max_possible,
         "severity_level": severity.level if severity else None,
         "severity_label": severity.label if severity else None,
         "subscale_scores": score_result.subscale_scores or {},
-        "domain_scores": score_result.domain_scores or {},
-        "component_scores": score_result.component_scores or {},
-        "question_scores": score_result.question_scores or {},
         "risk_flags": [rf.__dict__ for rf in risk_flags],
         "raw_score_data": score_result.extra or {},
     }
-    scale_score_db = admin.table("scale_scores").upsert(
-        scale_score_row, on_conflict="assessment_session_id,scale_id"
-    ).execute().data[0]
-    scale_score_id = scale_score_db["id"]
+    admin.table("prs_scale_results").upsert(
+        scale_result_row, on_conflict="instance_id,scale_id"
+    ).execute()
 
-    # ── Save assessment_responses ─────────────────────────────────────────────
-    q_map = {q["question_index"]: q["id"] for q in questions}
-    response_rows = [
-        {
-            "scale_score_id": scale_score_id,
-            "question_id": q_map.get(r.question_index),
-            "question_index": r.question_index,
-            "response_value": r.response_value,
-            "response_label": r.response_label,
-        }
-        for r in body.responses
-        if q_map.get(r.question_index)
-    ]
+    # ── Save prs_responses ───────────────────────────────────────────────────
+    q_list = questions
+    response_rows = []
+    for idx, r in enumerate(body.responses):
+        response_id = f"{body.instance_id}/{idx + 1:04d}"
+        q_id = q_list[r.question_index]["question_id"] if r.question_index < len(q_list) else None
+        if q_id:
+            response_rows.append({
+                "response_id": response_id,
+                "instance_id": body.instance_id,
+                "question_id": q_id,
+                "given_response": r.response_label or r.response_value,
+                "response_value": float(r.response_value) if r.response_value.replace('.', '', 1).isdigit() else None,
+            })
     if response_rows:
-        admin.table("assessment_responses").upsert(
-            response_rows, on_conflict="scale_score_id,question_index"
+        admin.table("prs_responses").upsert(
+            response_rows, on_conflict="instance_id,question_id"
         ).execute()
 
-    # ── Update assessment_session ─────────────────────────────────────────────
-    admin.table("assessment_sessions").update({
-        "status": "completed",
-        "completed_at": datetime.now(timezone.utc).isoformat(),
-    }).eq("id", body.assessment_session_id).execute()
-
-    # ── Aggregate assessment_scores (overall session score) ───────────────────
-    all_scale_scores = admin.table("scale_scores").select(
-        "scale_id, total_score, max_possible, severity_level, severity_label, risk_flags"
-    ).eq("assessment_session_id", body.assessment_session_id).execute().data or []
-
-    total_agg = sum((s.get("total_score") or 0) for s in all_scale_scores)
-    max_agg = sum((s.get("max_possible") or 0) for s in all_scale_scores)
-    all_risk_flags = []
-    for s in all_scale_scores:
-        flags = _parse(s.get("risk_flags")) or []
-        all_risk_flags.extend(flags if isinstance(flags, list) else [])
-
-    # Worst severity
-    sev_rank = ["minimal", "mild", "moderate", "severe", "moderately-severe"]
-    overall_sev = None
-    overall_sev_label = None
-    for s in all_scale_scores:
-        lv = s.get("severity_level")
-        if lv:
-            if overall_sev is None or (lv in sev_rank and sev_rank.index(lv) > sev_rank.index(overall_sev)):
-                overall_sev = lv
-                overall_sev_label = s.get("severity_label")
-
-    scale_summaries = [
-        {
-            "scale_id": s["scale_id"],
-            "total_score": s["total_score"],
-            "max_possible": s["max_possible"],
-            "severity_level": s["severity_level"],
-            "severity_label": s["severity_label"],
-        }
-        for s in all_scale_scores
-    ]
-
-    admin.table("assessment_scores").upsert({
-        "assessment_session_id": body.assessment_session_id,
-        "patient_id": session["patient_id"],
-        "disease_id": session["disease_id"],
-        "total_score": total_agg,
-        "max_possible": max_agg,
-        "scales_completed": len(all_scale_scores),
-        "overall_severity": overall_sev,
-        "overall_severity_label": overall_sev_label,
-        "scale_summaries": scale_summaries,
-        "all_risk_flags": all_risk_flags,
-    }, on_conflict="assessment_session_id").execute()
-
-    # ── Mark permission completed ─────────────────────────────────────────────
+    # ── Mark permission completed ────────────────────────────────────────────
     admin.table("assessment_permissions").update({"status": "completed"}).eq(
-        "patient_id", session["patient_id"]
+        "patient_id", instance["patient_id"]
     ).eq("scale_id", body.scale_id).eq("status", "granted").execute()
 
-    # ── Notify doctor ─────────────────────────────────────────────────────────
-    admin.table("notifications").insert({
-        "user_id": session["doctor_id"],
-        "type": "assessment_completed",
-        "title": "Assessment Completed",
-        "body": f"Patient completed {scale['name']}. Score: {score_result.total}/{score_result.max_possible}",
-        "data": {"assessment_session_id": body.assessment_session_id, "scale_score_id": scale_score_id},
-    }).execute()
+    # ── prs_final_results is auto-calculated by DB trigger ───────────────────
 
-    return success_response(scale_score_db, "Assessment submitted successfully")
+    return success_response({
+        "scale_result_id": scale_result_id,
+        "calculated_value": score_result.total,
+        "max_possible": score_result.max_possible,
+        "severity_level": severity.level if severity else None,
+        "severity_label": severity.label if severity else None,
+    }, "Assessment submitted successfully")

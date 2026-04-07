@@ -31,7 +31,13 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const profile = await login(email, password)
-      navigate(profile.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard')
+      const roleRedirects = {
+        doctor: '/doctor/dashboard',
+        admin: '/doctor/dashboard',
+        receptionist: '/receptionist/dashboard',
+        clinical_assistant: '/clinical-assistant/dashboard',
+      }
+      navigate(roleRedirects[profile.role] || '/patient/dashboard')
     } catch (err) {
       if (err.code === 'PROFILE_NOT_FOUND') {
         setProfileMissing(true)

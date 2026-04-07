@@ -13,12 +13,20 @@ import PatientDashboard from './pages/patient/PatientDashboard'
 import MyAssessments from './pages/patient/MyAssessments'
 import MyScores from './pages/patient/MyScores'
 import AssessmentPage from './pages/prs/AssessmentPage'
+import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard'
+import ReceptionistPatientList from './pages/receptionist/ReceptionistPatientList'
+import ReceptionistPatientDetail from './pages/receptionist/ReceptionistPatientDetail'
+import ClinicalAssistantDashboard from './pages/clinical_assistant/ClinicalAssistantDashboard'
+import ClinicalAssistantPatientList from './pages/clinical_assistant/ClinicalAssistantPatientList'
+import ClinicalAssistantPatientDetail from './pages/clinical_assistant/ClinicalAssistantPatientDetail'
 
 function RootRedirect() {
   const { isAuthenticated, isLoading, role } = useAuthStore()
   if (isLoading) return <LoadingSpinner message="Loading..." />
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (role === 'doctor') return <Navigate to="/doctor/dashboard" replace />
+  if (role === 'receptionist') return <Navigate to="/receptionist/dashboard" replace />
+  if (role === 'clinical_assistant') return <Navigate to="/clinical-assistant/dashboard" replace />
   return <Navigate to="/patient/dashboard" replace />
 }
 
@@ -66,7 +74,29 @@ export default function App() {
           <ProtectedRoute requiredRole="patient"><MyScores /></ProtectedRoute>
         } />
 
-        {/* Assessment — accessible by both roles */}
+        {/* Receptionist routes */}
+        <Route path="/receptionist/dashboard" element={
+          <ProtectedRoute requiredRole="receptionist"><ReceptionistDashboard /></ProtectedRoute>
+        } />
+        <Route path="/receptionist/patients" element={
+          <ProtectedRoute requiredRole="receptionist"><ReceptionistPatientList /></ProtectedRoute>
+        } />
+        <Route path="/receptionist/patients/:patientId" element={
+          <ProtectedRoute requiredRole="receptionist"><ReceptionistPatientDetail /></ProtectedRoute>
+        } />
+
+        {/* Clinical Assistant routes */}
+        <Route path="/clinical-assistant/dashboard" element={
+          <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantDashboard /></ProtectedRoute>
+        } />
+        <Route path="/clinical-assistant/patients" element={
+          <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantPatientList /></ProtectedRoute>
+        } />
+        <Route path="/clinical-assistant/patients/:patientId" element={
+          <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantPatientDetail /></ProtectedRoute>
+        } />
+
+        {/* Assessment — accessible by doctor, clinical_assistant, and patient */}
         <Route path="/assessment" element={
           <ProtectedRoute><AssessmentPage /></ProtectedRoute>
         } />

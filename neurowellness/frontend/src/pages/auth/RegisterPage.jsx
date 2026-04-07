@@ -28,6 +28,7 @@ export default function RegisterPage() {
     phone: '', city: '', state: '', role: 'patient',
     specialization: '', license_number: '',
     medical_history: '',
+    employee_id: '', department: '', designation: '',
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -69,9 +70,12 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           <p style={S.sectionTitle}>Account Type</p>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-            <button type="button" style={S.roleBtn(form.role === 'doctor')} onClick={() => setForm(f => ({ ...f, role: 'doctor' }))}>Doctor</button>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <button type="button" style={S.roleBtn(form.role === 'patient')} onClick={() => setForm(f => ({ ...f, role: 'patient' }))}>Patient</button>
+            <button type="button" style={S.roleBtn(form.role === 'doctor')} onClick={() => setForm(f => ({ ...f, role: 'doctor' }))}>Doctor</button>
+            <button type="button" style={S.roleBtn(form.role === 'receptionist')} onClick={() => setForm(f => ({ ...f, role: 'receptionist' }))}>Receptionist</button>
+            <button type="button" style={S.roleBtn(form.role === 'clinical_assistant')} onClick={() => setForm(f => ({ ...f, role: 'clinical_assistant' }))}>Clinical Assistant</button>
+            <button type="button" style={S.roleBtn(form.role === 'admin')} onClick={() => setForm(f => ({ ...f, role: 'admin' }))}>Admin</button>
           </div>
 
           <p style={S.sectionTitle}>Basic Info</p>
@@ -132,6 +136,26 @@ export default function RegisterPage() {
               <div style={S.group}>
                 <label style={S.label}>Medical History (optional)</label>
                 <textarea style={{ ...S.input, minHeight: '70px', resize: 'vertical' }} value={form.medical_history} onChange={set('medical_history')} placeholder="Any relevant medical history..." />
+              </div>
+            </>
+          )}
+
+          {(form.role === 'receptionist' || form.role === 'clinical_assistant' || form.role === 'admin') && (
+            <>
+              <p style={S.sectionTitle}>Staff Info</p>
+              <div style={S.row}>
+                <div style={S.group}>
+                  <label style={S.label}>Employee ID</label>
+                  <input style={S.input} value={form.employee_id} onChange={set('employee_id')} placeholder="EMP-001" />
+                </div>
+                <div style={S.group}>
+                  <label style={S.label}>Department</label>
+                  <input style={S.input} value={form.department} onChange={set('department')} placeholder="Neurology" />
+                </div>
+              </div>
+              <div style={S.group}>
+                <label style={S.label}>Designation</label>
+                <input style={S.input} value={form.designation} onChange={set('designation')} placeholder="e.g. Senior Clinical Assistant" />
               </div>
             </>
           )}

@@ -106,11 +106,11 @@ export default function PatientDashboard() {
           {recent_scores.map((s, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
               <div>
-                <div style={{ fontWeight: '600', fontSize: '14px' }}>{new Date(s.calculated_at).toLocaleDateString()}</div>
-                <div style={{ fontSize: '12px', color: '#9ca3af' }}>{s.calculated_at ? new Date(s.calculated_at).toLocaleTimeString() : ''}</div>
+                <div style={{ fontWeight: '600', fontSize: '14px' }}>{new Date(s.time_stamp).toLocaleDateString()}</div>
+                <div style={{ fontSize: '12px', color: '#9ca3af' }}>{s.time_stamp ? new Date(s.time_stamp).toLocaleTimeString() : ''}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: '700', fontSize: '16px' }}>{s.total_score}<span style={{ fontSize: '12px', color: '#9ca3af' }}>/{s.max_possible}</span></div>
+                <div style={{ fontWeight: '700', fontSize: '16px' }}>{s.calculated_value}<span style={{ fontSize: '12px', color: '#9ca3af' }}>/{s.max_possible}</span></div>
                 {s.overall_severity_label && <span style={S.badge(sevColor(s.overall_severity))}>{s.overall_severity_label}</span>}
               </div>
             </div>
