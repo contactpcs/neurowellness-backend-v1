@@ -33,28 +33,12 @@ export default function ReceptionistPatientDetail() {
   useEffect(() => {
     Promise.all([
       api.get(`/staff/patients/${patientId}`),
-      api.get('/doctors/patients?limit=100'),
+      api.get('/staff/doctors'),
     ]).then(([r1, r2]) => {
       setData(r1.data.data)
-      // Extract distinct doctors from patient list data (only need ids + names)
-      const doctorList = (r2.data.data || [])
-        .filter(p => p.assigned_doctor_id)
-        .map(p => ({ id: p.assigned_doctor_id }))
-      setDoctors([])
+      setDoctors(r2.data.data || [])
     }).catch(() => {}).finally(() => setLoading(false))
-
-    // Load doctors separately from profiles
-    api.get('/doctors/patients?limit=1').catch(() => {})
   }, [patientId])
-
-  useEffect(() => {
-    // Fetch all doctors for the allocate dropdown
-    api.get('/staff/patients?limit=1').catch(() => {})
-    // We use a simple doctor endpoint — fetch from profiles
-    api.get('/staff/dashboard').then(r => {
-      // We don't have a /doctors list endpoint; load from patients table doctor fields
-    }).catch(() => {})
-  }, [])
 
   const handleAllocate = async () => {
     if (!selectedDoctor) return
@@ -77,6 +61,7 @@ export default function ReceptionistPatientDetail() {
   if (!data) return <StaffLayout><p>Patient not found</p></StaffLayout>
 
   const { patient, recent_sessions = [] } = data
+  const assignedDoctorName = doctors.find(d => d.id === patient.assigned_doctor_id)?.full_name
 
   return (
     <StaffLayout>
@@ -90,7 +75,7 @@ export default function ReceptionistPatientDetail() {
           ['Email', patient.email],
           ['Phone', patient.phone || '—'],
           ['Gender', patient.gender || '—'],
-          ['Assigned Doctor', patient.assigned_doctor_id ? `ID: ${patient.assigned_doctor_id?.slice(0, 8)}...` : 'None'],
+          ['Assigned Doctor', assignedDoctorName || (patient.assigned_doctor_id ? `ID: ${patient.assigned_doctor_id?.slice(0, 8)}...` : 'None')],
         ].map(([label, value]) => (
           <div key={label} style={S.row}>
             <span style={S.label}>{label}</span>
@@ -102,15 +87,21 @@ export default function ReceptionistPatientDetail() {
       <div style={S.card}>
         <h2 style={{ fontWeight: '600', marginBottom: '4px', fontSize: '15px' }}>Allocate Doctor</h2>
         <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '14px' }}>
-          Enter a doctor ID to assign this patient to a specific doctor.
+          Select a doctor to assign this patient to.
         </p>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            style={{ ...S.select, flex: 1 }}
-            placeholder="Enter Doctor ID (UUID)"
+          <select
+            style={S.select}
             value={selectedDoctor}
             onChange={e => setSelectedDoctor(e.target.value)}
-          />
+          >
+            <option value="">Select a doctor...</option>
+            {doctors.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.full_name}{d.specialization ? ` — ${d.specialization}` : ''}{d.availability === 'available' ? '' : ' (unavailable)'}
+              </option>
+            ))}
+          </select>
           <button
             style={{ ...S.btn, opacity: allocating || !selectedDoctor ? 0.6 : 1 }}
             onClick={handleAllocate}

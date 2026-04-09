@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
+
 from app.dependencies import get_current_user, require_doctor, require_staff
 from app.database import get_supabase_admin
 from app.utils.responses import success_response
 from app.utils.exceptions import ForbiddenError, NotFoundError, BadRequestError
+from app.limiter import limiter
 
 router = APIRouter()
 
 
 class GrantPermissionRequest(BaseModel):
     patient_id: str
-    disease_id: str        # TEXT PK e.g. "DEPRESSION/ANXIETY/2026"
+    disease_id: str
     notes: Optional[str] = None
 
 
@@ -37,42 +39,45 @@ def _get_or_create_session(admin, patient_id: str, doctor_id: str) -> str:
 
 
 @router.post("/")
+@limiter.limit("20/minute")
 async def grant_permission(
+    request: Request,
     body: GrantPermissionRequest,
     current_user: dict = Depends(require_staff),
 ):
-    admin = get_supabase_admin()
-    role = current_user["role"]
-    doctor_id = current_user["id"]
-
-    if role == "receptionist":
+    if current_user["role"] == "receptionist":
         raise ForbiddenError("Receptionists cannot grant assessments")
 
-    # Verify patient exists
-    patient = admin.table("patients").select("assigned_doctor_id").eq(
+    admin = get_supabase_admin()
+
+    patient_result = admin.table("patients").select("assigned_doctor_id").eq(
         "id", body.patient_id
-    ).single().execute().data
-    if not patient:
-        raise ForbiddenError("Patient not found")
+    ).limit(1).execute()
+    if not patient_result.data:
+        raise NotFoundError("Patient not found")
 
-    # Verify disease exists
-    disease = admin.table("prs_diseases").select("disease_id, disease_name").eq(
+    # Clinical assistants use the patient's assigned doctor for session creation
+    role = current_user["role"]
+    if role in ("doctor", "admin"):
+        doctor_id = current_user["id"]
+    else:
+        doctor_id = patient_result.data[0].get("assigned_doctor_id") or current_user["id"]
+
+    disease_result = admin.table("prs_diseases").select("disease_id, disease_name").eq(
         "disease_id", body.disease_id
-    ).single().execute().data
-    if not disease:
+    ).limit(1).execute()
+    if not disease_result.data:
         raise NotFoundError(f"Disease '{body.disease_id}' not found")
+    disease = disease_result.data[0]
 
-    # Load all scales for this disease in display order
     ds_maps = admin.table("prs_disease_scale_map").select(
         "scale_id, display_order"
-    ).eq("disease_id", body.disease_id).order("display_order").execute().data
+    ).eq("disease_id", body.disease_id).order("display_order").execute().data or []
     if not ds_maps:
-        raise BadRequestError(f"No scales found for disease '{body.disease_id}'")
+        raise BadRequestError(f"No scales configured for disease '{body.disease_id}'")
 
-    # Auto-create or reuse session
     session_id = _get_or_create_session(admin, body.patient_id, doctor_id)
 
-    # Bulk-upsert one permission per scale
     perm_rows = [
         {
             "patient_id": body.patient_id,
@@ -89,13 +94,12 @@ async def grant_permission(
         perm_rows, on_conflict="patient_id,scale_id,session_id"
     ).execute()
 
-    # Single notification for the entire disease assessment
     admin.table("notifications").insert({
         "user_id": body.patient_id,
         "type": "permission_granted",
         "title": "New Assessment Available",
         "body": (
-            f"Dr. {current_user['full_name']} has assigned you the "
+            f"{current_user['full_name']} has assigned you the "
             f"{disease['disease_name']} assessment ({len(ds_maps)} scales)."
         ),
         "metadata": {
@@ -115,25 +119,36 @@ async def grant_permission(
 
 
 @router.get("/patient/{patient_id}")
-async def get_patient_permissions(patient_id: str, current_user: dict = Depends(require_staff)):
+@limiter.limit("60/minute")
+async def get_patient_permissions(
+    request: Request,
+    patient_id: str,
+    current_user: dict = Depends(require_staff),
+):
     admin = get_supabase_admin()
     perms = admin.table("assessment_permissions").select(
         "*, prs_scales(scale_id, scale_code, scale_name), prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", patient_id).eq("doctor_id", current_user["id"]).order("granted_at", desc=True).execute().data
+    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
     return success_response(perms)
 
 
 @router.get("/my")
-async def get_my_permissions(current_user: dict = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_my_permissions(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
     perms = admin.table("assessment_permissions").select(
         "*, prs_scales(scale_id, scale_code, scale_name), prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", current_user["id"]).eq("status", "granted").execute().data
+    ).eq("patient_id", current_user["id"]).eq("status", "granted").execute().data or []
     return success_response(perms)
 
 
 @router.put("/{permission_id}/revoke")
-async def revoke_permission(permission_id: str, current_user: dict = Depends(require_doctor)):
+@limiter.limit("20/minute")
+async def revoke_permission(
+    request: Request,
+    permission_id: str,
+    current_user: dict = Depends(require_doctor),
+):
     admin = get_supabase_admin()
     result = admin.table("assessment_permissions").update({
         "status": "revoked",

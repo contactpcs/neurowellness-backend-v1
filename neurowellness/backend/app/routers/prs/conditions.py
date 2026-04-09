@@ -1,34 +1,40 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
 from app.utils.responses import success_response
 from app.utils.exceptions import NotFoundError
+from app.limiter import limiter
 
 router = APIRouter()
 
 
 @router.get("/")
-async def list_conditions(current_user: dict = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def list_conditions(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    diseases = admin.table("prs_diseases").select("*").eq("status", True).execute().data
+    diseases = admin.table("prs_diseases").select("*").eq("status", True).execute().data or []
     return success_response(diseases)
 
 
 @router.get("/{disease_id}")
-async def get_condition(disease_id: str, current_user: dict = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_condition(request: Request, disease_id: str, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    disease = admin.table("prs_diseases").select("*").eq("disease_id", disease_id).single().execute().data
-    if not disease:
+    result = admin.table("prs_diseases").select("*").eq("disease_id", disease_id).limit(1).execute()
+    if not result.data:
         raise NotFoundError("Disease not found")
-    # Load scales through disease_scale_map
+    disease = result.data[0]
+
     ds_maps = admin.table("prs_disease_scale_map").select(
         "ds_map_id, scale_id, display_order"
-    ).eq("disease_id", disease_id).order("display_order").execute().data
+    ).eq("disease_id", disease_id).order("display_order").execute().data or []
+
     scales = []
     for ds in ds_maps:
         s = admin.table("prs_scales").select(
             "scale_id, scale_code, scale_name"
-        ).eq("scale_id", ds["scale_id"]).execute().data
+        ).eq("scale_id", ds["scale_id"]).limit(1).execute().data or []
         if s:
             scales.append({**s[0], "display_order": ds["display_order"]})
+
     return success_response({**disease, "scales": scales})

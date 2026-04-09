@@ -1,11 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from supabase import create_client
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
+from app.config import get_settings
 from app.utils.responses import success_response
+from app.limiter import limiter
 
 router = APIRouter()
+
+
+def _row(admin, table: str, field: str, value: str) -> Optional[dict]:
+    """Fetch a single row by field=value without raising on no result."""
+    result = admin.table(table).select("*").eq(field, value).limit(1).execute()
+    return result.data[0] if result.data else None
 
 
 def _allocate_doctor(admin, city: Optional[str], state: Optional[str]) -> Optional[str]:
@@ -21,7 +30,6 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str]) -> Option
         for col, val in filters.items():
             q = q.eq(col, val)
         rows = q.execute().data or []
-        # Only doctors under their max_patients limit
         return [r for r in rows if (r.get("current_patient_count") or 0) < (r.get("max_patients") or 50)]
 
     def pick_least_loaded(doctors: list) -> Optional[str]:
@@ -29,41 +37,35 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str]) -> Option
             return None
         return min(doctors, key=lambda d: d.get("current_patient_count") or 0)["id"]
 
-    # Try city match first (join via profiles)
     if city:
         city_doctors = admin.table("profiles").select("id").eq("role", "doctor").eq(
             "city", city
         ).execute().data or []
-        city_ids = [r["id"] for r in city_doctors]
+        city_ids = {r["id"] for r in city_doctors}
         if city_ids:
-            candidates = query_doctors({})
-            city_candidates = [d for d in candidates if d["id"] in city_ids]
-            result = pick_least_loaded(city_candidates)
+            candidates = [d for d in query_doctors({}) if d["id"] in city_ids]
+            result = pick_least_loaded(candidates)
             if result:
                 return result
 
-    # Try state match
     if state:
         state_doctors = admin.table("profiles").select("id").eq("role", "doctor").eq(
             "state", state
         ).execute().data or []
-        state_ids = [r["id"] for r in state_doctors]
+        state_ids = {r["id"] for r in state_doctors}
         if state_ids:
-            candidates = query_doctors({})
-            state_candidates = [d for d in candidates if d["id"] in state_ids]
-            result = pick_least_loaded(state_candidates)
+            candidates = [d for d in query_doctors({}) if d["id"] in state_ids]
+            result = pick_least_loaded(candidates)
             if result:
                 return result
 
-    # Fallback: any available doctor
-    candidates = query_doctors({})
-    return pick_least_loaded(candidates)
+    return pick_least_loaded(query_doctors({}))
 
 
 class RegistrationSyncRequest(BaseModel):
     full_name: str
     email: EmailStr
-    role: str  # 'doctor', 'patient', 'receptionist', or 'clinical_assistant'
+    role: str
     phone: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -84,20 +86,76 @@ class RegistrationSyncRequest(BaseModel):
     designation: Optional[str] = None
 
 
-@router.post("/sync-profile")
-async def sync_profile(
-    body: RegistrationSyncRequest,
-    current_user: dict = Depends(get_current_user),
-):
-    """Called from frontend after Supabase auth.signUp to create DB profile."""
+class RegisterRequest(RegistrationSyncRequest):
+    password: str
+
+
+VALID_ROLES = {"doctor", "patient", "admin", "receptionist", "clinical_assistant"}
+
+
+@router.post("/register")
+@limiter.limit("5/minute")
+async def register(request: Request, body: RegisterRequest):
+    """
+    Create a new confirmed user via admin API and immediately create their profile.
+    Returns Supabase session tokens — no email confirmation required.
+    """
+    if body.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Role must be one of: {sorted(VALID_ROLES)}")
+
     admin = get_supabase_admin()
-    user_id = current_user["id"]
 
-    valid_roles = ["doctor", "patient", "admin", "receptionist", "clinical_assistant"]
-    if body.role not in valid_roles:
-        raise HTTPException(status_code=400, detail=f"Role must be one of: {valid_roles}")
+    # Create user (email_confirm=True skips verification email)
+    try:
+        user_res = admin.auth.admin.create_user({
+            "email": body.email,
+            "password": body.password,
+            "email_confirm": True,
+        })
+    except Exception as e:
+        msg = str(e).lower()
+        if "already registered" in msg or "already been registered" in msg:
+            raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=400, detail=f"Could not create user: {e}")
 
-    profile_data = {
+    user_id = user_res.user.id
+
+    try:
+        _create_profile_rows(admin, user_id, body)
+    except Exception as e:
+        # Roll back the auth user so the email isn't stuck
+        try:
+            admin.auth.admin.delete_user(user_id)
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"Profile creation failed: {e}")
+
+    # Sign in using a FRESH client (never the cached admin client — calling
+    # sign_in_with_password on the shared admin client overwrites its service-role
+    # session, causing every subsequent admin.auth.admin.create_user() to fail).
+    settings = get_settings()
+    try:
+        fresh = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        sign_in = fresh.auth.sign_in_with_password({
+            "email": body.email,
+            "password": body.password,
+        })
+        session = sign_in.session
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"User created but login failed: {e}")
+
+    return success_response({
+        "user_id": user_id,
+        "role": body.role,
+        "access_token": session.access_token,
+        "refresh_token": session.refresh_token,
+        "expires_in": session.expires_in,
+    }, "Registration successful")
+
+
+def _create_profile_rows(admin, user_id: str, body: RegistrationSyncRequest):
+    """Create profiles row and role-specific extension row."""
+    admin.table("profiles").upsert({
         "id": user_id,
         "role": body.role,
         "full_name": body.full_name,
@@ -109,8 +167,7 @@ async def sync_profile(
         "date_of_birth": body.date_of_birth,
         "gender": body.gender,
         "is_active": True,
-    }
-    admin.table("profiles").upsert(profile_data).execute()
+    }).execute()
 
     if body.role == "doctor":
         admin.table("doctors").upsert({
@@ -130,28 +187,21 @@ async def sync_profile(
             "medical_history": body.medical_history,
             "emergency_contact": body.emergency_contact,
         }).execute()
-        # Allocate doctor: prefer same city, then same state, then any available doctor
-        assigned_doctor_id = _allocate_doctor(admin, body.city, body.state)
-        if assigned_doctor_id:
+        # Auto-allocate to the best available doctor
+        doctor_id = _allocate_doctor(admin, body.city, body.state)
+        if doctor_id:
             admin.table("patients").update({
-                "assigned_doctor_id": assigned_doctor_id,
+                "assigned_doctor_id": doctor_id,
             }).eq("id", user_id).execute()
-            # Log in doctor_patient_allocations
-            admin.table("doctor_patient_allocations").upsert({
-                "patient_id": user_id,
-                "doctor_id": assigned_doctor_id,
-                "allocation_reason": "auto_city_load_balance",
-                "is_active": True,
-            }, on_conflict="patient_id,doctor_id").execute()
             # Increment doctor's patient count
-            doctor_row = admin.table("doctors").select("current_patient_count").eq(
-                "id", assigned_doctor_id
-            ).single().execute().data
-            if doctor_row:
-                new_count = (doctor_row.get("current_patient_count") or 0) + 1
-                admin.table("doctors").update({
-                    "current_patient_count": new_count
-                }).eq("id", assigned_doctor_id).execute()
+            existing = admin.table("doctors").select("current_patient_count").eq(
+                "id", doctor_id
+            ).limit(1).execute()
+            if existing.data:
+                count = (existing.data[0].get("current_patient_count") or 0) + 1
+                admin.table("doctors").update(
+                    {"current_patient_count": count}
+                ).eq("id", doctor_id).execute()
 
     elif body.role == "receptionist":
         admin.table("receptionists").upsert({
@@ -179,34 +229,47 @@ async def sync_profile(
             "is_active": True,
         }).execute()
 
-    return success_response({"role": body.role, "id": user_id}, "Profile synced successfully")
+
+@router.post("/sync-profile")
+@limiter.limit("10/minute")
+async def sync_profile(
+    request: Request,
+    body: RegistrationSyncRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Called from frontend after Supabase auth.signUp to create DB profile."""
+    if body.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Role must be one of: {sorted(VALID_ROLES)}")
+
+    admin = get_supabase_admin()
+    _create_profile_rows(admin, current_user["id"], body)
+    return success_response({"role": body.role, "id": current_user["id"]}, "Profile synced successfully")
 
 
 @router.get("/me")
-async def get_me(current_user: dict = Depends(get_current_user)):
-    """Get current authenticated user profile"""
+@limiter.limit("60/minute")
+async def get_me(request: Request, current_user: dict = Depends(get_current_user)):
+    """Get current authenticated user's full profile."""
     if not current_user.get("role"):
-        # Valid token but no profile row — tell the frontend to complete setup
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
     admin = get_supabase_admin()
     user_id = current_user["id"]
 
-    profile = admin.table("profiles").select("*").eq("id", user_id).single().execute().data
+    profile = _row(admin, "profiles", "id", user_id)
     if not profile:
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
-    if profile["role"] == "doctor":
-        extra = admin.table("doctors").select("*").eq("id", user_id).single().execute().data or {}
-    elif profile["role"] == "patient":
-        extra = admin.table("patients").select("*").eq("id", user_id).single().execute().data or {}
-    elif profile["role"] == "receptionist":
-        extra = admin.table("receptionists").select("*").eq("id", user_id).single().execute().data or {}
-    elif profile["role"] == "clinical_assistant":
-        extra = admin.table("clinical_assistants").select("*").eq("id", user_id).single().execute().data or {}
-    elif profile["role"] == "admin":
-        extra = admin.table("admins").select("*").eq("id", user_id).single().execute().data or {}
-    else:
-        extra = {}
+    role = profile["role"]
+    table_map = {
+        "doctor": "doctors",
+        "patient": "patients",
+        "receptionist": "receptionists",
+        "clinical_assistant": "clinical_assistants",
+        "admin": "admins",
+    }
+    extra = {}
+    if role in table_map:
+        extra = _row(admin, table_map[role], "id", user_id) or {}
 
     return success_response({**profile, **extra})

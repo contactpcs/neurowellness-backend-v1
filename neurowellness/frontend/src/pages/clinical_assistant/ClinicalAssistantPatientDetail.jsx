@@ -39,8 +39,6 @@ export default function ClinicalAssistantPatientDetail() {
   const [loading, setLoading] = useState(true)
   const [granting, setGranting] = useState(false)
   const [grantMsg, setGrantMsg] = useState('')
-  const [scoresData, setScoresData] = useState(null)
-
   useEffect(() => {
     Promise.all([
       api.get(`/staff/patients/${patientId}`),
@@ -50,14 +48,6 @@ export default function ClinicalAssistantPatientDetail() {
       setConditions(r2.data.data || [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [patientId])
-
-  useEffect(() => {
-    if (tab === 'scores' && !scoresData) {
-      api.get(`/prs/scores/patient/${patientId}?limit=50`)
-        .then(r => setScoresData(r.data.data || []))
-        .catch(() => setScoresData([]))
-    }
-  }, [tab, patientId, scoresData])
 
   const handleGrant = async () => {
     if (!selectedDisease) return
@@ -210,7 +200,7 @@ export default function ClinicalAssistantPatientDetail() {
       {tab === 'scores' && (
         <div style={S.card}>
           <h2 style={{ fontWeight: '600', marginBottom: '16px', fontSize: '15px' }}>Assessment Scores</h2>
-          {!scoresData ? <LoadingSpinner /> : !scoresData.length ? (
+          {!scores_summary.length ? (
             <p style={{ color: '#9ca3af', fontSize: '14px' }}>No scores yet</p>
           ) : (
             <table style={S.table}>
@@ -220,7 +210,7 @@ export default function ClinicalAssistantPatientDetail() {
                 <th style={S.th}>Date</th>
               </tr></thead>
               <tbody>
-                {scoresData.map((s, i) => (
+                {scores_summary.map((s, i) => (
                   <tr key={i}>
                     <td style={S.td}>{s.calculated_value} / {s.max_possible}</td>
                     <td style={S.td}>

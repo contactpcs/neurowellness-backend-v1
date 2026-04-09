@@ -45,7 +45,7 @@ export const useAuthStore = create((set) => ({
       set({ isLoading: false })
     }
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabase.auth.onAuthStateChange(async (event) => {
       if (event === 'SIGNED_OUT') {
         set({ user: null, profile: null, role: null, isAuthenticated: false })
       }
@@ -82,22 +82,39 @@ export const useAuthStore = create((set) => ({
   },
 
   register: async (formData) => {
-    const { data, error } = await supabase.auth.signUp({
+    // Backend uses admin API to create auto-confirmed user (no email verification)
+    const res = await api.post('/auth/register', {
+      full_name: formData.full_name,
       email: formData.email,
       password: formData.password,
+      role: formData.role,
+      phone: formData.phone || null,
+      city: formData.city || null,
+      state: formData.state || null,
+      specialization: formData.specialization || null,
+      license_number: formData.license_number || null,
+      hospital_affiliation: formData.hospital_affiliation || null,
+      medical_history: formData.medical_history || null,
+      emergency_contact: formData.emergency_contact || null,
+      employee_id: formData.employee_id || null,
+      department: formData.department || null,
+      designation: formData.designation || null,
     })
-    if (error) throw error
 
-    if (data.session?.access_token) {
-      // Email confirmation is OFF — session available immediately
-      await syncProfile(formData, data.session.access_token)
-    } else {
-      // Email confirmation is ON — no session yet
-      // Save profile data to sync after the user confirms + logs in
-      sessionStorage.setItem(PENDING_KEY, JSON.stringify(formData))
-    }
+    const { access_token, refresh_token } = res.data.data
 
-    return { ...data, emailConfirmationRequired: !data.session }
+    // Persist session in Supabase so api.js interceptor gets the token
+    await supabase.auth.setSession({ access_token, refresh_token })
+
+    // Fetch profile and update store so the user is logged in immediately
+    const profileRes = await api.get('/auth/me', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    })
+    const profile = profileRes.data.data
+    const { data: { session } } = await supabase.auth.getSession()
+    set({ user: session?.user ?? null, profile, role: profile.role, isAuthenticated: true })
+
+    return profile
   },
 
   logout: async () => {

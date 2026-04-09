@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from typing import Optional
 from pydantic import BaseModel
 from app.dependencies import require_doctor, require_staff
@@ -6,20 +6,26 @@ from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import ForbiddenError, NotFoundError, BadRequestError
 from app.routers.prs.permissions import _get_or_create_session
+from app.limiter import limiter
 
 router = APIRouter()
 
 
+def _row(admin, table: str, field: str, value: str) -> dict:
+    result = admin.table(table).select("*").eq(field, value).limit(1).execute()
+    return result.data[0] if result.data else {}
+
+
 @router.get("/dashboard")
-async def doctor_dashboard(current_user: dict = Depends(require_doctor)):
+@limiter.limit("60/minute")
+async def doctor_dashboard(request: Request, current_user: dict = Depends(require_doctor)):
     admin = get_supabase_admin()
     doctor_id = current_user["id"]
 
-    profile = admin.table("profiles").select("*").eq("id", doctor_id).single().execute().data
-    doctor = admin.table("doctors").select("*").eq("id", doctor_id).single().execute().data
+    profile = _row(admin, "profiles", "id", doctor_id)
+    doctor  = _row(admin, "doctors",  "id", doctor_id)
 
-    patients = admin.table("patients").select("id").eq("assigned_doctor_id", doctor_id).execute().data
-    total_patients = len(patients)
+    patients = admin.table("patients").select("id").eq("assigned_doctor_id", doctor_id).execute().data or []
     patient_ids = [p["id"] for p in patients]
 
     pending = 0
@@ -27,24 +33,23 @@ async def doctor_dashboard(current_user: dict = Depends(require_doctor)):
         perm_res = admin.table("assessment_permissions").select("id").in_(
             "patient_id", patient_ids
         ).eq("status", "granted").execute()
-        pending = len(perm_res.data)
+        pending = len(perm_res.data or [])
 
     recent = []
     if patient_ids:
-        # Get recent completed instances
         instances = admin.table("prs_assessment_instances").select("instance_id").in_(
             "patient_id", patient_ids
-        ).eq("status", "completed").order("completed_at", desc=True).limit(5).execute().data
+        ).eq("status", "completed").order("completed_at", desc=True).limit(5).execute().data or []
         instance_ids = [i["instance_id"] for i in instances]
         if instance_ids:
             recent = admin.table("prs_final_results").select(
                 "calculated_value, max_possible, overall_severity_label, time_stamp"
-            ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(5).execute().data
+            ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(5).execute().data or []
 
     return success_response({
-        "profile": {**(profile or {}), **(doctor or {})},
+        "profile": {**profile, **doctor},
         "patients_summary": {
-            "total": total_patients,
+            "total": len(patients),
             "pending_assessments": pending,
         },
         "recent_completed_assessments": recent,
@@ -52,59 +57,59 @@ async def doctor_dashboard(current_user: dict = Depends(require_doctor)):
 
 
 @router.get("/patients")
+@limiter.limit("60/minute")
 async def list_patients(
+    request: Request,
     search: Optional[str] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(require_doctor),
 ):
     admin = get_supabase_admin()
-    query = admin.table("patients").select(
+    result = admin.table("patients").select(
         "id, assigned_doctor_id, created_at, "
         "profiles(id, full_name, avatar_url, role, created_at)"
-    )
-    result = query.range(skip, skip + limit - 1).execute()
-    data = result.data
+    ).range(skip, skip + limit - 1).execute()
+    data = result.data or []
 
     if search:
-        search_lower = search.lower()
-        data = [
-            p for p in data
-            if search_lower in (p.get("profiles") or {}).get("full_name", "").lower()
-        ]
+        s = search.lower()
+        data = [p for p in data if s in (p.get("profiles") or {}).get("full_name", "").lower()]
 
     return paginated_response(data, len(data), skip, limit)
 
 
 @router.get("/patients/{patient_id}")
-async def get_patient_detail(patient_id: str, current_user: dict = Depends(require_doctor)):
+@limiter.limit("60/minute")
+async def get_patient_detail(request: Request, patient_id: str, current_user: dict = Depends(require_doctor)):
     admin = get_supabase_admin()
-    patient = admin.table("patients").select("*").eq("id", patient_id).single().execute().data
-    if not patient:
-        raise ForbiddenError("Patient not found")
 
-    profile = admin.table("profiles").select("*").eq("id", patient_id).single().execute().data
+    patient = _row(admin, "patients", "id", patient_id)
+    if not patient:
+        raise NotFoundError("Patient not found")
+
+    profile     = _row(admin, "profiles", "id", patient_id)
     permissions = admin.table("assessment_permissions").select(
         "*, prs_scales(scale_code, scale_name)"
-    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data
+    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
 
-    # Get score summaries via final results
     instances = admin.table("prs_assessment_instances").select("instance_id").eq(
         "patient_id", patient_id
-    ).execute().data
+    ).execute().data or []
     instance_ids = [i["instance_id"] for i in instances]
+
     scores_summary = []
     if instance_ids:
         scores_summary = admin.table("prs_final_results").select(
             "calculated_value, max_possible, overall_severity, overall_severity_label, time_stamp"
-        ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(10).execute().data
+        ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(10).execute().data or []
 
     recent_instances = admin.table("prs_assessment_instances").select("*").eq(
         "patient_id", patient_id
-    ).order("started_at", desc=True).limit(5).execute().data
+    ).order("started_at", desc=True).limit(5).execute().data or []
 
     return success_response({
-        "patient": {**(patient or {}), **(profile or {})},
+        "patient": {**patient, **profile},
         "permissions": permissions,
         "scores_summary": scores_summary,
         "recent_instances": recent_instances,
@@ -112,45 +117,46 @@ async def get_patient_detail(patient_id: str, current_user: dict = Depends(requi
 
 
 class GrantAssessmentRequest(BaseModel):
-    disease_id: str        # TEXT PK e.g. "DEPRESSION/ANXIETY/2026"
+    disease_id: str
     notes: Optional[str] = None
 
 
 @router.post("/patients/{patient_id}/grant-assessment")
+@limiter.limit("20/minute")
 async def grant_assessment(
+    request: Request,
     patient_id: str,
     body: GrantAssessmentRequest,
     current_user: dict = Depends(require_staff),
 ):
-    admin = get_supabase_admin()
-    role = current_user["role"]
-    doctor_id = current_user["id"]
-
-    if role == "receptionist":
+    if current_user["role"] == "receptionist":
         raise ForbiddenError("Receptionists cannot grant assessments")
 
-    patient = admin.table("patients").select("id, assigned_doctor_id").eq("id", patient_id).single().execute().data
-    if not patient:
-        raise ForbiddenError("Patient not found")
+    admin = get_supabase_admin()
 
-    # Verify disease exists
-    disease = admin.table("prs_diseases").select("disease_id, disease_name").eq(
-        "disease_id", body.disease_id
-    ).single().execute().data
+    patient = _row(admin, "patients", "id", patient_id)
+    if not patient:
+        raise NotFoundError("Patient not found")
+
+    # Clinical assistants use the patient's assigned doctor for session creation
+    role = current_user["role"]
+    if role in ("doctor", "admin"):
+        doctor_id = current_user["id"]
+    else:
+        doctor_id = patient.get("assigned_doctor_id") or current_user["id"]
+
+    disease = _row(admin, "prs_diseases", "disease_id", body.disease_id)
     if not disease:
         raise NotFoundError(f"Disease '{body.disease_id}' not found")
 
-    # Load all scales for this disease in display order
     ds_maps = admin.table("prs_disease_scale_map").select(
         "scale_id, display_order"
-    ).eq("disease_id", body.disease_id).order("display_order").execute().data
+    ).eq("disease_id", body.disease_id).order("display_order").execute().data or []
     if not ds_maps:
-        raise BadRequestError(f"No scales found for disease '{body.disease_id}'")
+        raise BadRequestError(f"No scales configured for disease '{body.disease_id}'")
 
-    # Auto-create or reuse session
     session_id = _get_or_create_session(admin, patient_id, doctor_id)
 
-    # Bulk-upsert one permission per scale
     perm_rows = [
         {
             "patient_id": patient_id,
@@ -163,7 +169,7 @@ async def grant_assessment(
         }
         for ds in ds_maps
     ]
-    result = admin.table("assessment_permissions").upsert(
+    admin.table("assessment_permissions").upsert(
         perm_rows, on_conflict="patient_id,scale_id,session_id"
     ).execute()
 
@@ -172,7 +178,7 @@ async def grant_assessment(
         "type": "permission_granted",
         "title": "New Assessment Assigned",
         "body": (
-            f"Dr. {current_user['full_name']} assigned you the "
+            f"{current_user['full_name']} assigned you the "
             f"{disease['disease_name']} assessment ({len(ds_maps)} scales)."
         ),
         "metadata": {
@@ -195,7 +201,14 @@ class AvailabilityUpdate(BaseModel):
 
 
 @router.put("/availability")
-async def update_availability(body: AvailabilityUpdate, current_user: dict = Depends(require_doctor)):
+@limiter.limit("20/minute")
+async def update_availability(
+    request: Request,
+    body: AvailabilityUpdate,
+    current_user: dict = Depends(require_doctor),
+):
     admin = get_supabase_admin()
-    result = admin.table("doctors").update({"availability": body.availability}).eq("id", current_user["id"]).execute()
+    result = admin.table("doctors").update(
+        {"availability": body.availability}
+    ).eq("id", current_user["id"]).execute()
     return success_response(result.data[0] if result.data else {}, "Availability updated")

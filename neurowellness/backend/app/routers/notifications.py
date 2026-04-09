@@ -1,22 +1,25 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
 from app.utils.responses import success_response
+from app.limiter import limiter
 
 router = APIRouter()
 
 
 @router.get("/")
-async def get_notifications(current_user: dict = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_notifications(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
     result = admin.table("notifications").select("*").eq(
         "user_id", current_user["id"]
     ).order("created_at", desc=True).limit(20).execute()
-    return success_response(result.data)
+    return success_response(result.data or [])
 
 
 @router.put("/read-all")
-async def mark_all_read(current_user: dict = Depends(get_current_user)):
+@limiter.limit("20/minute")
+async def mark_all_read(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
     admin.table("notifications").update({"is_read": True}).eq(
         "user_id", current_user["id"]
@@ -25,7 +28,12 @@ async def mark_all_read(current_user: dict = Depends(get_current_user)):
 
 
 @router.put("/{notification_id}/read")
-async def mark_read(notification_id: str, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def mark_read(
+    request: Request,
+    notification_id: str,
+    current_user: dict = Depends(get_current_user),
+):
     admin = get_supabase_admin()
     result = admin.table("notifications").update({"is_read": True}).eq(
         "id", notification_id

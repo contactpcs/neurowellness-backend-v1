@@ -2,14 +2,25 @@ import { create } from 'zustand'
 import api from '../lib/api'
 
 export const usePrsStore = create((set, get) => ({
+  // ── Scale catalogue ────────────────────────────────────────
   scales: [],
   conditions: [],
-  activeSession: null,   // { instance_id, scale_id, scale: { ...scale, questions, options } }
+
+  // ── Single active scale ────────────────────────────────────
+  activeSession: null,   // { instance_id, scale_id, scale: { ...scale, questions } }
   currentQuestionIndex: 0,
   responses: {},
   submittedScore: null,
   isLoading: false,
 
+  // ── Disease queue (multiple scales in sequence) ────────────
+  diseaseId: null,
+  diseaseName: null,
+  diseaseQueue: [],      // [{ scale_id, scale_name }]
+  queueIndex: 0,
+  completedScores: [],   // [{ scale_name, score }] — one per completed scale
+
+  // ── Catalogue fetchers ─────────────────────────────────────
   fetchScales: async () => {
     const res = await api.get('/prs/scales?limit=100')
     set({ scales: res.data.data })
@@ -19,6 +30,51 @@ export const usePrsStore = create((set, get) => ({
     const res = await api.get('/prs/conditions')
     set({ conditions: res.data.data })
   },
+
+  // ── Disease queue actions ──────────────────────────────────
+
+  /** Initialize a disease queue from a list of pending scales. */
+  initDiseaseQueue: (diseaseId, diseaseName, pendingScales) => {
+    set({
+      diseaseId,
+      diseaseName,
+      diseaseQueue: pendingScales,   // [{ scale_id, scale_name }]
+      queueIndex: 0,
+      completedScores: [],
+      activeSession: null,
+      currentQuestionIndex: 0,
+      responses: {},
+      submittedScore: null,
+      isLoading: false,
+    })
+  },
+
+  /** Move to the next scale in the queue (called after score shown or skip). */
+  advanceQueue: () => {
+    set((state) => ({
+      queueIndex: state.queueIndex + 1,
+      activeSession: null,
+      currentQuestionIndex: 0,
+      responses: {},
+      submittedScore: null,
+      isLoading: false,
+    }))
+  },
+
+  /** Record the score for the just-completed scale then advance. */
+  recordScoreAndAdvance: (scaleName, score) => {
+    set((state) => ({
+      completedScores: [...state.completedScores, { scale_name: scaleName, score }],
+      queueIndex: state.queueIndex + 1,
+      activeSession: null,
+      currentQuestionIndex: 0,
+      responses: {},
+      submittedScore: null,
+      isLoading: false,
+    }))
+  },
+
+  // ── Single-scale actions ───────────────────────────────────
 
   startAssessment: async (scale_id, taken_by = 'patient', patient_id = null) => {
     set({ isLoading: true })
@@ -45,14 +101,8 @@ export const usePrsStore = create((set, get) => ({
     }))
   },
 
-  nextQuestion: () => set((state) => ({
-    currentQuestionIndex: state.currentQuestionIndex + 1,
-  })),
-
-  prevQuestion: () => set((state) => ({
-    currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1),
-  })),
-
+  nextQuestion: () => set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 })),
+  prevQuestion: () => set((state) => ({ currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1) })),
   goToQuestion: (index) => set({ currentQuestionIndex: index }),
 
   submitAssessment: async () => {
@@ -74,6 +124,11 @@ export const usePrsStore = create((set, get) => ({
   },
 
   resetAssessment: () => set({
+    diseaseId: null,
+    diseaseName: null,
+    diseaseQueue: [],
+    queueIndex: 0,
+    completedScores: [],
     activeSession: null,
     currentQuestionIndex: 0,
     responses: {},

@@ -13,7 +13,6 @@ const S = {
   row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
   btn: { width: '100%', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', marginTop: '8px' },
   err: { background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
-  success: { background: '#f0fdf4', border: '1px solid #86efac', color: '#16a34a', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
   roleBtn: (active) => ({
     flex: 1, padding: '10px', border: `2px solid ${active ? '#4f46e5' : '#d1d5db'}`,
     background: active ? '#eef2ff' : '#fff', borderRadius: '8px', cursor: 'pointer',
@@ -31,7 +30,6 @@ export default function RegisterPage() {
     employee_id: '', department: '', designation: '',
   })
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const { register } = useAuthStore()
   const navigate = useNavigate()
@@ -45,13 +43,14 @@ export default function RegisterPage() {
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
-      const result = await register(form)
-      if (result.emailConfirmationRequired) {
-        setSuccess('Account created! Check your email to confirm, then log in. Your profile will be saved on first login.')
-      } else {
-        setSuccess('Account created successfully! Redirecting to login...')
-        setTimeout(() => navigate('/login'), 2000)
+      const profile = await register(form)
+      const roleRedirects = {
+        doctor: '/doctor/dashboard',
+        receptionist: '/receptionist/dashboard',
+        clinical_assistant: '/clinical-assistant/dashboard',
+        admin: '/doctor/dashboard',
       }
+      navigate(roleRedirects[profile.role] || '/patient/dashboard', { replace: true })
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Registration failed')
     } finally {
@@ -66,7 +65,6 @@ export default function RegisterPage() {
         <p style={S.sub}>Join NeuroWellness</p>
 
         {error && <div style={S.err}>{error}</div>}
-        {success && <div style={S.success}>{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <p style={S.sectionTitle}>Account Type</p>
