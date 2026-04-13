@@ -246,7 +246,7 @@ async def sync_profile(
     return success_response({"role": body.role, "id": current_user["id"]}, "Profile synced successfully")
 
 
-@router.get("/me")
+@router.get("/login")
 @limiter.limit("60/minute")
 async def get_me(request: Request, current_user: dict = Depends(get_current_user)):
     """Get current authenticated user's full profile."""

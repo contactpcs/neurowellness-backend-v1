@@ -35,7 +35,7 @@ export const useAuthStore = create((set) => ({
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
       try {
-        const res = await api.get('/auth/me')
+        const res = await api.get('/auth/login')
         const profile = res.data.data
         set({ user: session.user, profile, role: profile.role, isAuthenticated: true, isLoading: false })
       } catch {
@@ -62,11 +62,11 @@ export const useAuthStore = create((set) => ({
       try {
         await syncProfile(JSON.parse(pending), data.session.access_token)
         sessionStorage.removeItem(PENDING_KEY)
-      } catch { /* already synced or error — /auth/me will catch it */ }
+      } catch { /* already synced or error — /auth/login will catch it */ }
     }
 
     try {
-      const res = await api.get('/auth/me')
+      const res = await api.get('/auth/login')
       const profile = res.data.data
       set({ user: data.user, profile, role: profile.role, isAuthenticated: true })
       return profile
@@ -107,7 +107,7 @@ export const useAuthStore = create((set) => ({
     await supabase.auth.setSession({ access_token, refresh_token })
 
     // Fetch profile and update store so the user is logged in immediately
-    const profileRes = await api.get('/auth/me', {
+    const profileRes = await api.get('/auth/login', {
       headers: { Authorization: `Bearer ${access_token}` },
     })
     const profile = profileRes.data.data
