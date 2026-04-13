@@ -19,8 +19,8 @@ export default function QuestionRenderer({ question, value, onChange }) {
   const maxVal = question.max_value
   const stepVal = question.step_value ?? 1
 
-  // ── Likert / single-choice ─────────────────────────────────────────────────
-  if (type === 'likert' || type === 'single-choice' || type === 'binary') {
+  // ── Radio / Likert / single-choice ────────────────────────────────────────
+  if (type === 'radio' || type === 'likert' || type === 'single-choice' || type === 'binary') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {options.map((opt, i) => {
@@ -52,6 +52,51 @@ export default function QuestionRenderer({ question, value, onChange }) {
                   </p>
                 )}
               </div>
+            </label>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // ── Checkbox (multi-select) ────────────────────────────────────────────────
+  if (type === 'checkbox') {
+    const selected = Array.isArray(value)
+      ? value
+      : (value ? String(value).split(',').map(v => v.trim()) : [])
+
+    const toggleOption = (optVal) => {
+      const next = selected.includes(optVal)
+        ? selected.filter(v => v !== optVal)
+        : [...selected, optVal]
+      const labels = next.map(v => {
+        const o = options.find(o => String(o.value ?? o.score ?? '') === v)
+        return o?.label || o?.text || v
+      })
+      onChange(next.join(','), labels.join(', '))
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {options.map((opt, i) => {
+          const optVal = String(opt.value ?? opt.score ?? i)
+          const checked = selected.includes(optVal)
+          return (
+            <label key={i} style={{
+              display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer',
+              padding: '10px 14px', borderRadius: '8px', border: '1px solid',
+              borderColor: checked ? '#4f46e5' : '#e5e7eb',
+              background: checked ? '#eef2ff' : '#fff',
+              transition: 'all 0.15s',
+            }}>
+              <input
+                type="checkbox"
+                value={optVal}
+                checked={checked}
+                onChange={() => toggleOption(optVal)}
+                style={{ marginTop: '2px', accentColor: '#4f46e5' }}
+              />
+              <span style={{ fontSize: '14px' }}>{opt.label || opt.text || optVal}</span>
             </label>
           )
         })}

@@ -82,14 +82,43 @@ export const usePrsStore = create((set, get) => ({
     if (patient_id) body.patient_id = patient_id
     const res = await api.post('/prs/assessment/start', body)
     const { instance_id, scale } = res.data.data
+
+    // Fetch options for every question in parallel from the dedicated options API
+    const questions = scale.questions || []
+    const optionResults = await Promise.allSettled(
+      questions.map(q =>
+        api.get(`/prs/questions/${encodeURIComponent(q.question_id)}/options`)
+      )
+    )
+
+    // Inject options + resolved type into each question object
+    const enrichedQuestions = questions.map((q, idx) => {
+      const settled = optionResults[idx]
+      if (settled.status === 'fulfilled') {
+        const d = settled.value.data.data
+        return {
+          ...q,
+          question_type: d.answer_type || q.answer_type || 'radio',
+          options:       d.options || [],
+          // for number/slider, inject parsed min/max so QuestionRenderer can use them
+          ...(d.min !== undefined ? { min_value: d.min } : {}),
+          ...(d.max !== undefined ? { max_value: d.max } : {}),
+        }
+      }
+      // on fetch failure fall back gracefully
+      return { ...q, question_type: q.answer_type || 'radio', options: [] }
+    })
+
+    const enrichedScale = { ...scale, questions: enrichedQuestions }
+
     set({
-      activeSession: { instance_id, scale_id, scale },
+      activeSession: { instance_id, scale_id, scale: enrichedScale },
       currentQuestionIndex: 0,
       responses: {},
       submittedScore: null,
       isLoading: false,
     })
-    return { instance_id, scale }
+    return { instance_id, scale: enrichedScale }
   },
 
   setResponse: (question_index, value, label = null) => {
