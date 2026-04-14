@@ -68,7 +68,7 @@ async def list_patients(
     admin = get_supabase_admin()
     result = admin.table("patients").select(
         "id, assigned_doctor_id, created_at, "
-        "profiles(id, full_name, avatar_url, role, created_at)"
+        "profiles(id, full_name, email, avatar_url, role, created_at)"
     ).range(skip, skip + limit - 1).execute()
     data = result.data or []
 

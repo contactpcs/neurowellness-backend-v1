@@ -13,6 +13,11 @@ router = APIRouter()
 async def list_conditions(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
     diseases = admin.table("prs_diseases").select("*").eq("status", True).execute().data or []
+    for disease in diseases:
+        ds_maps = admin.table("prs_disease_scale_map").select("scale_id").eq(
+            "disease_id", disease["disease_id"]
+        ).order("display_order").execute().data or []
+        disease["scale_ids"] = [ds["scale_id"] for ds in ds_maps]
     return success_response(diseases)
 
 
