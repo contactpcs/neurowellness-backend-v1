@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.limiter import limiter
-from app.routers import auth, doctors, patients, notifications, staff
+from app.routers import auth, doctors, patients, notifications, staff, users
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
 
 settings = get_settings()
@@ -36,6 +36,7 @@ app.add_middleware(SlowAPIMiddleware)
 PREFIX = settings.API_PREFIX
 
 app.include_router(auth.router,          prefix=f"{PREFIX}/auth",            tags=["auth"])
+app.include_router(users.router,         prefix=f"{PREFIX}/users",           tags=["users"])
 app.include_router(doctors.router,       prefix=f"{PREFIX}/doctors",         tags=["doctors"])
 app.include_router(patients.router,      prefix=f"{PREFIX}/patients",        tags=["patients"])
 app.include_router(notifications.router, prefix=f"{PREFIX}/notifications",   tags=["notifications"])
