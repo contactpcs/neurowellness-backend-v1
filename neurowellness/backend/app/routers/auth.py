@@ -62,6 +62,11 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str]) -> Option
     return pick_least_loaded(query_doctors({}))
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class RegistrationSyncRequest(BaseModel):
     full_name: str
     email: EmailStr
@@ -144,12 +149,13 @@ async def register(request: Request, body: RegisterRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User created but login failed: {e}")
 
+    profile = _get_full_profile(admin, user_id) or {"id": user_id, "role": body.role}
+
     return success_response({
-        "user_id": user_id,
-        "role": body.role,
         "access_token": session.access_token,
         "refresh_token": session.refresh_token,
         "expires_in": session.expires_in,
+        "user": profile,
     }, "Registration successful")
 
 
@@ -246,6 +252,52 @@ async def sync_profile(
     return success_response({"role": body.role, "id": current_user["id"]}, "Profile synced successfully")
 
 
+def _get_full_profile(admin, user_id: str) -> Optional[dict]:
+    """Fetch profile + role-specific extension row, merged into one dict."""
+    profile = _row(admin, "profiles", "id", user_id)
+    if not profile:
+        return None
+    table_map = {
+        "doctor": "doctors",
+        "patient": "patients",
+        "receptionist": "receptionists",
+        "clinical_assistant": "clinical_assistants",
+        "admin": "admins",
+    }
+    role = profile.get("role")
+    extra = _row(admin, table_map[role], "id", user_id) if role in table_map else {}
+    return {**profile, **(extra or {})}
+
+
+@router.post("/login")
+@limiter.limit("10/minute")
+async def login(request: Request, body: LoginRequest):
+    """Authenticate with email/password and return tokens + user profile."""
+    settings = get_settings()
+    try:
+        fresh = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        sign_in = fresh.auth.sign_in_with_password({
+            "email": body.email,
+            "password": body.password,
+        })
+        session = sign_in.session
+        user_id = sign_in.user.id
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    admin = get_supabase_admin()
+    profile = _get_full_profile(admin, user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
+
+    return success_response({
+        "access_token": session.access_token,
+        "refresh_token": session.refresh_token,
+        "expires_in": session.expires_in,
+        "user": profile,
+    }, "Login successful")
+
+
 @router.get("/login")
 @limiter.limit("60/minute")
 async def get_me(request: Request, current_user: dict = Depends(get_current_user)):
@@ -254,22 +306,8 @@ async def get_me(request: Request, current_user: dict = Depends(get_current_user
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
     admin = get_supabase_admin()
-    user_id = current_user["id"]
-
-    profile = _row(admin, "profiles", "id", user_id)
+    profile = _get_full_profile(admin, current_user["id"])
     if not profile:
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
-    role = profile["role"]
-    table_map = {
-        "doctor": "doctors",
-        "patient": "patients",
-        "receptionist": "receptionists",
-        "clinical_assistant": "clinical_assistants",
-        "admin": "admins",
-    }
-    extra = {}
-    if role in table_map:
-        extra = _row(admin, table_map[role], "id", user_id) or {}
-
-    return success_response({**profile, **extra})
+    return success_response(profile)
