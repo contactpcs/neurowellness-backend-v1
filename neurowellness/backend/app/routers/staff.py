@@ -112,7 +112,7 @@ async def get_patient_detail(
 
     if role == "clinical_assistant":
         permissions = admin.table("assessment_permissions").select(
-            "*, prs_scales(scale_code, scale_name)"
+            "*, prs_diseases(disease_id, disease_name)"
         ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
 
         instances = admin.table("prs_assessment_instances").select("instance_id").eq(

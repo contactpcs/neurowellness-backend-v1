@@ -13,6 +13,10 @@ import PatientDashboard from './pages/patient/PatientDashboard'
 import MyAssessments from './pages/patient/MyAssessments'
 import MyScores from './pages/patient/MyScores'
 import AssessmentPage from './pages/prs/AssessmentPage'
+import ScoreDetailPage from './pages/patient/ScoreDetailPage'
+import ScoreInstanceDetail from './pages/prs/ScoreInstanceDetail'
+import DoctorLayout from './components/layout/DoctorLayout'
+import StaffLayout from './components/layout/StaffLayout'
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard'
 import ReceptionistPatientList from './pages/receptionist/ReceptionistPatientList'
 import ReceptionistPatientDetail from './pages/receptionist/ReceptionistPatientDetail'
@@ -62,6 +66,11 @@ export default function App() {
         <Route path="/doctor/patients/:patientId" element={
           <ProtectedRoute requiredRole="doctor"><PatientDetail /></ProtectedRoute>
         } />
+        <Route path="/doctor/patients/:patientId/scores/:instanceId" element={
+          <ProtectedRoute requiredRole="doctor">
+            <ScoreInstanceDetail Layout={DoctorLayout} />
+          </ProtectedRoute>
+        } />
 
         {/* Patient routes */}
         <Route path="/patient/dashboard" element={
@@ -72,6 +81,9 @@ export default function App() {
         } />
         <Route path="/patient/scores" element={
           <ProtectedRoute requiredRole="patient"><MyScores /></ProtectedRoute>
+        } />
+        <Route path="/patient/scores/:instanceId" element={
+          <ProtectedRoute requiredRole="patient"><ScoreDetailPage /></ProtectedRoute>
         } />
 
         {/* Receptionist routes */}
@@ -94,6 +106,11 @@ export default function App() {
         } />
         <Route path="/clinical-assistant/patients/:patientId" element={
           <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantPatientDetail /></ProtectedRoute>
+        } />
+        <Route path="/clinical-assistant/patients/:patientId/scores/:instanceId" element={
+          <ProtectedRoute requiredRole="clinical_assistant">
+            <ScoreInstanceDetail Layout={StaffLayout} />
+          </ProtectedRoute>
         } />
 
         {/* Assessment — accessible by doctor, clinical_assistant, and patient */}

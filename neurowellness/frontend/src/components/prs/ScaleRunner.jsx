@@ -105,14 +105,14 @@ export default function ScaleRunner({ onComplete }) {
   const {
     activeSession, currentQuestionIndex, responses,
     setResponse, nextQuestion, prevQuestion, goToQuestion,
-    submitAssessment, isLoading,
+    submitCurrentScale, isLoading,
   } = usePrsStore()
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   if (!activeSession) return null
 
-  const { scale } = activeSession
+  const scale = activeSession.scales?.[activeSession.currentScaleIndex] || {}
   const questions = scale.questions || []
   const branches = scale.branches || []
 
@@ -173,7 +173,7 @@ export default function ScaleRunner({ onComplete }) {
     setError('')
     setSubmitting(true)
     try {
-      const score = await submitAssessment()
+      const score = await submitCurrentScale()
       if (onComplete) onComplete(score)
     } catch (e) {
       setError(e.response?.data?.detail || 'Submission failed. Please try again.')

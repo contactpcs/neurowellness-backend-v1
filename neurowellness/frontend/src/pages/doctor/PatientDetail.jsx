@@ -4,7 +4,10 @@ import api from '../../lib/api'
 import DoctorLayout from '../../components/layout/DoctorLayout'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
-const SEVERITY_COLORS = { minimal: '#16a34a', mild: '#ca8a04', moderate: '#ea580c', severe: '#dc2626' }
+const SEVERITY_COLORS = {
+  normal: '#16a34a', minimal: '#16a34a', mild: '#ca8a04', moderate: '#ea580c',
+  severe: '#dc2626', very_severe: '#7f1d1d',
+}
 const sevColor = (l) => SEVERITY_COLORS[l?.toLowerCase()] || '#6b7280'
 
 const S = {
@@ -67,8 +70,8 @@ export default function PatientDetail() {
       const res = await api.post(`/doctors/patients/${patientId}/grant-assessment`, {
         disease_id: selectedDisease,
       })
-      const { disease_name, scales_granted } = res.data.data
-      setGrantMsg(`Granted ${scales_granted} scales for ${disease_name}`)
+      const { disease_name, scales_count } = res.data.data
+      setGrantMsg(`Assessment granted for ${disease_name} (${scales_count} scales)`)
       const r = await api.get(`/doctors/patients/${patientId}`)
       setData(r.data.data)
       setSelectedDisease('')
@@ -80,7 +83,7 @@ export default function PatientDetail() {
   }
 
   const handleTakeOnBehalf = (perm) => {
-    navigate(`/assessment?scale_id=${perm.scale_id}&patient_id=${patientId}&taken_by=doctor_on_behalf`)
+    navigate(`/assessment?disease_id=${perm.disease_id}&patient_id=${patientId}&taken_by=doctor_on_behalf`)
   }
 
   if (loading) return <DoctorLayout><LoadingSpinner /></DoctorLayout>
@@ -89,11 +92,11 @@ export default function PatientDetail() {
   const { patient, permissions, scores_summary } = data
   const prof = { ...patient }
 
-  // Group permissions by disease for display
+  // Group all scale-level permission rows by disease for display
   const permsByDisease = (permissions || []).reduce((acc, p) => {
     const key = p.disease_id || 'Unknown'
-    if (!acc[key]) acc[key] = { name: p.prs_diseases?.disease_name || key, scales: [] }
-    acc[key].scales.push(p)
+    if (!acc[key]) acc[key] = { disease_id: key, name: p.prs_diseases?.disease_name || key, perms: [] }
+    acc[key].perms.push(p)
     return acc
   }, {})
 
@@ -157,7 +160,7 @@ export default function PatientDetail() {
               </button>
             </div>
             {grantMsg && (
-              <p style={{ marginTop: '10px', fontSize: '13px', color: grantMsg.includes('Granted') ? '#16a34a' : '#dc2626' }}>
+              <p style={{ marginTop: '10px', fontSize: '13px', color: grantMsg.toLowerCase().includes('granted') ? '#16a34a' : '#dc2626' }}>
                 {grantMsg}
               </p>
             )}
@@ -169,45 +172,41 @@ export default function PatientDetail() {
             {!Object.keys(permsByDisease).length ? (
               <p style={{ color: '#9ca3af', fontSize: '14px' }}>No assessments granted yet</p>
             ) : (
-              Object.entries(permsByDisease).map(([diseaseId, group]) => (
-                <div key={diseaseId} style={{ marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#374151', marginBottom: '8px', padding: '6px 0', borderBottom: '1px solid #e5e7eb' }}>
-                    {group.name}
-                  </h3>
-                  <table style={S.table}>
-                    <thead><tr>
-                      <th style={S.th}>Scale</th>
-                      <th style={S.th}>Status</th>
-                      <th style={S.th}>Granted</th>
-                      <th style={S.th}>Actions</th>
-                    </tr></thead>
-                    <tbody>
-                      {group.scales.map((p, i) => (
-                        <tr key={i}>
-                          <td style={S.td}>{p.prs_scales?.scale_name || p.scale_id || '—'}</td>
-                          <td style={S.td}>
-                            <span style={S.badge(
-                              p.status === 'granted' ? '#4f46e5'
-                              : p.status === 'completed' ? '#16a34a'
-                              : '#6b7280'
-                            )}>
-                              {p.status}
-                            </span>
-                          </td>
-                          <td style={S.td}>{p.granted_at ? new Date(p.granted_at).toLocaleDateString() : '—'}</td>
-                          <td style={S.td}>
-                            {p.status === 'granted' && (
-                              <button style={S.takeBtn} onClick={() => handleTakeOnBehalf(p)}>
-                                Take on Behalf
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))
+              <table style={S.table}>
+                <thead><tr>
+                  <th style={S.th}>Disease</th>
+                  <th style={S.th}>Status</th>
+                  <th style={S.th}>Granted</th>
+                  <th style={S.th}>Actions</th>
+                </tr></thead>
+                <tbody>
+                  {Object.entries(permsByDisease).map(([diseaseId, group]) => {
+                    const perm = group.perms[0]
+                    return (
+                      <tr key={diseaseId}>
+                        <td style={{ ...S.td, fontWeight: '600' }}>{group.name}</td>
+                        <td style={S.td}>
+                          <span style={S.badge(
+                            perm.status === 'granted' ? '#4f46e5'
+                            : perm.status === 'completed' ? '#16a34a'
+                            : '#6b7280'
+                          )}>
+                            {perm.status}
+                          </span>
+                        </td>
+                        <td style={S.td}>{perm.granted_at ? new Date(perm.granted_at).toLocaleDateString() : '—'}</td>
+                        <td style={S.td}>
+                          {perm.status === 'granted' && (
+                            <button style={S.takeBtn} onClick={() => handleTakeOnBehalf(perm)}>
+                              Take on Behalf
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
         </>
@@ -221,22 +220,46 @@ export default function PatientDetail() {
           ) : (
             <table style={S.table}>
               <thead><tr>
-                <th style={S.th}>Score</th>
+                <th style={S.th}>Disease</th>
+                <th style={S.th}>Disease Score</th>
                 <th style={S.th}>Severity</th>
+                <th style={S.th}>Scales</th>
                 <th style={S.th}>Date</th>
+                <th style={S.th}></th>
               </tr></thead>
               <tbody>
-                {scoresData.map((s, i) => (
-                  <tr key={i}>
-                    <td style={S.td}>{s.calculated_value} / {s.max_possible}</td>
-                    <td style={S.td}>
-                      {s.overall_severity_label && (
-                        <span style={S.badge(sevColor(s.overall_severity))}>{s.overall_severity_label}</span>
-                      )}
-                    </td>
-                    <td style={S.td}>{s.time_stamp ? new Date(s.time_stamp).toLocaleDateString() : '—'}</td>
-                  </tr>
-                ))}
+                {scoresData.map((s, i) => {
+                  const color = sevColor(s.severity_level || s.overall_severity)
+                  return (
+                    <tr key={i}>
+                      <td style={{ ...S.td, fontWeight: '600' }}>{s.disease_name || s.disease_id || '—'}</td>
+                      <td style={S.td}>
+                        {s.disease_score != null ? (
+                          <span style={{ fontWeight: '700', fontSize: '16px', color }}>{Math.round(s.disease_score)}<span style={{ color: '#9ca3af', fontWeight: '400', fontSize: '12px' }}>/100</span></span>
+                        ) : s.calculated_value != null ? (
+                          <span style={{ fontWeight: '700', fontSize: '16px', color: '#111827' }}>{s.calculated_value}<span style={{ color: '#9ca3af', fontWeight: '400', fontSize: '12px' }}>/{s.max_possible}</span></span>
+                        ) : '—'}
+                      </td>
+                      <td style={S.td}>
+                        {(s.severity_label || s.overall_severity_label) && (
+                          <span style={S.badge(color)}>{s.severity_label || s.overall_severity_label}</span>
+                        )}
+                      </td>
+                      <td style={{ ...S.td, color: '#6b7280' }}>
+                        {s.scale_summaries?.length > 0 ? `${s.scale_summaries.length} scales` : '—'}
+                      </td>
+                      <td style={S.td}>{s.completed_at ? new Date(s.completed_at).toLocaleDateString() : '—'}</td>
+                      <td style={S.td}>
+                        <button
+                          onClick={() => navigate(`/doctor/patients/${patientId}/scores/${s.instance_id}`)}
+                          style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', padding: '5px 12px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+                        >
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           )}

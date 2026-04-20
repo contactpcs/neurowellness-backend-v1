@@ -28,46 +28,22 @@ const S = {
   empty: { textAlign: 'center', background: '#fff', borderRadius: '12px', padding: '60px 20px', color: '#9ca3af', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
 }
 
-function groupByDisease(permissions) {
-  const map = {}
-  for (const p of permissions) {
-    const did = p.disease_id || 'unknown'
-    if (!map[did]) {
-      map[did] = {
-        disease_id: did,
-        disease_name: p.prs_diseases?.disease_name || did,
-        scales: [],
-      }
-    }
-    map[did].scales.push({
-      scale_id: p.scale_id,
-      scale_name: p.prs_scales?.scale_name || p.prs_scales?.scale_code || p.scale_id,
-      status: p.status,
-      granted_at: p.granted_at,
-    })
-  }
-  return Object.values(map)
-}
-
 export default function MyAssessments() {
   const [diseases, setDiseases] = useState([])
   const [loading, setLoading] = useState(true)
-  const { initDiseaseQueue, resetAssessment } = usePrsStore()
+  const { resetAssessment } = usePrsStore()
   const navigate = useNavigate()
 
   useEffect(() => {
     resetAssessment()
     api.get('/patients/my-assessments')
-      .then(r => setDiseases(groupByDisease(r.data.data || [])))
+      .then(r => setDiseases(r.data.data || []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   const handleTakeTest = (disease) => {
-    const pending = disease.scales.filter(s => s.status === 'granted')
-    if (!pending.length) return
-    initDiseaseQueue(disease.disease_id, disease.disease_name, pending)
-    navigate('/assessment')
+    navigate(`/assessment?disease_id=${disease.disease_id}`)
   }
 
   if (loading) return <PatientLayout><LoadingSpinner /></PatientLayout>
@@ -84,11 +60,10 @@ export default function MyAssessments() {
       ) : (
         <div style={S.grid}>
           {diseases.map(disease => {
-            const total = disease.scales.length
-            const done = disease.scales.filter(s => s.status === 'completed').length
-            const pending = disease.scales.filter(s => s.status === 'granted').length
-            const pct = total ? Math.round((done / total) * 100) : 0
-            const allDone = pending === 0
+            const total   = disease.scales_total || disease.scales?.length || 0
+            const done    = disease.scales_completed || 0
+            const pct     = total ? Math.round((done / total) * 100) : 0
+            const allDone = disease.status === 'completed' || (total > 0 && done >= total)
 
             return (
               <div key={disease.disease_id} style={S.card}>
@@ -96,12 +71,14 @@ export default function MyAssessments() {
 
                 {/* Scale list */}
                 <ul style={S.scaleList}>
-                  {disease.scales.map(scale => (
+                  {(disease.scales || []).map(scale => (
                     <li key={scale.scale_id} style={S.scaleItem(scale.status === 'completed')}>
                       <div style={S.dot(scale.status === 'completed')} />
                       {scale.scale_name}
                       {scale.status === 'completed' && (
-                        <span style={{ fontSize: '11px', color: '#16a34a', marginLeft: 'auto', fontWeight: '600' }}>✓ Done</span>
+                        <span style={{ fontSize: '11px', color: '#16a34a', marginLeft: 'auto', fontWeight: '600' }}>
+                          ✓ Done
+                        </span>
                       )}
                     </li>
                   ))}

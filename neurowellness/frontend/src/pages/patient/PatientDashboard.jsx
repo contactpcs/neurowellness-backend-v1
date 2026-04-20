@@ -84,10 +84,11 @@ export default function PatientDashboard() {
             {pending_assessments.slice(0, 3).map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>{p.prs_scales?.name}</div>
-                  <div style={{ fontSize: '12px', color: '#9ca3af' }}>{p.prs_scales?.description?.slice(0, 60)}...</div>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>
+                    {p.prs_diseases?.disease_name || p.disease_id || '—'}
+                  </div>
                 </div>
-                <button style={S.takeBtn} onClick={() => navigate(`/assessment?scale_id=${p.scale_id}`)}>
+                <button style={S.takeBtn} onClick={() => navigate(`/assessment?disease_id=${p.disease_id}`)}>
                   Take
                 </button>
               </div>

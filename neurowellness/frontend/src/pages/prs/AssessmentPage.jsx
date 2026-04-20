@@ -20,7 +20,9 @@ const S = {
     border: `1px solid ${active ? '#c7d2fe' : done ? '#bbf7d0' : '#e5e7eb'}`,
   }),
   dot: (active, done) => ({
-    width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700',
+    width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '12px', fontWeight: '700',
     background: active ? '#4f46e5' : done ? '#16a34a' : '#e5e7eb',
     color: active || done ? '#fff' : '#9ca3af',
   }),
@@ -46,97 +48,76 @@ const SEVERITY_COLORS = {
 }
 const severityColor = (level) => SEVERITY_COLORS[level?.toLowerCase()] || SEVERITY_COLORS.default
 
-// ── Phase constants ────────────────────────────────────────────────────────────
-const PHASE = { INTRO: 'intro', SCALE_INTRO: 'scale_intro', RUNNING: 'running', SCORE: 'score', DONE: 'done' }
+const PHASE = { LOADING: 'loading', INTRO: 'intro', SCALE_INTRO: 'scale_intro', RUNNING: 'running', SCORE: 'score', DONE: 'done' }
 
 export default function AssessmentPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { role } = useAuthStore()
   const {
-    diseaseId, diseaseName, diseaseQueue, queueIndex, completedScores,
-    activeSession, submittedScore, isLoading,
-    startAssessment, resetAssessment, recordScoreAndAdvance, advanceQueue,
+    activeSession, submittedScore, completedScores, isLoading,
+    startDiseaseAssessment, resetAssessment,
+    advanceToNextScale, skipCurrentScale,
   } = usePrsStore()
 
-  const [phase, setPhase] = useState(PHASE.INTRO)
+  const [phase, setPhase] = useState(PHASE.LOADING)
   const [error, setError] = useState('')
 
-  // Support legacy single-scale mode: ?scale_id=...&patient_id=...
-  const scaleId = searchParams.get('scale_id')
-  const patientId = searchParams.get('patient_id')
-  const takenBy = (role === 'doctor' || role === 'clinical_assistant') && patientId
+  const diseaseId  = searchParams.get('disease_id')
+  const patientId  = searchParams.get('patient_id')
+  const takenBy    = (role === 'doctor' || role === 'clinical_assistant') && patientId
     ? 'doctor_on_behalf'
     : 'patient'
-  const isSingleMode = !!scaleId && !diseaseId
 
-  // ── Redirect if no context ─────────────────────────────────────────────────
+  // Derived from activeSession
+  const scales         = activeSession?.scales || []
+  const currentScaleIdx = activeSession?.currentScaleIndex ?? 0
+  const currentScale   = scales[currentScaleIdx] || null
+  const totalScales    = scales.length
+  const progressPct    = totalScales ? Math.round((currentScaleIdx / totalScales) * 100) : 0
+  const remaining      = scales.filter((s, i) => i > currentScaleIdx && !s.is_completed).length
+
+  // On mount: start disease assessment
   useEffect(() => {
-    if (!isSingleMode && !diseaseId) {
-      navigate(-1)
-    }
-    if (isSingleMode) {
-      resetAssessment()
-      setPhase(PHASE.SCALE_INTRO)
-    }
+    if (!diseaseId) { navigate(-1); return }
+    resetAssessment()
+    startDiseaseAssessment(diseaseId, takenBy, patientId || null)
+      .then(() => setPhase(PHASE.INTRO))
+      .catch(e => {
+        setError(e.response?.data?.detail || e.message || 'Failed to load assessment')
+        setPhase(PHASE.INTRO)
+      })
   }, [])
 
-  // Whenever queue advances, go to next scale intro (or done)
-  useEffect(() => {
-    if (!diseaseId) return
-    if (queueIndex >= diseaseQueue.length) {
-      setPhase(PHASE.DONE)
-    } else if (phase !== PHASE.INTRO) {
-      setPhase(PHASE.SCALE_INTRO)
-    }
-  }, [queueIndex])
-
-  const currentScale = diseaseQueue[queueIndex] || null
-  const totalScales = diseaseQueue.length
-  const progressPct = totalScales ? Math.round((queueIndex / totalScales) * 100) : 0
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleBeginDisease = () => setPhase(PHASE.SCALE_INTRO)
 
-  const handleStartScale = async () => {
+  const handleStartScale = () => {
     setError('')
-    const sid = isSingleMode ? scaleId : currentScale.scale_id
-    try {
-      await startAssessment(sid, takenBy, patientId || null)
-      setPhase(PHASE.RUNNING)
-    } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Failed to start assessment')
-    }
+    setPhase(PHASE.RUNNING)
   }
 
   const handleSkipScale = () => {
     setError('')
-    if (isSingleMode) { navigate(-1); return }
-    advanceQueue()
-    // useEffect will set phase to SCALE_INTRO or DONE
+    const hasNext = skipCurrentScale()
+    if (hasNext) {
+      setPhase(PHASE.SCALE_INTRO)
+    } else {
+      setPhase(PHASE.DONE)
+    }
   }
 
-  const handleScaleComplete = (score) => {
-    if (isSingleMode) {
-      setPhase(PHASE.SCORE)
-      return
-    }
-    const scaleName = currentScale?.scale_name || activeSession?.scale?.scale_name || 'Scale'
-    recordScoreAndAdvance(scaleName, score)
+  // Called by ScaleRunner after it has already submitted the scale and received the score
+  const handleScaleComplete = (_score) => {
+    setError('')
     setPhase(PHASE.SCORE)
   }
 
   const handleNextAfterScore = () => {
-    if (isSingleMode) {
-      resetAssessment()
-      navigate(role === 'doctor' || role === 'clinical_assistant' ? -1 : '/patient/assessments')
-      return
-    }
-    // queueIndex already advanced by recordScoreAndAdvance
-    if (queueIndex >= diseaseQueue.length) {
-      setPhase(PHASE.DONE)
-    } else {
+    const hasNext = advanceToNextScale()
+    if (hasNext) {
       setPhase(PHASE.SCALE_INTRO)
+    } else {
+      setPhase(PHASE.DONE)
     }
   }
 
@@ -145,75 +126,65 @@ export default function AssessmentPage() {
     navigate(role === 'doctor' || role === 'clinical_assistant' ? -1 : '/patient/assessments')
   }
 
-  // ── Render helpers ──────────────────────────────────────────────────────────
-  if (!diseaseId && !scaleId) return null
-
-  const renderProgress = () => isSingleMode ? null : (
+  const renderProgress = () => (
     <div style={S.progress}>
       <div style={S.progressLabel}>
-        <span>Scale {queueIndex + 1} of {totalScales}</span>
+        <span>Scale {currentScaleIdx + 1} of {totalScales}</span>
         <span>{progressPct}%</span>
       </div>
       <div style={S.progressBar}><div style={S.progressFill(progressPct)} /></div>
     </div>
   )
 
-  // ── PHASE: INTRO ──────────────────────────────────────────────────────────
+  // ── LOADING ───────────────────────────────────────────────
+  if (phase === PHASE.LOADING || (isLoading && phase === PHASE.LOADING)) {
+    return (
+      <div>
+        <Navbar />
+        <div style={S.wrap}><LoadingSpinner message="Loading assessment..." /></div>
+      </div>
+    )
+  }
+
+  // ── INTRO ─────────────────────────────────────────────────
   if (phase === PHASE.INTRO) {
     return (
       <div>
         <Navbar />
         <div style={S.wrap}>
           <div style={S.card}>
-            <h1 style={S.h1}>{diseaseName}</h1>
-            <p style={{ ...S.sub, marginBottom: '4px' }}>This assessment includes {totalScales} scale{totalScales !== 1 ? 's' : ''}.</p>
-            <p style={{ ...S.sub, fontSize: '13px', marginBottom: '0' }}>You can skip any scale if needed. Complete as many as you can.</p>
+            <h1 style={S.h1}>{activeSession?.disease_name || 'Assessment'}</h1>
+            <p style={{ ...S.sub, marginBottom: '4px' }}>
+              This assessment includes {totalScales} scale{totalScales !== 1 ? 's' : ''}.
+            </p>
+            <p style={{ ...S.sub, fontSize: '13px' }}>
+              You can skip any scale if needed. Complete as many as you can.
+            </p>
+
+            {error && <div style={S.err}>{error}</div>}
 
             <ul style={S.scaleList}>
-              {diseaseQueue.map((sc, i) => (
-                <li key={sc.scale_id} style={S.scaleItem(false, false)}>
-                  <div style={S.dot(false, false)}>{i + 1}</div>
+              {scales.map((sc, i) => (
+                <li key={sc.scale_id} style={S.scaleItem(false, sc.is_completed)}>
+                  <div style={S.dot(false, sc.is_completed)}>
+                    {sc.is_completed ? '✓' : i + 1}
+                  </div>
                   {sc.scale_name}
+                  {sc.is_completed && (
+                    <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>
+                      Already completed
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
 
             <div style={S.btnRow}>
-              <button style={S.btnSecondary} onClick={() => { resetAssessment(); navigate(-1) }}>Go Back</button>
-              <button style={S.btnPrimary} onClick={handleBeginDisease}>Begin Assessment</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ── PHASE: SCALE INTRO ────────────────────────────────────────────────────
-  if (phase === PHASE.SCALE_INTRO) {
-    const name = isSingleMode ? 'Assessment' : currentScale?.scale_name
-    return (
-      <div>
-        <Navbar />
-        <div style={S.wrap}>
-          {renderProgress()}
-          <div style={S.card}>
-            {!isSingleMode && (
-              <p style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Scale {queueIndex + 1} of {totalScales}
-              </p>
-            )}
-            <h1 style={S.h1}>{name}</h1>
-            <p style={S.sub}>Please answer all questions honestly and to the best of your ability.</p>
-
-            {error && <div style={S.err}>{error}</div>}
-
-            <div style={S.btnRow}>
-              {!isSingleMode && (
-                <button style={S.btnSkip} onClick={handleSkipScale}>Skip this scale</button>
-              )}
-              <button style={S.btnSecondary} onClick={() => { resetAssessment(); navigate(-1) }}>Go Back</button>
-              <button style={S.btnPrimary} onClick={handleStartScale} disabled={isLoading}>
-                {isLoading ? 'Loading...' : 'Begin Scale'}
+              <button style={S.btnSecondary} onClick={() => { resetAssessment(); navigate(-1) }}>
+                Go Back
+              </button>
+              <button style={S.btnPrimary} onClick={handleBeginDisease} disabled={isLoading}>
+                Begin Assessment
               </button>
             </div>
           </div>
@@ -222,24 +193,54 @@ export default function AssessmentPage() {
     )
   }
 
-  // ── PHASE: RUNNING ────────────────────────────────────────────────────────
+  // ── SCALE INTRO ───────────────────────────────────────────
+  if (phase === PHASE.SCALE_INTRO) {
+    return (
+      <div>
+        <Navbar />
+        <div style={S.wrap}>
+          {renderProgress()}
+          <div style={S.card}>
+            <p style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '8px' }}>
+              Scale {currentScaleIdx + 1} of {totalScales}
+            </p>
+            <h1 style={S.h1}>{currentScale?.scale_name || 'Scale'}</h1>
+            <p style={S.sub}>Please answer all questions honestly and to the best of your ability.</p>
+
+            {error && <div style={S.err}>{error}</div>}
+
+            <div style={S.btnRow}>
+              <button style={S.btnSkip} onClick={handleSkipScale}>Skip this scale</button>
+              <button style={S.btnSecondary} onClick={() => { resetAssessment(); navigate(-1) }}>
+                Go Back
+              </button>
+              <button style={S.btnPrimary} onClick={handleStartScale}>
+                Begin Scale
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── RUNNING ───────────────────────────────────────────────
   if (phase === PHASE.RUNNING) {
     return (
       <div>
         <Navbar />
         <div style={S.wrap}>
           {renderProgress()}
-          {isLoading && <LoadingSpinner message="Loading questions..." />}
-          {!isLoading && activeSession && (
+          {isLoading && <LoadingSpinner message="Submitting..." />}
+          {!isLoading && currentScale && (
             <div>
               <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1 style={{ ...S.h1, marginBottom: 0, fontSize: '18px' }}>
-                  {activeSession.scale?.scale_name}
+                  {currentScale.scale_name}
                 </h1>
-                {!isSingleMode && (
-                  <button style={S.btnSkip} onClick={handleSkipScale}>Skip this scale</button>
-                )}
+                <button style={S.btnSkip} onClick={handleSkipScale}>Skip this scale</button>
               </div>
+              {error && <div style={S.err}>{error}</div>}
               <ScaleRunner onComplete={handleScaleComplete} />
             </div>
           )}
@@ -248,13 +249,11 @@ export default function AssessmentPage() {
     )
   }
 
-  // ── PHASE: SCORE ──────────────────────────────────────────────────────────
+  // ── SCORE ─────────────────────────────────────────────────
   if (phase === PHASE.SCORE) {
-    // submittedScore is in the store right after submit; for disease mode we also have completedScores
-    const score = submittedScore || (completedScores.length ? completedScores[completedScores.length - 1]?.score : null)
-    const scaleName = activeSession?.scale?.scale_name || (completedScores.length ? completedScores[completedScores.length - 1]?.scale_name : '') || 'Scale'
+    const score = submittedScore
+    const scaleName = currentScale?.scale_name || 'Scale'
     const color = severityColor(score?.severity_level)
-    const remaining = totalScales - queueIndex  // queueIndex already advanced
 
     return (
       <div>
@@ -263,15 +262,14 @@ export default function AssessmentPage() {
           {renderProgress()}
           <div style={S.scoreBox}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '6px' }}>{scaleName}</h2>
-            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>Assessment Complete</p>
+            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>Scale Complete</p>
 
             {score ? (
               <div style={{ textAlign: 'center' }}>
-                <div style={S.scoreNum}>{score.calculated_value ?? score.total_score ?? '—'}</div>
+                <div style={S.scoreNum}>{score.calculated_value ?? '—'}</div>
                 {score.max_possible > 0 && (
                   <div style={{ color: '#9ca3af', fontSize: '16px', marginTop: '4px' }}>
                     / {score.max_possible}
-                    {score.percentage != null && ` (${score.percentage}%)`}
                   </div>
                 )}
                 {score.severity_label && (
@@ -295,16 +293,16 @@ export default function AssessmentPage() {
 
           <div style={{ ...S.btnRow, justifyContent: 'space-between' }}>
             <div style={{ fontSize: '13px', color: '#6b7280', alignSelf: 'center' }}>
-              {!isSingleMode && remaining > 0 && `${remaining} scale${remaining !== 1 ? 's' : ''} remaining`}
+              {remaining > 0 && `${remaining} scale${remaining !== 1 ? 's' : ''} remaining`}
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
-              {!isSingleMode && remaining > 0 && (
-                <button style={S.btnSkip} onClick={() => { advanceQueue(); setPhase(PHASE.DONE) }}>
+              {remaining > 0 && (
+                <button style={S.btnSkip} onClick={() => { advanceToNextScale(); setPhase(PHASE.DONE) }}>
                   Skip Remaining
                 </button>
               )}
               <button style={S.btnPrimary} onClick={handleNextAfterScore}>
-                {isSingleMode || remaining === 0 ? 'Back to Assessments' : 'Next Scale →'}
+                {remaining === 0 ? 'View Summary' : 'Next Scale →'}
               </button>
             </div>
           </div>
@@ -313,7 +311,7 @@ export default function AssessmentPage() {
     )
   }
 
-  // ── PHASE: DONE ───────────────────────────────────────────────────────────
+  // ── DONE ──────────────────────────────────────────────────
   if (phase === PHASE.DONE) {
     const skipped = totalScales - completedScores.length
 
@@ -324,7 +322,7 @@ export default function AssessmentPage() {
           <div style={{ ...S.card, marginBottom: '20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
             <h1 style={S.h1}>Assessment Complete</h1>
-            <p style={S.sub}>{diseaseName}</p>
+            <p style={S.sub}>{activeSession?.disease_name}</p>
             <p style={{ fontSize: '13px', color: '#6b7280' }}>
               {completedScores.length} scale{completedScores.length !== 1 ? 's' : ''} completed
               {skipped > 0 ? `, ${skipped} skipped` : ''}
@@ -361,7 +359,9 @@ export default function AssessmentPage() {
           )}
 
           <div style={{ ...S.btnRow, marginTop: '24px' }}>
-            <button style={S.btnPrimary} onClick={handleDone}>Back to Assessments</button>
+            <button style={S.btnPrimary} onClick={handleDone}>
+              Back to Assessments
+            </button>
           </div>
         </div>
       </div>

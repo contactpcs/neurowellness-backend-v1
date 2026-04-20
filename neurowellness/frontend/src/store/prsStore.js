@@ -2,23 +2,19 @@ import { create } from 'zustand'
 import api from '../lib/api'
 
 export const usePrsStore = create((set, get) => ({
-  // ── Scale catalogue ────────────────────────────────────────
+  // ── Catalogue ──────────────────────────────────────────────
   scales: [],
   conditions: [],
 
-  // ── Single active scale ────────────────────────────────────
-  activeSession: null,   // { instance_id, scale_id, scale: { ...scale, questions } }
+  // ── Active disease session ──────────────────────────────────
+  // activeSession: { instance_id, disease_id, disease_name, scales: [...], currentScaleIndex }
+  // Each scale in scales: { scale_id, scale_name, scale_code, questions: [...], is_completed }
+  activeSession: null,
   currentQuestionIndex: 0,
-  responses: {},
-  submittedScore: null,
+  responses: {},          // { [question_index]: { value, label } } for current scale
+  submittedScore: null,   // last submitted scale score result
+  completedScores: [],    // [{ scale_name, score }] accumulated across scales
   isLoading: false,
-
-  // ── Disease queue (multiple scales in sequence) ────────────
-  diseaseId: null,
-  diseaseName: null,
-  diseaseQueue: [],      // [{ scale_id, scale_name }]
-  queueIndex: 0,
-  completedScores: [],   // [{ scale_name, score }] — one per completed scale
 
   // ── Catalogue fetchers ─────────────────────────────────────
   fetchScales: async () => {
@@ -31,77 +27,54 @@ export const usePrsStore = create((set, get) => ({
     set({ conditions: res.data.data })
   },
 
-  // ── Disease queue actions ──────────────────────────────────
+  // ── Disease assessment (single call for entire disease) ────
 
-  /** Initialize a disease queue from a list of pending scales. */
-  initDiseaseQueue: (diseaseId, diseaseName, pendingScales) => {
-    set({
-      diseaseId,
-      diseaseName,
-      diseaseQueue: pendingScales,   // [{ scale_id, scale_name }]
-      queueIndex: 0,
-      completedScores: [],
-      activeSession: null,
-      currentQuestionIndex: 0,
-      responses: {},
-      submittedScore: null,
-      isLoading: false,
-    })
-  },
-
-  /** Move to the next scale in the queue (called after score shown or skip). */
-  advanceQueue: () => {
-    set((state) => ({
-      queueIndex: state.queueIndex + 1,
-      activeSession: null,
-      currentQuestionIndex: 0,
-      responses: {},
-      submittedScore: null,
-      isLoading: false,
-    }))
-  },
-
-  /** Record the score for the just-completed scale then advance. */
-  recordScoreAndAdvance: (scaleName, score) => {
-    set((state) => ({
-      completedScores: [...state.completedScores, { scale_name: scaleName, score }],
-      queueIndex: state.queueIndex + 1,
-      activeSession: null,
-      currentQuestionIndex: 0,
-      responses: {},
-      submittedScore: null,
-      isLoading: false,
-    }))
-  },
-
-  // ── Single-scale actions ───────────────────────────────────
-
-  startAssessment: async (scale_id, taken_by = 'patient', patient_id = null) => {
+  /**
+   * Start (or resume) a disease-level assessment.
+   * Calls POST /prs/assessment/start with disease_id.
+   * Returns the instance with ALL scales pre-loaded (questions included).
+   * Options are fetched in parallel for all pending (non-completed) scales.
+   */
+  startDiseaseAssessment: async (disease_id, taken_by = 'patient', patient_id = null) => {
     set({ isLoading: true })
-    const body = { scale_id, taken_by, include_options: true }
+    const body = { disease_id, taken_by }
     if (patient_id) body.patient_id = patient_id
+
     const res = await api.post('/prs/assessment/start', body)
-    const { instance_id, scale } = res.data.data
+    const { instance_id, disease_name, scales, is_resumed } = res.data.data
 
-    const questions = scale.questions || []
-    const enrichedQuestions = questions.map((q) => ({
-      ...q,
-      question_type: q.answer_type || 'radio',
-      options: q.options || [],
-    }))
+    // Options are now embedded in each question by the backend — no extra fetches needed
+    const enrichedScales = scales.map(scale => {
+      if (scale.is_completed) return scale
+      const enrichedQuestions = (scale.questions || []).map(q => ({
+        ...q,
+        question_type: q.answer_type || 'radio',
+        options:        q.options || [],
+      }))
+      return { ...scale, questions: enrichedQuestions }
+    })
 
-    const enrichedScale = { ...scale, questions: enrichedQuestions }
+    // Find first non-completed scale index
+    const firstPendingIdx = enrichedScales.findIndex(s => !s.is_completed)
 
     set({
-      activeSession: { instance_id, scale_id, scale: enrichedScale },
+      activeSession: {
+        instance_id,
+        disease_id,
+        disease_name,
+        scales: enrichedScales,
+        currentScaleIndex: firstPendingIdx >= 0 ? firstPendingIdx : 0,
+      },
       currentQuestionIndex: 0,
       responses: {},
       submittedScore: null,
+      completedScores: [],
       isLoading: false,
     })
-    return { instance_id, scale: enrichedScale }
+    return { instance_id, disease_name, scales: enrichedScales, is_resumed }
   },
 
+  // ── Per-question navigation ────────────────────────────────
   setResponse: (question_index, value, label = null) => {
     set((state) => ({
       responses: {
@@ -111,38 +84,98 @@ export const usePrsStore = create((set, get) => ({
     }))
   },
 
-  nextQuestion: () => set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 })),
-  prevQuestion: () => set((state) => ({ currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1) })),
+  nextQuestion: () => set((state) => ({
+    currentQuestionIndex: state.currentQuestionIndex + 1,
+  })),
+  prevQuestion: () => set((state) => ({
+    currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1),
+  })),
   goToQuestion: (index) => set({ currentQuestionIndex: index }),
 
-  submitAssessment: async () => {
+  // ── Submit current scale ───────────────────────────────────
+  submitCurrentScale: async () => {
     const { activeSession, responses } = get()
     if (!activeSession) throw new Error('No active session')
     set({ isLoading: true })
+
+    const currentScale = activeSession.scales[activeSession.currentScaleIndex]
     const responseList = Object.entries(responses).map(([idx, r]) => ({
       question_index: parseInt(idx),
       response_value: r.value,
       response_label: r.label,
     }))
+
     const res = await api.post('/prs/assessment/submit', {
       instance_id: activeSession.instance_id,
-      scale_id: activeSession.scale_id,
-      responses: responseList,
+      scale_id:    currentScale.scale_id,
+      responses:   responseList,
     })
     set({ submittedScore: res.data.data, isLoading: false })
     return res.data.data
   },
 
+  // ── Advance to next pending scale ──────────────────────────
+  advanceToNextScale: () => {
+    const { activeSession, submittedScore } = get()
+    if (!activeSession) return false
+
+    const { scales, currentScaleIndex } = activeSession
+    const currentScale = scales[currentScaleIndex]
+
+    // Record this scale's score in completedScores
+    const newCompleted = [
+      ...get().completedScores,
+      { scale_name: currentScale?.scale_name || 'Scale', score: submittedScore },
+    ]
+
+    // Find next non-completed scale
+    const nextIdx = scales.findIndex((s, i) => i > currentScaleIndex && !s.is_completed)
+
+    if (nextIdx === -1) {
+      // All scales done
+      set({
+        completedScores: newCompleted,
+        activeSession: { ...activeSession, currentScaleIndex },
+        currentQuestionIndex: 0,
+        responses: {},
+        submittedScore: null,
+        isLoading: false,
+      })
+      return false
+    }
+
+    set({
+      activeSession: { ...activeSession, currentScaleIndex: nextIdx },
+      currentQuestionIndex: 0,
+      responses: {},
+      submittedScore: null,
+      completedScores: newCompleted,
+      isLoading: false,
+    })
+    return true
+  },
+
+  skipCurrentScale: () => {
+    const { activeSession } = get()
+    if (!activeSession) return false
+    const { scales, currentScaleIndex } = activeSession
+    const nextIdx = scales.findIndex((s, i) => i > currentScaleIndex && !s.is_completed)
+    if (nextIdx === -1) return false
+    set({
+      activeSession: { ...activeSession, currentScaleIndex: nextIdx },
+      currentQuestionIndex: 0,
+      responses: {},
+      submittedScore: null,
+    })
+    return true
+  },
+
   resetAssessment: () => set({
-    diseaseId: null,
-    diseaseName: null,
-    diseaseQueue: [],
-    queueIndex: 0,
-    completedScores: [],
     activeSession: null,
     currentQuestionIndex: 0,
     responses: {},
     submittedScore: null,
+    completedScores: [],
     isLoading: false,
   }),
 }))

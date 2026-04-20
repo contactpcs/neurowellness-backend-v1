@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
 from app.services.scale_engine import scale_engine
+from app.services.scale_config_loader import scale_config_loader
+from app.services.disease_engine import disease_engine
 from app.utils.responses import success_response
 from app.utils.exceptions import ForbiddenError, NotFoundError, BadRequestError
 from app.limiter import limiter
@@ -14,8 +16,7 @@ router = APIRouter()
 
 
 class StartAssessmentRequest(BaseModel):
-    scale_id: str
-    disease_id: Optional[str] = None
+    disease_id: str
     taken_by: str = "patient"
     patient_id: Optional[str] = None  # required when taken_by == doctor_on_behalf
     include_options: bool = False
@@ -37,17 +38,13 @@ class SaveResponseRequest(BaseModel):
     instance_id: str
     scale_id: str
     question_index: int
-    question_id: Optional[str] = None   # if already known, skip the lookup
+    question_id: Optional[str] = None
     response_value: str
     response_label: Optional[str] = None
 
 
 def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
-    """
-    Internal-only helper used by /submit for score calculation.
-    Fetches questions + their options (points) in two batch queries.
-    NOT exposed as an API endpoint — use GET /prs/questions/{id}/options for that.
-    """
+    """Fetch questions + options (points) for score calculation."""
     questions = admin.table("prs_questions").select(
         "question_id, answer_type, display_order"
     ).eq("scale_id", scale_id).order("display_order").execute().data or []
@@ -68,8 +65,8 @@ def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
         })
 
     for idx, q in enumerate(questions):
-        q["options"]         = opts_by_q.get(q["question_id"], [])
-        q["question_index"]  = idx
+        q["options"]        = opts_by_q.get(q["question_id"], [])
+        q["question_index"] = idx
 
     return questions
 
@@ -155,72 +152,156 @@ async def start_assessment(
 
     if body.taken_by == "patient" and role == "patient":
         patient_id = current_user["id"]
-        perm = admin.table("assessment_permissions").select("id, doctor_id, disease_id").eq(
+        perm = admin.table("assessment_permissions").select("id, doctor_id").eq(
             "patient_id", patient_id
-        ).eq("scale_id", body.scale_id).eq("status", "granted").execute().data or []
+        ).eq("disease_id", body.disease_id).eq("status", "granted").execute().data or []
         if not perm:
             raise ForbiddenError("No permission to take this assessment")
         doctor_id = perm[0]["doctor_id"]
-        disease_id = perm[0].get("disease_id") or body.disease_id
 
     elif body.taken_by == "doctor_on_behalf" and role in ["doctor", "clinical_assistant", "admin"]:
         if not body.patient_id:
             raise BadRequestError("patient_id is required for doctor_on_behalf")
         patient_id = body.patient_id
         doctor_id = current_user["id"]
-        perm = admin.table("assessment_permissions").select("disease_id").eq(
-            "patient_id", patient_id
-        ).eq("scale_id", body.scale_id).execute().data or []
-        disease_id = (perm[0].get("disease_id") if perm else None) or body.disease_id
 
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
-    if not disease_id:
-        link = admin.table("prs_disease_scale_map").select("disease_id").eq(
-            "scale_id", body.scale_id
-        ).limit(1).execute().data or []
-        disease_id = link[0]["disease_id"] if link else None
-    if not disease_id:
-        raise BadRequestError("Cannot determine disease for this scale")
+    # Reuse existing in_progress instance for this patient + disease
+    existing_instance = admin.table("prs_assessment_instances").select(
+        "instance_id"
+    ).eq("patient_id", patient_id).eq("disease_id", body.disease_id).eq(
+        "status", "in_progress"
+    ).limit(1).execute().data or []
 
-    existing = admin.table("prs_assessment_instances").select("instance_id").eq(
-        "patient_id", patient_id
+    if existing_instance:
+        instance_id = existing_instance[0]["instance_id"]
+        is_resumed = True
+    else:
+        all_instances = admin.table("prs_assessment_instances").select(
+            "instance_id"
+        ).eq("patient_id", patient_id).execute().data or []
+        seq = len(all_instances) + 1
+        instance_id = f"PAT/{patient_id[:8]}/{seq:03d}"
+
+        admin.table("prs_assessment_instances").insert({
+            "instance_id":  instance_id,
+            "disease_id":   body.disease_id,
+            "patient_id":   patient_id,
+            "initiated_by": body.taken_by,
+            "status":       "in_progress",
+        }).execute()
+        is_resumed = False
+
+    # Fetch all scales for the disease (ordered)
+    ds_maps = admin.table("prs_disease_scale_map").select(
+        "scale_id, display_order"
+    ).eq("disease_id", body.disease_id).order("display_order").execute().data or []
+    if not ds_maps:
+        raise BadRequestError("No scales configured for this disease")
+
+    scale_ids = [ds["scale_id"] for ds in ds_maps]
+
+    # Fetch scale metadata in one query
+    scales_data = admin.table("prs_scales").select("*").in_(
+        "scale_id", scale_ids
     ).execute().data or []
-    seq = len(existing) + 1
-    instance_id = f"PAT/{patient_id[:8]}/{seq:03d}"
+    scales_map = {s["scale_id"]: s for s in scales_data}
 
-    scale_result = admin.table("prs_scales").select("*").eq(
-        "scale_id", body.scale_id
-    ).limit(1).execute()
-    if not scale_result.data:
-        raise NotFoundError("Scale not found")
-    scale = scale_result.data[0]
+    # Fetch questions for ALL scales in one query
+    all_questions = admin.table("prs_questions").select(
+        "question_id, scale_id, question_text, answer_type, "
+        "min_value, max_value, is_required, skip_logic, display_order"
+    ).in_("scale_id", scale_ids).order("display_order").execute().data or []
 
-    # Return questions WITHOUT options — frontend fetches options per question
-    # via GET /prs/questions/{question_id}/options
-    questions = admin.table("prs_questions").select(
-        "question_id, question_text, answer_type, min_value, max_value, "
-        "is_required, skip_logic, display_order"
-    ).eq("scale_id", body.scale_id).order("display_order").execute().data or []
+    questions_by_scale: dict = {}
+    for q in all_questions:
+        questions_by_scale.setdefault(q["scale_id"], []).append(q)
+    for qs in questions_by_scale.values():
+        for idx, q in enumerate(qs):
+            q["question_index"] = idx
 
-    for idx, q in enumerate(questions):
-        q["question_index"] = idx
+    # Bulk-fetch ALL options for ALL questions in one query and embed them
+    all_q_ids = [q["question_id"] for q in all_questions]
+    if all_q_ids:
+        all_opts = admin.table("prs_options").select(
+            "option_id, question_id, option_label, option_value, points, display_order"
+        ).in_("question_id", all_q_ids).eq("status", True).order("display_order").execute().data or []
+    else:
+        all_opts = []
 
-    if body.include_options:
-        questions = _attach_options_to_questions(admin, questions)
+    opts_by_q: dict = {}
+    for o in all_opts:
+        opts_by_q.setdefault(o["question_id"], []).append(o)
 
-    admin.table("prs_assessment_instances").insert({
-        "instance_id":   instance_id,
-        "disease_id":    disease_id,
-        "patient_id":    patient_id,
-        "initiated_by":  body.taken_by,
-        "status":        "in_progress",
-    }).execute()
+    _CHOICE_TYPES = {"radio", "likert", "checkbox"}
+    _NUMERIC_TYPES = {"number", "slider"}
+
+    for q in all_questions:
+        qid = q["question_id"]
+        answer_type = q.get("answer_type", "radio")
+        raw_opts = opts_by_q.get(qid, [])
+
+        if answer_type in _CHOICE_TYPES:
+            q["options"] = [
+                {
+                    "option_id":     o["option_id"],
+                    "value":         o["option_value"],
+                    "label":         o["option_label"],
+                    "points":        o.get("points", 0),
+                    "display_order": o.get("display_order", 0),
+                }
+                for o in raw_opts
+            ]
+        elif answer_type in _NUMERIC_TYPES:
+            min_val = q.get("min_value")
+            max_val = q.get("max_value")
+            for o in raw_opts:
+                lbl = (o.get("option_label") or "").lower()
+                if lbl.startswith("minimum"):
+                    try: min_val = float(o["option_value"])
+                    except (TypeError, ValueError): pass
+                elif lbl.startswith("maximum"):
+                    try: max_val = float(o["points"] if o.get("points") is not None else o["option_value"])
+                    except (TypeError, ValueError): pass
+            q["min_value"] = min_val if min_val is not None else 0
+            q["max_value"] = max_val if max_val is not None else 100
+            q["options"] = []
+        else:
+            q["options"] = []
+
+    # Determine which scales already have submitted results (for resumed sessions)
+    submitted_scale_ids: set = set()
+    if is_resumed:
+        done = admin.table("prs_scale_results").select("scale_id").eq(
+            "instance_id", instance_id
+        ).execute().data or []
+        submitted_scale_ids = {r["scale_id"] for r in done}
+
+    # Build ordered scales response
+    scales_response = []
+    for ds in ds_maps:
+        sid = ds["scale_id"]
+        scale = scales_map.get(sid, {})
+        scales_response.append({
+            **scale,
+            "questions":    questions_by_scale.get(sid, []),
+            "is_completed": sid in submitted_scale_ids,
+        })
+
+    # Fetch disease name
+    disease_row = admin.table("prs_diseases").select("disease_name").eq(
+        "disease_id", body.disease_id
+    ).limit(1).execute().data or []
+    disease_name = disease_row[0]["disease_name"] if disease_row else body.disease_id
 
     return success_response({
-        "instance_id": instance_id,
-        "scale":       {**scale, "questions": questions},
+        "instance_id":  instance_id,
+        "disease_id":   body.disease_id,
+        "disease_name": disease_name,
+        "is_resumed":   is_resumed,
+        "scales":       scales_response,
     })
 
 
@@ -257,22 +338,10 @@ async def submit_assessment(
         raise NotFoundError("Scale not found")
     scale = scale_result.data[0]
 
-    # Fetch questions + options (points only) for scoring — internal batch query
     questions = _fetch_questions_for_scoring(admin, body.scale_id)
 
-    scale_config = {
-        "id":            scale.get("scale_code"),
-        "scoringMethod": "sum",
-        "scoringType":   "sum",
-        "questions": [
-            {
-                "index":   q["question_index"],
-                "type":    q.get("answer_type", "likert"),
-                "options": q.get("options", []),
-            }
-            for q in questions
-        ],
-    }
+    scale_code = scale.get("scale_code", body.scale_id)
+    scale_config = scale_config_loader.build(scale_code, questions)
 
     responses_dict = {r.question_index: r.response_value for r in body.responses}
     score_result = scale_engine.calculate_score(scale_config, responses_dict)
@@ -311,23 +380,73 @@ async def submit_assessment(
             response_rows, on_conflict="instance_id,question_id"
         ).execute()
 
-    # Mark permission completed
-    admin.table("assessment_permissions").update({"status": "completed"}).eq(
-        "patient_id", instance["patient_id"]
-    ).eq("scale_id", body.scale_id).eq("status", "granted").execute()
+    # Check if ALL disease scales are now submitted — only then mark instance complete
+    disease_id = instance.get("disease_id")
+    all_done = False
+    remaining_scale_ids: list = []
+    if disease_id:
+        expected = admin.table("prs_disease_scale_map").select("scale_id").eq(
+            "disease_id", disease_id
+        ).execute().data or []
+        expected_ids = {s["scale_id"] for s in expected}
 
-    # Mark instance completed
-    admin.table("prs_assessment_instances").update({
-        "status":       "completed",
-        "completed_at": datetime.now(timezone.utc).isoformat(),
-    }).eq("instance_id", body.instance_id).execute()
+        done_rows = admin.table("prs_scale_results").select("scale_id").eq(
+            "instance_id", body.instance_id
+        ).execute().data or []
+        done_ids = {s["scale_id"] for s in done_rows}
+
+        remaining_scale_ids = list(expected_ids - done_ids)
+        all_done = len(remaining_scale_ids) == 0
+
+    if all_done:
+        admin.table("prs_assessment_instances").update({
+            "status":       "completed",
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("instance_id", body.instance_id).execute()
+
+        # Mark all scale-level permissions for this disease as completed
+        admin.table("assessment_permissions").update({"status": "completed"}).eq(
+            "patient_id", instance["patient_id"]
+        ).eq("disease_id", disease_id).in_("status", ["granted"]).execute()
+
+    # Disease-level composite scoring
+    disease_result = None
+    if disease_id:
+        completed = admin.table("prs_scale_results").select(
+            "scale_id, calculated_value, max_possible"
+        ).eq("instance_id", body.instance_id).execute().data or []
+
+        scale_results_map = {
+            r["scale_id"]: {
+                "total":        r["calculated_value"],
+                "max_possible": r["max_possible"],
+            }
+            for r in completed
+            if r["calculated_value"] is not None
+        }
+
+        disease_result = disease_engine.calculate(disease_id, scale_results_map)
 
     return success_response({
-        "scale_result_id":  scale_result_id,
-        "calculated_value": score_result.total,
-        "max_possible":     score_result.max_possible,
-        "severity_level":   severity.level if severity else None,
-        "severity_label":   severity.label if severity else None,
+        "scale_result_id":    scale_result_id,
+        "calculated_value":   score_result.total,
+        "max_possible":       score_result.max_possible,
+        "severity_level":     severity.level if severity else None,
+        "severity_label":     severity.label if severity else None,
+        "subscale_scores":    score_result.subscale_scores or {},
+        "component_scores":   score_result.component_scores or {},
+        "domain_scores":      score_result.domain_scores or {},
+        "extra":              score_result.extra or {},
+        "risk_flags":         [rf.__dict__ for rf in risk_flags],
+        "all_scales_complete": all_done,
+        "remaining_scales":   remaining_scale_ids,
+        "disease_score": {
+            "score":           disease_result.disease_score if disease_result else None,
+            "severity_level":  disease_result.severity_level if disease_result else None,
+            "severity_label":  disease_result.severity_label if disease_result else None,
+            "scales_used":     disease_result.scales_used if disease_result else None,
+            "scales_expected": disease_result.scales_expected if disease_result else None,
+        } if disease_result else None,
     }, "Assessment submitted successfully")
 
 
@@ -340,10 +459,7 @@ async def save_response(
     body: SaveResponseRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Save a single question response while the assessment is in progress.
-    Upserts on (instance_id, question_id) so re-answering a question is safe.
-    """
+    """Save a single question response while the assessment is in progress."""
     admin = get_supabase_admin()
 
     instance_result = admin.table("prs_assessment_instances").select(
@@ -400,10 +516,7 @@ async def get_instance_responses(
     instance_id: str,
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Return all saved responses for an in-progress instance.
-    Used to resume an assessment that was interrupted.
-    """
+    """Return all saved responses for an in-progress instance (for resume)."""
     admin = get_supabase_admin()
 
     instance_result = admin.table("prs_assessment_instances").select(

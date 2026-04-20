@@ -90,7 +90,7 @@ async def get_patient_detail(request: Request, patient_id: str, current_user: di
 
     profile     = _row(admin, "profiles", "id", patient_id)
     permissions = admin.table("assessment_permissions").select(
-        "*, prs_scales(scale_code, scale_name)"
+        "*, prs_diseases(disease_id, disease_name)"
     ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
 
     instances = admin.table("prs_assessment_instances").select("instance_id").eq(
@@ -157,21 +157,23 @@ async def grant_assessment(
 
     session_id = _get_or_create_session(admin, patient_id, doctor_id)
 
+    # Upsert one permission row per scale (existing DB schema — scale_id NOT NULL)
     perm_rows = [
         {
             "patient_id": patient_id,
-            "doctor_id": doctor_id,
-            "scale_id": ds["scale_id"],
+            "doctor_id":  doctor_id,
+            "scale_id":   ds["scale_id"],
             "disease_id": body.disease_id,
             "session_id": session_id,
-            "status": "granted",
-            "notes": body.notes,
+            "status":     "granted",
+            "notes":      body.notes,
         }
         for ds in ds_maps
     ]
-    admin.table("assessment_permissions").upsert(
+    result = admin.table("assessment_permissions").upsert(
         perm_rows, on_conflict="patient_id,scale_id,session_id"
     ).execute()
+    perm_id = result.data[0]["id"] if result.data else None
 
     admin.table("notifications").insert({
         "user_id": patient_id,
@@ -192,8 +194,10 @@ async def grant_assessment(
         "disease_id": body.disease_id,
         "disease_name": disease["disease_name"],
         "session_id": session_id,
+        "permission_id": perm_id,
+        "scales_count": len(ds_maps),
         "scales_granted": len(ds_maps),
-    }, f"Granted {len(ds_maps)} scales for {disease['disease_name']}")
+    }, f"Assessment granted for {disease['disease_name']}")
 
 
 class AvailabilityUpdate(BaseModel):

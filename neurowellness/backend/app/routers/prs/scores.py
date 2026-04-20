@@ -2,10 +2,68 @@ from fastapi import APIRouter, Depends, Query, Request
 from app.dependencies import get_current_user, require_staff
 from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
+from app.utils.exceptions import NotFoundError, ForbiddenError
+from app.services.disease_engine import disease_engine
 from app.limiter import limiter
 
 router = APIRouter()
 
+# Actual prs_final_results columns populated by the DB trigger:
+#   calculated_value, max_possible, percentage, overall_severity,
+#   overall_severity_label, scale_summaries, all_risk_flags, time_stamp
+_FINAL_COLS = (
+    "instance_id, disease_id, calculated_value, max_possible, percentage, "
+    "overall_severity, overall_severity_label, scale_summaries, time_stamp"
+)
+
+
+def _normalize_final(row: dict) -> dict:
+    """Map DB trigger column names → consistent frontend keys."""
+    row["severity_level"] = row.get("overall_severity")
+    row["severity_label"] = row.get("overall_severity_label")
+    # Use percentage (0-100) as the disease_score for the list/summary views
+    row["disease_score"]  = row.get("percentage")
+    return row
+
+
+def _attach_disease_names(admin, instances: list) -> None:
+    disease_ids = list({i["disease_id"] for i in instances if i.get("disease_id")})
+    if not disease_ids:
+        return
+    rows = admin.table("prs_diseases").select("disease_id, disease_name").in_(
+        "disease_id", disease_ids
+    ).execute().data or []
+    name_map = {r["disease_id"]: r["disease_name"] for r in rows}
+    for inst in instances:
+        inst["disease_name"] = name_map.get(inst.get("disease_id"), inst.get("disease_id"))
+
+
+def _attach_final_results(admin, instances: list) -> None:
+    """Fetch prs_final_results for a batch of instances and merge into each dict."""
+    if not instances:
+        return
+    iids = [i["instance_id"] for i in instances]
+    rows = admin.table("prs_final_results").select(_FINAL_COLS).in_(
+        "instance_id", iids
+    ).execute().data or []
+    by_iid = {r["instance_id"]: _normalize_final(r) for r in rows}
+    for inst in instances:
+        fr = by_iid.get(inst["instance_id"], {})
+        inst["disease_score"]    = fr.get("disease_score")
+        inst["severity_level"]   = fr.get("severity_level")
+        inst["severity_label"]   = fr.get("severity_label")
+        inst["calculated_value"] = fr.get("calculated_value")
+        inst["max_possible"]     = fr.get("max_possible")
+        inst["percentage"]       = fr.get("percentage")
+        inst["scale_summaries"]  = fr.get("scale_summaries", [])
+        # Use trigger timestamp if instance completed_at is missing
+        if not inst.get("completed_at"):
+            inst["completed_at"] = fr.get("time_stamp")
+
+
+# ---------------------------------------------------------------------------
+# Patient: own scores
+# ---------------------------------------------------------------------------
 
 @router.get("/me")
 @limiter.limit("60/minute")
@@ -16,39 +74,136 @@ async def my_scores(
     current_user: dict = Depends(get_current_user),
 ):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
-        "patient_id", current_user["id"]
-    ).execute().data or []
-    instance_ids = [i["instance_id"] for i in instances]
-    if not instance_ids:
-        return paginated_response([], 0, skip, limit)
+    instances = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, initiated_by, status, started_at, completed_at"
+    ).eq("patient_id", current_user["id"]).eq("status", "completed").order(
+        "completed_at", desc=True
+    ).range(skip, skip + limit - 1).execute().data or []
 
-    result = admin.table("prs_final_results").select(
-        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
-        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
-    ).in_("instance_id", instance_ids).order(
-        "time_stamp", desc=True
-    ).range(skip, skip + limit - 1).execute()
-    return paginated_response(result.data or [], len(result.data or []), skip, limit)
+    _attach_disease_names(admin, instances)
+    _attach_final_results(admin, instances)
+    return paginated_response(instances, len(instances), skip, limit)
 
 
 @router.get("/me/summary")
 @limiter.limit("60/minute")
 async def my_score_summary(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
-        "patient_id", current_user["id"]
+    instances = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, status, started_at, completed_at"
+    ).eq("patient_id", current_user["id"]).eq("status", "completed").order(
+        "completed_at", desc=True
     ).execute().data or []
-    instance_ids = [i["instance_id"] for i in instances]
-    if not instance_ids:
-        return success_response([])
 
-    scores = admin.table("prs_final_results").select(
-        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
-        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
-    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute().data or []
-    return success_response(scores)
+    _attach_disease_names(admin, instances)
+    _attach_final_results(admin, instances)
 
+    latest: dict = {}
+    for inst in instances:
+        did = inst.get("disease_id")
+        if did and did not in latest:
+            latest[did] = inst
+
+    return success_response({
+        "total_assessments":  len(instances),
+        "diseases_assessed":  len(latest),
+        "latest_by_disease":  list(latest.values()),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Instance detail  (patient owner or any staff)
+# ---------------------------------------------------------------------------
+
+@router.get("/instance/{instance_id}")
+@limiter.limit("60/minute")
+async def get_instance_score(
+    request: Request,
+    instance_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    admin = get_supabase_admin()
+
+    inst_rows = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, patient_id, initiated_by, status, started_at, completed_at"
+    ).eq("instance_id", instance_id).limit(1).execute().data
+    if not inst_rows:
+        raise NotFoundError("Assessment instance not found")
+    inst = inst_rows[0]
+
+    role = current_user["role"]
+    if role == "patient" and inst["patient_id"] != current_user["id"]:
+        raise ForbiddenError("Not your assessment")
+
+    # Disease name
+    disease_name = inst.get("disease_id")
+    if inst.get("disease_id"):
+        d = admin.table("prs_diseases").select("disease_name").eq(
+            "disease_id", inst["disease_id"]
+        ).limit(1).execute().data
+        if d:
+            disease_name = d[0]["disease_name"]
+    inst["disease_name"] = disease_name
+
+    # Disease-level result from DB (trigger-populated)
+    fr_rows = admin.table("prs_final_results").select(
+        _FINAL_COLS + ", all_risk_flags"
+    ).eq("instance_id", instance_id).limit(1).execute().data
+    disease_result = None
+    if fr_rows:
+        disease_result = _normalize_final(fr_rows[0])
+
+    # Per-scale results
+    scale_results = admin.table("prs_scale_results").select(
+        "scale_result_id, scale_id, calculated_value, max_possible, "
+        "severity_level, severity_label, subscale_scores, risk_flags, raw_score_data"
+    ).eq("instance_id", instance_id).execute().data or []
+
+    if scale_results:
+        scale_ids = [sr["scale_id"] for sr in scale_results]
+        scales = admin.table("prs_scales").select(
+            "scale_id, scale_code, scale_name"
+        ).in_("scale_id", scale_ids).execute().data or []
+        scale_map = {s["scale_id"]: s for s in scales}
+        for sr in scale_results:
+            s = scale_map.get(sr["scale_id"], {})
+            sr["scale_name"] = s.get("scale_name", sr["scale_id"])
+            sr["scale_code"] = s.get("scale_code", sr["scale_id"])
+
+    # Compute DiseaseEngine weighted composite (0-100) on-the-fly
+    weighted_result = None
+    if inst.get("disease_id") and scale_results:
+        scale_results_map = {
+            sr["scale_code"]: {
+                "total":        sr["calculated_value"],
+                "max_possible": sr["max_possible"],
+            }
+            for sr in scale_results
+            if sr.get("scale_code") and sr.get("calculated_value") is not None
+        }
+        wr = disease_engine.calculate(inst["disease_id"], scale_results_map)
+        if wr:
+            weighted_result = {
+                "disease_score":    wr.disease_score,
+                "severity_level":   wr.severity_level,
+                "severity_label":   wr.severity_label,
+                "scales_used":      wr.scales_used,
+                "scales_expected":  wr.scales_expected,
+                "missing_scales":   wr.missing_scales,
+                "scale_breakdown":  wr.scale_breakdown,
+            }
+
+    return success_response({
+        "instance":         inst,
+        "disease_result":   disease_result,
+        "weighted_result":  weighted_result,
+        "scale_results":    scale_results,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Staff: patient scores
+# ---------------------------------------------------------------------------
 
 @router.get("/patient/{patient_id}/summary")
 @limiter.limit("60/minute")
@@ -58,18 +213,26 @@ async def patient_score_summary(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
-        "patient_id", patient_id
+    instances = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, status, started_at, completed_at"
+    ).eq("patient_id", patient_id).eq("status", "completed").order(
+        "completed_at", desc=True
     ).execute().data or []
-    instance_ids = [i["instance_id"] for i in instances]
-    if not instance_ids:
-        return success_response([])
 
-    scores = admin.table("prs_final_results").select(
-        "final_result_id, instance_id, calculated_value, max_possible, percentage, "
-        "overall_severity, overall_severity_label, scale_summaries, time_stamp"
-    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute().data or []
-    return success_response(scores)
+    _attach_disease_names(admin, instances)
+    _attach_final_results(admin, instances)
+
+    latest: dict = {}
+    for inst in instances:
+        did = inst.get("disease_id")
+        if did and did not in latest:
+            latest[did] = inst
+
+    return success_response({
+        "total_assessments":  len(instances),
+        "diseases_assessed":  len(latest),
+        "latest_by_disease":  list(latest.values()),
+    })
 
 
 @router.get("/patient/{patient_id}")
@@ -84,18 +247,10 @@ async def patient_scores(
     admin = get_supabase_admin()
     instances = admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, initiated_by, status, started_at, completed_at"
-    ).eq("patient_id", patient_id).order(
-        "started_at", desc=True
+    ).eq("patient_id", patient_id).eq("status", "completed").order(
+        "completed_at", desc=True
     ).range(skip, skip + limit - 1).execute().data or []
 
-    for inst in instances:
-        inst["scale_results"] = admin.table("prs_scale_results").select(
-            "scale_result_id, scale_id, calculated_value, max_possible, percentage, "
-            "severity_level, severity_label"
-        ).eq("instance_id", inst["instance_id"]).execute().data or []
-
-        inst["responses"] = admin.table("prs_responses").select(
-            "question_id, given_response, response_value"
-        ).eq("instance_id", inst["instance_id"]).execute().data or []
-
+    _attach_disease_names(admin, instances)
+    _attach_final_results(admin, instances)
     return paginated_response(instances, len(instances), skip, limit)

@@ -56,7 +56,6 @@ async def grant_permission(
     if not patient_result.data:
         raise NotFoundError("Patient not found")
 
-    # Clinical assistants use the patient's assigned doctor for session creation
     role = current_user["role"]
     if role in ("doctor", "admin"):
         doctor_id = current_user["id"]
@@ -71,28 +70,31 @@ async def grant_permission(
     disease = disease_result.data[0]
 
     ds_maps = admin.table("prs_disease_scale_map").select(
-        "scale_id, display_order"
-    ).eq("disease_id", body.disease_id).order("display_order").execute().data or []
+        "scale_id"
+    ).eq("disease_id", body.disease_id).execute().data or []
     if not ds_maps:
         raise BadRequestError(f"No scales configured for disease '{body.disease_id}'")
 
     session_id = _get_or_create_session(admin, body.patient_id, doctor_id)
 
+    # Check if a disease-level permission already exists for this patient + disease + session
+    # Upsert one permission row per scale (existing DB schema — scale_id NOT NULL)
     perm_rows = [
         {
             "patient_id": body.patient_id,
-            "doctor_id": doctor_id,
-            "scale_id": ds["scale_id"],
+            "doctor_id":  doctor_id,
+            "scale_id":   ds["scale_id"],
             "disease_id": body.disease_id,
             "session_id": session_id,
-            "status": "granted",
-            "notes": body.notes,
+            "status":     "granted",
+            "notes":      body.notes,
         }
         for ds in ds_maps
     ]
     result = admin.table("assessment_permissions").upsert(
         perm_rows, on_conflict="patient_id,scale_id,session_id"
     ).execute()
+    perm_id = result.data[0]["id"] if result.data else None
 
     admin.table("notifications").insert({
         "user_id": body.patient_id,
@@ -113,9 +115,10 @@ async def grant_permission(
         "disease_id": body.disease_id,
         "disease_name": disease["disease_name"],
         "session_id": session_id,
+        "permission_id": perm_id,
+        "scales_count": len(ds_maps),
         "scales_granted": len(ds_maps),
-        "permissions": result.data,
-    }, f"Granted {len(ds_maps)} scales for {disease['disease_name']}")
+    }, f"Assessment granted for {disease['disease_name']}")
 
 
 @router.get("/patient/{patient_id}")
@@ -127,7 +130,7 @@ async def get_patient_permissions(
 ):
     admin = get_supabase_admin()
     perms = admin.table("assessment_permissions").select(
-        "*, prs_scales(scale_id, scale_code, scale_name), prs_diseases(disease_id, disease_name)"
+        "*, prs_diseases(disease_id, disease_name)"
     ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
     return success_response(perms)
 
@@ -137,7 +140,7 @@ async def get_patient_permissions(
 async def get_my_permissions(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
     perms = admin.table("assessment_permissions").select(
-        "*, prs_scales(scale_id, scale_code, scale_name), prs_diseases(disease_id, disease_name)"
+        "*, prs_diseases(disease_id, disease_name)"
     ).eq("patient_id", current_user["id"]).eq("status", "granted").execute().data or []
     return success_response(perms)
 
