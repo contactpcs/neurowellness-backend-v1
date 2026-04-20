@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, require_patient
 from app.database import get_supabase_admin
 from app.utils.responses import success_response
 from app.limiter import limiter
@@ -14,7 +14,7 @@ def _row(admin, table: str, field: str, value: str) -> dict:
 
 @router.get("/dashboard")
 @limiter.limit("60/minute")
-async def patient_dashboard(request: Request, current_user: dict = Depends(get_current_user)):
+async def patient_dashboard(request: Request, current_user: dict = Depends(require_patient)):
     admin = get_supabase_admin()
     patient_id = current_user["id"]
 
@@ -33,9 +33,16 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(get_c
             "hospital_affiliation": dr_extra.get("hospital_affiliation"),
         }
 
-    pending = admin.table("assessment_permissions").select(
+    # Defense-in-depth: query is scoped in SQL AND re-filtered in Python to
+    # guarantee we never return permissions for a different patient.
+    pending_res = admin.table("assessment_permissions").select(
         "*, prs_scales(scale_code, scale_name)"
-    ).eq("patient_id", patient_id).eq("status", "granted").execute().data or []
+    ).eq("patient_id", patient_id).eq("status", "granted").execute()
+    pending = pending_res.data or []
+    pending = [
+        p for p in pending
+        if p.get("patient_id") == patient_id and p.get("status") == "granted"
+    ]
 
     instances = admin.table("prs_assessment_instances").select("instance_id").eq(
         "patient_id", patient_id

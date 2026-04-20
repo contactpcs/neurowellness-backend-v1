@@ -18,6 +18,7 @@ class StartAssessmentRequest(BaseModel):
     disease_id: Optional[str] = None
     taken_by: str = "patient"
     patient_id: Optional[str] = None  # required when taken_by == doctor_on_behalf
+    include_options: bool = False
 
 
 class ResponseItem(BaseModel):
@@ -69,6 +70,75 @@ def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
     for idx, q in enumerate(questions):
         q["options"]         = opts_by_q.get(q["question_id"], [])
         q["question_index"]  = idx
+
+    return questions
+
+
+def _attach_options_to_questions(admin, questions: list) -> list:
+    """Attach `options` to each question via a single batched query."""
+    if not questions:
+        return questions
+
+    choice_types = {"radio", "likert", "checkbox"}
+    numeric_types = {"number", "slider"}
+
+    q_ids = [q["question_id"] for q in questions if q.get("question_id")]
+    if not q_ids:
+        for q in questions:
+            q["options"] = []
+        return questions
+
+    opts_result = admin.table("prs_options").select(
+        "question_id, option_id, option_label, option_value, points, display_order"
+    ).in_("question_id", q_ids).eq("status", True).order("display_order").execute()
+
+    raw_options = opts_result.data or []
+    by_qid: dict = {}
+    for o in raw_options:
+        by_qid.setdefault(o["question_id"], []).append(o)
+
+    def parse_numeric_constraints(opts: list, question: dict) -> tuple[float, float]:
+        min_val = question.get("min_value")
+        max_val = question.get("max_value")
+
+        for o in opts:
+            label = (o.get("option_label") or "").lower()
+            if label.startswith("minimum"):
+                try:
+                    min_val = float(o.get("option_value"))
+                except (TypeError, ValueError):
+                    pass
+            elif label.startswith("maximum"):
+                try:
+                    max_candidate = o.get("points") if o.get("points") is not None else o.get("option_value")
+                    max_val = float(max_candidate)
+                except (TypeError, ValueError):
+                    pass
+
+        if min_val is None:
+            min_val = 0
+        if max_val is None:
+            max_val = 100
+        return float(min_val), float(max_val)
+
+    for q in questions:
+        answer_type = q.get("answer_type") or "radio"
+        opts = by_qid.get(q.get("question_id"), [])
+        q["options"] = [
+            {
+                "option_id": o["option_id"],
+                "value": o.get("option_value"),
+                "label": o.get("option_label"),
+                "points": o.get("points", 0),
+                "display_order": o.get("display_order", 0),
+            }
+            for o in opts
+        ] if answer_type in choice_types or answer_type in numeric_types else []
+
+        if answer_type in numeric_types:
+            min_val, max_val = parse_numeric_constraints(opts, q)
+            q["min_value"] = min_val
+            q["max_value"] = max_val
 
     return questions
 
@@ -136,6 +206,9 @@ async def start_assessment(
 
     for idx, q in enumerate(questions):
         q["question_index"] = idx
+
+    if body.include_options:
+        questions = _attach_options_to_questions(admin, questions)
 
     admin.table("prs_assessment_instances").insert({
         "instance_id":   instance_id,
