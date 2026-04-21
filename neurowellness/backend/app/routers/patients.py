@@ -51,9 +51,34 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
 
     recent_scores = []
     if instance_ids:
-        recent_scores = admin.table("prs_final_results").select(
-            "calculated_value, max_possible, overall_severity, overall_severity_label, time_stamp"
+        raw = admin.table("prs_final_results").select(
+            "instance_id, disease_id, calculated_value, max_possible, percentage, "
+            "overall_severity, overall_severity_label, time_stamp"
         ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(3).execute().data or []
+
+        # Enrich with disease names
+        d_ids = list({r["disease_id"] for r in raw if r.get("disease_id")})
+        dn_map: dict = {}
+        if d_ids:
+            disease_rows = admin.table("prs_diseases").select(
+                "disease_id, disease_name"
+            ).in_("disease_id", d_ids).execute().data or []
+            dn_map = {d["disease_id"]: d["disease_name"] for d in disease_rows}
+
+        recent_scores = [
+            {
+                "instance_id":        r.get("instance_id"),
+                "disease_id":         r.get("disease_id"),
+                "disease_name":       dn_map.get(r.get("disease_id"), r.get("disease_id")),
+                "total_score":        r.get("calculated_value"),
+                "max_possible_score": r.get("max_possible"),
+                "percentage":         r.get("percentage"),
+                "severity_level":     r.get("overall_severity"),
+                "severity_label":     r.get("overall_severity_label"),
+                "recorded_at":        r.get("time_stamp"),
+            }
+            for r in raw
+        ]
 
     upcoming_instances = admin.table("prs_assessment_instances").select("*").eq(
         "patient_id", patient_id

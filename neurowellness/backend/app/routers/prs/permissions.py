@@ -130,9 +130,56 @@ async def get_patient_permissions(
 ):
     admin = get_supabase_admin()
     perms = admin.table("assessment_permissions").select(
-        "*, prs_diseases(disease_id, disease_name)"
+        "id, patient_id, doctor_id, disease_id, scale_id, status, granted_at, expires_at, "
+        "prs_diseases(disease_id, disease_name)"
     ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
-    return success_response(perms)
+
+    # Deduplicate to one entry per disease — prefer completed > granted > expired > revoked
+    status_rank = {"completed": 3, "granted": 2, "expired": 1, "revoked": 0}
+    disease_map: dict = {}
+    for p in perms:
+        did = p.get("disease_id")
+        if not did:
+            continue
+        existing = disease_map.get(did)
+        if existing is None or status_rank.get(p["status"], 0) > status_rank.get(existing["status"], 0):
+            disease_map[did] = p
+
+    deduplicated = list(disease_map.values())
+
+    # Enrich completed diseases with their most recent completed instance_id
+    completed_disease_ids = [
+        d["disease_id"] for d in deduplicated if d.get("status") == "completed"
+    ]
+    instance_by_disease: dict = {}
+    if completed_disease_ids:
+        instances = admin.table("prs_assessment_instances").select(
+            "instance_id, disease_id, completed_at"
+        ).eq("patient_id", patient_id).eq("status", "completed").in_(
+            "disease_id", completed_disease_ids
+        ).order("completed_at", desc=True).execute().data or []
+        for inst in instances:
+            did = inst["disease_id"]
+            if did not in instance_by_disease:
+                instance_by_disease[did] = inst["instance_id"]
+
+    result = []
+    for p in deduplicated:
+        disease_info = p.get("prs_diseases") or {}
+        did = p.get("disease_id")
+        result.append({
+            "permission_id": p["id"],
+            "patient_id":    p["patient_id"],
+            "granted_by":    p.get("doctor_id"),
+            "disease_id":    did,
+            "disease_name":  disease_info.get("disease_name") or did,
+            "status":        p.get("status"),
+            "granted_at":    p.get("granted_at"),
+            "expires_at":    p.get("expires_at"),
+            "instance_id":   instance_by_disease.get(did),
+        })
+
+    return success_response(result)
 
 
 @router.get("/my")
