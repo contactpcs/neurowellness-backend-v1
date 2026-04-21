@@ -150,6 +150,8 @@ async def start_assessment(
     admin = get_supabase_admin()
     role = current_user["role"]
 
+    permission_id = None
+
     if body.taken_by == "patient" and role == "patient":
         patient_id = current_user["id"]
         perm = admin.table("assessment_permissions").select("id, doctor_id").eq(
@@ -158,22 +160,30 @@ async def start_assessment(
         if not perm:
             raise ForbiddenError("No permission to take this assessment")
         doctor_id = perm[0]["doctor_id"]
+        permission_id = perm[0]["id"]
 
     elif body.taken_by == "doctor_on_behalf" and role in ["doctor", "clinical_assistant", "admin"]:
         if not body.patient_id:
             raise BadRequestError("patient_id is required for doctor_on_behalf")
         patient_id = body.patient_id
         doctor_id = current_user["id"]
+        perm = admin.table("assessment_permissions").select("id").eq(
+            "patient_id", patient_id
+        ).eq("disease_id", body.disease_id).eq("status", "granted").execute().data or []
+        if perm:
+            permission_id = perm[0]["id"]
 
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
-    # Reuse existing in_progress instance for this patient + disease
-    existing_instance = admin.table("prs_assessment_instances").select(
+    # Resume only the in_progress instance tied to this specific grant (permission).
+    # A new grant always produces a new instance, even if an old one was abandoned.
+    existing_query = admin.table("prs_assessment_instances").select(
         "instance_id"
-    ).eq("patient_id", patient_id).eq("disease_id", body.disease_id).eq(
-        "status", "in_progress"
-    ).limit(1).execute().data or []
+    ).eq("patient_id", patient_id).eq("disease_id", body.disease_id).eq("status", "in_progress")
+    if permission_id:
+        existing_query = existing_query.eq("permission_id", permission_id)
+    existing_instance = existing_query.limit(1).execute().data or []
 
     if existing_instance:
         instance_id = existing_instance[0]["instance_id"]
@@ -186,11 +196,12 @@ async def start_assessment(
         instance_id = f"PAT/{patient_id[:8]}/{seq:03d}"
 
         admin.table("prs_assessment_instances").insert({
-            "instance_id":  instance_id,
-            "disease_id":   body.disease_id,
-            "patient_id":   patient_id,
-            "initiated_by": body.taken_by,
-            "status":       "in_progress",
+            "instance_id":   instance_id,
+            "disease_id":    body.disease_id,
+            "patient_id":    patient_id,
+            "permission_id": permission_id,
+            "initiated_by":  body.taken_by,
+            "status":        "in_progress",
         }).execute()
         is_resumed = False
 
@@ -364,10 +375,10 @@ async def submit_assessment(
 
     # Persist individual responses
     response_rows = []
-    for idx, r in enumerate(body.responses):
-        response_id = f"{body.instance_id}/{idx + 1:04d}"
+    for r in body.responses:
         q_id = questions[r.question_index]["question_id"] if r.question_index < len(questions) else None
         if q_id:
+            response_id = f"{body.instance_id}/{q_id}"
             response_rows.append({
                 "response_id":    response_id,
                 "instance_id":    body.instance_id,
@@ -404,10 +415,16 @@ async def submit_assessment(
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }).eq("instance_id", body.instance_id).execute()
 
-        # Mark all scale-level permissions for this disease as completed
-        admin.table("assessment_permissions").update({"status": "completed"}).eq(
-            "patient_id", instance["patient_id"]
-        ).eq("disease_id", disease_id).in_("status", ["granted"]).execute()
+        # Mark the specific permission that spawned this instance as completed
+        permission_id = instance.get("permission_id")
+        if permission_id:
+            admin.table("assessment_permissions").update({"status": "completed"}).eq(
+                "id", permission_id
+            ).execute()
+        else:
+            admin.table("assessment_permissions").update({"status": "completed"}).eq(
+                "patient_id", instance["patient_id"]
+            ).eq("disease_id", disease_id).in_("status", ["granted"]).execute()
 
     # Disease-level composite scoring
     disease_result = None
