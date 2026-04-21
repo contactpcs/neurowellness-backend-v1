@@ -204,6 +204,82 @@ class AvailabilityUpdate(BaseModel):
     availability: str
 
 
+@router.get("/patients/{patient_id}/results")
+@limiter.limit("60/minute")
+async def get_patient_result(
+    request: Request,
+    patient_id: str,
+    instance_id: str = Query(...),
+    current_user: dict = Depends(require_staff),
+):
+    """Get a patient's assessment results (doctor view)."""
+    if current_user["role"] == "receptionist":
+        raise ForbiddenError("Receptionists cannot view assessment results")
+
+    admin = get_supabase_admin()
+
+    # Verify patient exists
+    patient = _row(admin, "patients", "id", patient_id)
+    if not patient:
+        raise NotFoundError("Patient not found")
+
+    # Fetch assessment instance
+    inst_rows = admin.table("prs_assessment_instances").select(
+        "instance_id, disease_id, patient_id, initiated_by, status, started_at, completed_at"
+    ).eq("instance_id", instance_id).eq("patient_id", patient_id).limit(1).execute().data
+    if not inst_rows:
+        raise NotFoundError("Assessment instance not found")
+    inst = inst_rows[0]
+
+    # Disease name
+    disease_name = inst.get("disease_id")
+    if inst.get("disease_id"):
+        d = admin.table("prs_diseases").select("disease_name").eq(
+            "disease_id", inst["disease_id"]
+        ).limit(1).execute().data
+        if d:
+            disease_name = d[0]["disease_name"]
+    inst["disease_name"] = disease_name
+
+    # Disease-level result
+    fr_rows = admin.table("prs_final_results").select(
+        "instance_id, calculated_value, max_possible, percentage, "
+        "overall_severity, overall_severity_label, scale_summaries, time_stamp, all_risk_flags"
+    ).eq("instance_id", instance_id).limit(1).execute().data
+    disease_result = None
+    if fr_rows:
+        row = fr_rows[0]
+        disease_result = {
+            "disease_score": row.get("percentage"),
+            "severity_level": row.get("overall_severity"),
+            "severity_label": row.get("overall_severity_label"),
+            "percentage": row.get("percentage"),
+        }
+
+    # Per-scale results
+    scale_results = admin.table("prs_scale_results").select(
+        "scale_result_id, scale_id, calculated_value, max_possible, "
+        "severity_level, severity_label, subscale_scores, risk_flags, raw_score_data"
+    ).eq("instance_id", instance_id).execute().data or []
+
+    if scale_results:
+        scale_ids = [sr["scale_id"] for sr in scale_results]
+        scales = admin.table("prs_scales").select(
+            "scale_id, scale_code, scale_name"
+        ).in_("scale_id", scale_ids).execute().data or []
+        scale_map = {s["scale_id"]: s for s in scales}
+        for sr in scale_results:
+            s = scale_map.get(sr["scale_id"], {})
+            sr["scale_name"] = s.get("scale_name", sr["scale_id"])
+            sr["scale_code"] = s.get("scale_code", sr["scale_id"])
+
+    return success_response({
+        "instance": inst,
+        "disease_result": disease_result,
+        "scale_results": scale_results,
+    })
+
+
 @router.put("/availability")
 @limiter.limit("20/minute")
 async def update_availability(
