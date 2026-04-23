@@ -526,7 +526,7 @@ async def save_response(
     }, "Response saved")
 
 
-@router.get("/{instance_id}/responses")
+@router.get("/responses")
 @limiter.limit("60/minute")
 async def get_instance_responses(
     request: Request,
