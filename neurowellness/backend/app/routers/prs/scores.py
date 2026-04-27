@@ -12,7 +12,7 @@ router = APIRouter()
 #   calculated_value, max_possible, percentage, overall_severity,
 #   overall_severity_label, scale_summaries, all_risk_flags, time_stamp
 _FINAL_COLS = (
-    "instance_id, disease_id, calculated_value, max_possible, percentage, "
+    "instance_id, calculated_value, max_possible, percentage, "
     "overall_severity, overall_severity_label, scale_summaries, time_stamp"
 )
 

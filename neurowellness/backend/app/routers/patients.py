@@ -44,20 +44,21 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
             seen[did] = p
     pending = list(seen.values())
 
-    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
+    instances = admin.table("prs_assessment_instances").select("instance_id, disease_id").eq(
         "patient_id", patient_id
     ).execute().data or []
     instance_ids = [i["instance_id"] for i in instances]
+    iid_to_disease = {i["instance_id"]: i.get("disease_id") for i in instances}
 
     recent_scores = []
     if instance_ids:
         raw = admin.table("prs_final_results").select(
-            "instance_id, disease_id, calculated_value, max_possible, percentage, "
+            "instance_id, calculated_value, max_possible, percentage, "
             "overall_severity, overall_severity_label, time_stamp"
         ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(3).execute().data or []
 
-        # Enrich with disease names
-        d_ids = list({r["disease_id"] for r in raw if r.get("disease_id")})
+        # Enrich with disease names via the instance→disease mapping
+        d_ids = list({iid_to_disease[r["instance_id"]] for r in raw if iid_to_disease.get(r["instance_id"])})
         dn_map: dict = {}
         if d_ids:
             disease_rows = admin.table("prs_diseases").select(
@@ -68,8 +69,8 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
         recent_scores = [
             {
                 "instance_id":        r.get("instance_id"),
-                "disease_id":         r.get("disease_id"),
-                "disease_name":       dn_map.get(r.get("disease_id"), r.get("disease_id")),
+                "disease_id":         iid_to_disease.get(r["instance_id"]),
+                "disease_name":       dn_map.get(iid_to_disease.get(r["instance_id"]), iid_to_disease.get(r["instance_id"])),
                 "total_score":        r.get("calculated_value"),
                 "max_possible_score": r.get("max_possible"),
                 "percentage":         r.get("percentage"),
