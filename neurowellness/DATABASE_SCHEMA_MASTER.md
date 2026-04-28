@@ -524,6 +524,119 @@ const { data } = await supabase
 
 ---
 
+---
+
+## 🩺 Anamnesis Assessment (v6.1 Addition)
+
+### Overview
+
+A one-time patient medical history intake form that **must be completed before any PRS assessment can begin**. Once submitted it is permanently read-only for both patient and doctor. There is no scoring — it is purely a structured data capture.
+
+### Table: `anamnesis_assessments`
+
+```sql
+CREATE TABLE anamnesis_assessments (
+    -- Identity
+    anamnesis_id        TEXT PRIMARY KEY,               -- "ANA/{patient_id[:8]}/001"
+    patient_id          UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    submitted_by        UUID REFERENCES profiles(id),
+    taken_by            TEXT NOT NULL DEFAULT 'patient', -- 'patient' | 'doctor_on_behalf'
+
+    -- Lifecycle
+    status              TEXT NOT NULL DEFAULT 'in_progress', -- 'in_progress' | 'completed'
+    completed_at        TIMESTAMPTZ,
+
+    -- Section 1: Chief Complaint & Diagnosis
+    chief_complaint     TEXT,
+
+    -- Section 2: Main Symptoms
+    main_symptoms           TEXT,
+    initial_symptoms        TEXT,
+    diagnosis_related       BOOLEAN,
+    diagnosis_details       TEXT,
+    symptoms_start          TEXT,
+    symptoms_duration       TEXT,
+    symptoms_frequency      TEXT,   -- 'daily'|'several-times-week'|'weekly'|'monthly'|'occasionally'
+    symptoms_intensity      TEXT,   -- 'mild'|'moderate'|'severe'|'very-severe'
+    symptoms_progression    TEXT,   -- 'better'|'worse'|'same'|'fluctuating'
+
+    -- Section 3: Secondary Symptoms
+    secondary_symptoms         TEXT[],  -- e.g. ['sleep','fatigue','pain','memory',...]
+    secondary_symptoms_details TEXT,
+
+    -- Section 4: Operations / Surgeries
+    has_operations      BOOLEAN,
+    operations_details  TEXT,
+
+    -- Section 5: Previous / Ongoing Treatments
+    previous_treatments TEXT,
+
+    -- Section 6: Medications & Supplements
+    current_medications TEXT,
+
+    -- Section 7: Brain MRI & Other Scans
+    has_brain_mri       BOOLEAN,
+    mri_details         TEXT,
+    other_scans         TEXT,
+
+    -- Section 8: Neuromodulation Experience
+    has_neuromodulation     BOOLEAN,
+    neuromodulation_details TEXT,
+
+    -- Timestamps
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT unique_patient_anamnesis UNIQUE (patient_id)
+);
+
+CREATE TRIGGER set_anamnesis_updated_at
+    BEFORE UPDATE ON anamnesis_assessments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE INDEX idx_anamnesis_patient_id ON anamnesis_assessments(patient_id);
+CREATE INDEX idx_anamnesis_status     ON anamnesis_assessments(status);
+```
+
+### RLS Policies
+
+```sql
+ALTER TABLE anamnesis_assessments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "patient_read_own_anamnesis"
+    ON anamnesis_assessments FOR SELECT
+    USING (auth.uid() = patient_id);
+
+CREATE POLICY "doctor_read_patient_anamnesis"
+    ON anamnesis_assessments FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM doctor_patient_assignments
+            WHERE doctor_id = auth.uid()
+              AND patient_id = anamnesis_assessments.patient_id
+        )
+    );
+-- All writes handled via service role only (backend)
+```
+
+### API Endpoints (`/api/v1/anamnesis/`)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/start` | patient / staff | Create `in_progress` record; resumes if one exists |
+| `PUT` | `/save` | patient / staff | Partial save while `in_progress` |
+| `POST` | `/submit` | patient / staff | Finalise — `completed`, locked forever |
+| `GET` | `/me` | patient | Read own anamnesis |
+| `GET` | `/patient/{patient_id}` | doctor / admin | Read any patient's anamnesis |
+
+### Business Rules
+
+1. **One per patient** — enforced by `UNIQUE(patient_id)` constraint.
+2. **Read-only after submit** — backend rejects save/submit if `status == 'completed'`.
+3. **PRS gate** — `POST /prs/assessment/start` checks for a `completed` anamnesis; blocks with `400` if absent.
+
+---
+
 ## 📝 License & Attribution
 
 **Schema Design:** NeuroWellness v6.0.0  

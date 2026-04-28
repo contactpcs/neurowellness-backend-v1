@@ -17,6 +17,7 @@ import ScoreDetailPage from './pages/patient/ScoreDetailPage'
 import ScoreInstanceDetail from './pages/prs/ScoreInstanceDetail'
 import DoctorLayout from './components/layout/DoctorLayout'
 import StaffLayout from './components/layout/StaffLayout'
+import AnamnesisPage from './pages/anamnesis/AnamnesisPage'
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard'
 import ReceptionistPatientList from './pages/receptionist/ReceptionistPatientList'
 import ReceptionistPatientDetail from './pages/receptionist/ReceptionistPatientDetail'
@@ -71,6 +72,9 @@ export default function App() {
             <ScoreInstanceDetail Layout={DoctorLayout} />
           </ProtectedRoute>
         } />
+        <Route path="/doctor/patients/:patientId/anamnesis" element={
+          <ProtectedRoute requiredRole="doctor"><AnamnesisPage /></ProtectedRoute>
+        } />
 
         {/* Patient routes */}
         <Route path="/patient/dashboard" element={
@@ -84,6 +88,9 @@ export default function App() {
         } />
         <Route path="/patient/scores/:instanceId" element={
           <ProtectedRoute requiredRole="patient"><ScoreDetailPage /></ProtectedRoute>
+        } />
+        <Route path="/patient/anamnesis" element={
+          <ProtectedRoute requiredRole="patient"><AnamnesisPage /></ProtectedRoute>
         } />
 
         {/* Receptionist routes */}

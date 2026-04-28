@@ -176,6 +176,15 @@ async def start_assessment(
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
+    # Gate: patient must have a completed anamnesis before starting any PRS assessment
+    ana = admin.table("anamnesis_assessments").select("status").eq(
+        "patient_id", patient_id
+    ).eq("status", "completed").limit(1).execute().data or []
+    if not ana:
+        raise BadRequestError(
+            "Anamnesis Assessment must be completed before starting a PRS assessment"
+        )
+
     # Resume only the in_progress instance tied to this specific grant (permission).
     # A new grant always produces a new instance, even if an old one was abandoned.
     existing_query = admin.table("prs_assessment_instances").select(

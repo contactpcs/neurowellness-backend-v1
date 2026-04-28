@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.limiter import limiter
 from app.routers import auth, doctors, patients, notifications, staff, users
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
+from app.routers.anamnesis import assessment as anamnesis_assessment
 
 settings = get_settings()
 
@@ -41,6 +42,7 @@ app.include_router(doctors.router,       prefix=f"{PREFIX}/doctors",         tag
 app.include_router(patients.router,      prefix=f"{PREFIX}/patients",        tags=["patients"])
 app.include_router(notifications.router, prefix=f"{PREFIX}/notifications",   tags=["notifications"])
 app.include_router(staff.router,         prefix=f"{PREFIX}/staff",           tags=["staff"])
+app.include_router(anamnesis_assessment.router, prefix=f"{PREFIX}/anamnesis",   tags=["anamnesis"])
 app.include_router(scales.router,        prefix=f"{PREFIX}/prs/scales",      tags=["prs-scales"])
 app.include_router(conditions.router,    prefix=f"{PREFIX}/prs/conditions",  tags=["prs-conditions"])
 app.include_router(permissions.router,   prefix=f"{PREFIX}/prs/permissions", tags=["prs-permissions"])
