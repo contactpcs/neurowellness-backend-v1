@@ -129,11 +129,16 @@ async def my_assessments(request: Request, current_user: dict = Depends(get_curr
     if not all_perms:
         return success_response([])
 
-    # Deduplicate to one representative perm per disease (latest granted)
+    # Deduplicate to one representative perm per disease.
+    # Prefer the most actionable / valuable status: completed > granted > expired > revoked.
+    status_rank = {"completed": 3, "granted": 2, "expired": 1, "revoked": 0}
     seen_diseases: dict = {}
     for p in all_perms:
         did = p.get("disease_id")
-        if did and did not in seen_diseases:
+        if not did:
+            continue
+        existing = seen_diseases.get(did)
+        if existing is None or status_rank.get(p.get("status"), 0) > status_rank.get(existing.get("status"), 0):
             seen_diseases[did] = p
     perms = list(seen_diseases.values())
 

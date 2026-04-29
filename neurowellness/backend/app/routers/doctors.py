@@ -157,23 +157,62 @@ async def grant_assessment(
 
     session_id = _get_or_create_session(admin, patient_id, doctor_id)
 
-    # Upsert one permission row per scale (existing DB schema — scale_id NOT NULL)
-    perm_rows = [
-        {
-            "patient_id": patient_id,
-            "doctor_id":  doctor_id,
-            "scale_id":   ds["scale_id"],
-            "disease_id": body.disease_id,
-            "session_id": session_id,
-            "status":     "granted",
-            "notes":      body.notes,
-        }
-        for ds in ds_maps
+    # Look up existing permission rows for these scales in this session
+    scale_ids_to_grant = [ds["scale_id"] for ds in ds_maps]
+    existing_rows = admin.table("assessment_permissions").select(
+        "id, scale_id, status, disease_id"
+    ).eq("patient_id", patient_id).eq("session_id", session_id).in_(
+        "scale_id", scale_ids_to_grant
+    ).execute().data or []
+    existing_by_scale = {r["scale_id"]: r for r in existing_rows}
+
+    # If every scale for this disease is already completed in this session, create
+    # a fresh session so the re-grant can take effect without clobbering history.
+    completed_for_disease = [
+        r for r in existing_rows
+        if r["status"] == "completed" and r.get("disease_id") == body.disease_id
     ]
-    result = admin.table("assessment_permissions").upsert(
-        perm_rows, on_conflict="patient_id,scale_id,session_id"
-    ).execute()
-    perm_id = result.data[0]["id"] if result.data else None
+    if completed_for_disease and len(completed_for_disease) >= len(ds_maps):
+        new_session = admin.table("sessions").insert({
+            "patient_id":   patient_id,
+            "doctor_id":    doctor_id,
+            "session_type": "in_person",
+            "status":       "in_progress",
+        }).execute()
+        session_id = new_session.data[0]["id"]
+        existing_by_scale = {}
+
+    perm_id = None
+    for ds in ds_maps:
+        scale_id = ds["scale_id"]
+        existing = existing_by_scale.get(scale_id)
+
+        if existing and existing["status"] == "completed":
+            # Preserve already-completed permission rows; do not reset status.
+            perm_id = perm_id or existing["id"]
+            continue
+
+        if existing:
+            updated = admin.table("assessment_permissions").update({
+                "doctor_id":  doctor_id,
+                "disease_id": body.disease_id,
+                "status":     "granted",
+                "notes":      body.notes,
+            }).eq("id", existing["id"]).execute()
+            if updated.data:
+                perm_id = perm_id or updated.data[0]["id"]
+        else:
+            inserted = admin.table("assessment_permissions").insert({
+                "patient_id": patient_id,
+                "doctor_id":  doctor_id,
+                "scale_id":   scale_id,
+                "disease_id": body.disease_id,
+                "session_id": session_id,
+                "status":     "granted",
+                "notes":      body.notes,
+            }).execute()
+            if inserted.data:
+                perm_id = perm_id or inserted.data[0]["id"]
 
     admin.table("notifications").insert({
         "user_id": patient_id,
