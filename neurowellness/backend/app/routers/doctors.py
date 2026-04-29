@@ -76,6 +76,28 @@ async def list_patients(
         s = search.lower()
         data = [p for p in data if s in (p.get("profiles") or {}).get("full_name", "").lower()]
 
+    # Enrich each patient with their most recent completed PRS assessment
+    patient_ids = [p["id"] for p in data if p.get("id")]
+    last_prs_map: dict = {}
+    if patient_ids:
+        instances = admin.table("prs_assessment_instances").select(
+            "patient_id, disease_id, completed_at, prs_diseases(disease_name)"
+        ).in_("patient_id", patient_ids).eq("status", "completed").order(
+            "completed_at", desc=True
+        ).execute().data or []
+        for inst in instances:
+            pid = inst.get("patient_id")
+            if pid and pid not in last_prs_map:
+                disease_info = inst.get("prs_diseases") or {}
+                last_prs_map[pid] = {
+                    "disease_id":   inst.get("disease_id"),
+                    "disease_name": disease_info.get("disease_name") or inst.get("disease_id"),
+                    "completed_at": inst.get("completed_at"),
+                }
+
+    for p in data:
+        p["last_prs"] = last_prs_map.get(p.get("id"))
+
     return paginated_response(data, len(data), skip, limit)
 
 
