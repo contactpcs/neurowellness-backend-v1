@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.limiter import limiter
-from app.routers import auth, doctors, patients, notifications, staff, users
+from app.routers import auth, doctors, patients, notifications, staff, users, doctor_notes
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
 from app.routers.anamnesis import assessment as anamnesis_assessment
 
@@ -49,6 +49,7 @@ app.include_router(permissions.router,   prefix=f"{PREFIX}/prs/permissions", tag
 app.include_router(assessment.router,    prefix=f"{PREFIX}/prs/assessment",  tags=["prs-assessment"])
 app.include_router(scores.router,        prefix=f"{PREFIX}/prs/scores",      tags=["prs-scores"])
 app.include_router(questions.router,     prefix=f"{PREFIX}/prs/questions",   tags=["prs-questions"])
+app.include_router(doctor_notes.router,  prefix=f"{PREFIX}/doctor-notes",    tags=["doctor-notes"])
 
 
 @app.get("/health")
