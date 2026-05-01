@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     ALLOWED_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 
+    # Admin bootstrap
+    BOOTSTRAP_SECRET_KEY: str = ""
+
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100

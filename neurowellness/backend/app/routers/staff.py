@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from app.dependencies import require_staff, require_receptionist
 from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
-from app.utils.exceptions import NotFoundError
+from app.utils.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from app.limiter import limiter
 
 router = APIRouter()
@@ -15,13 +15,51 @@ def _row(admin, table: str, field: str, value: str) -> dict:
     return result.data[0] if result.data else {}
 
 
+def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id: Optional[str] = None) -> Optional[str]:
+    def query_doctors(filters: dict) -> list:
+        q = admin.table("doctors").select(
+            "id, current_patient_count, max_patients"
+        ).eq("availability", "available")
+        if clinic_id:
+            q = q.eq("clinic_id", clinic_id)
+        for col, val in filters.items():
+            q = q.eq(col, val)
+        rows = q.execute().data or []
+        return [r for r in rows if (r.get("current_patient_count") or 0) < (r.get("max_patients") or 50)]
+
+    def pick_least_loaded(doctors: list) -> Optional[str]:
+        if not doctors:
+            return None
+        return min(doctors, key=lambda d: d.get("current_patient_count") or 0)["id"]
+
+    if city:
+        city_ids = {r["id"] for r in (admin.table("profiles").select("id").eq("role", "doctor").eq("city", city).execute().data or [])}
+        if city_ids:
+            result = pick_least_loaded([d for d in query_doctors({}) if d["id"] in city_ids])
+            if result:
+                return result
+
+    if state:
+        state_ids = {r["id"] for r in (admin.table("profiles").select("id").eq("role", "doctor").eq("state", state).execute().data or [])}
+        if state_ids:
+            result = pick_least_loaded([d for d in query_doctors({}) if d["id"] in state_ids])
+            if result:
+                return result
+
+    return pick_least_loaded(query_doctors({}))
+
+
 @router.get("/dashboard")
 @limiter.limit("60/minute")
 async def staff_dashboard(request: Request, current_user: dict = Depends(require_staff)):
     admin = get_supabase_admin()
     role = current_user["role"]
+    clinic_id = current_user.get("clinic_id")
 
-    patients = admin.table("patients").select("id").execute().data or []
+    q = admin.table("patients").select("id")
+    if clinic_id:
+        q = q.eq("clinic_id", clinic_id)
+    patients = q.execute().data or []
     patient_ids = [p["id"] for p in patients]
 
     pending_count = 0
@@ -31,19 +69,28 @@ async def staff_dashboard(request: Request, current_user: dict = Depends(require
         ).eq("status", "granted").execute()
         pending_count = len(perm_res.data or [])
 
+    # Pending approval count for this clinic
+    pending_approval_q = admin.table("patients").select("id").eq("approval_status", "pending")
+    if clinic_id:
+        pending_approval_q = pending_approval_q.eq("clinic_id", clinic_id)
+    pending_approval_count = len(pending_approval_q.execute().data or [])
+
     extra = {}
     if role == "receptionist":
-        upcoming = admin.table("sessions").select(
-            "id, session_date, status, patient_id, doctor_id"
-        ).in_("status", ["scheduled", "in_progress"]).order(
-            "session_date", desc=False
-        ).limit(5).execute().data or []
-        extra["upcoming_sessions"] = upcoming
+        upcoming_q = admin.table("sessions").select("id, session_date, status, patient_id, doctor_id").in_(
+            "status", ["scheduled", "in_progress"]
+        ).order("session_date", desc=False).limit(5)
+        if clinic_id:
+            upcoming_q = upcoming_q.eq("clinic_id", clinic_id)
+        extra["upcoming_sessions"] = upcoming_q.execute().data or []
 
     elif role == "clinical_assistant":
-        recent_instances = admin.table("prs_assessment_instances").select(
+        recent_instances_q = admin.table("prs_assessment_instances").select(
             "instance_id, patient_id, status, started_at, completed_at"
-        ).eq("status", "completed").order("completed_at", desc=True).limit(5).execute().data or []
+        ).eq("status", "completed").order("completed_at", desc=True).limit(5)
+        if clinic_id:
+            recent_instances_q = recent_instances_q.eq("clinic_id", clinic_id) if False else recent_instances_q  # instance doesn't have clinic_id yet
+        recent_instances = recent_instances_q.execute().data or []
         instance_ids = [i["instance_id"] for i in recent_instances]
         recent_scores = []
         if instance_ids:
@@ -57,6 +104,7 @@ async def staff_dashboard(request: Request, current_user: dict = Depends(require
         "patients_summary": {
             "total": len(patients),
             "pending_assessments": pending_count,
+            "pending_approval": pending_approval_count,
         },
         **extra,
     })
@@ -72,10 +120,17 @@ async def list_patients(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
-    result = admin.table("patients").select(
-        "id, assigned_doctor_id, created_at, "
-        "profiles(id, full_name, avatar_url, role, created_at)"
-    ).range(skip, skip + limit - 1).execute()
+    clinic_id = current_user.get("clinic_id")
+
+    q = admin.table("patients").select(
+        "id, assigned_doctor_id, clinic_id, approval_status, created_at, "
+        "profiles(id, full_name, email, avatar_url, role, created_at)"
+    ).eq("approval_status", "approved")
+
+    if clinic_id:
+        q = q.eq("clinic_id", clinic_id)
+
+    result = q.range(skip, skip + limit - 1).execute()
     data = result.data or []
 
     if search:
@@ -83,6 +138,198 @@ async def list_patients(
         data = [p for p in data if s in (p.get("profiles") or {}).get("full_name", "").lower()]
 
     return paginated_response(data, len(data), skip, limit)
+
+
+@router.get("/patients/pending")
+@limiter.limit("60/minute")
+async def list_pending_patients(
+    request: Request,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: dict = Depends(require_staff),
+):
+    """List patients awaiting approval for this clinic."""
+    admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
+
+    q = admin.table("patients").select(
+        "id, assigned_doctor_id, clinic_id, approval_status, created_at, medical_history, emergency_contact, "
+        "profiles(id, full_name, email, phone, city, state)"
+    ).eq("approval_status", "pending")
+
+    if clinic_id:
+        q = q.eq("clinic_id", clinic_id)
+
+    result = q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
+    raw = result.data or []
+
+    # Flatten profiles into patient row
+    data = []
+    for p in raw:
+        prof = p.pop("profiles") or {}
+        data.append({**p, **prof})
+
+    return paginated_response(data, len(data), skip, limit)
+
+
+@router.put("/patients/{patient_id}/approve")
+@limiter.limit("30/minute")
+async def approve_patient(
+    request: Request,
+    patient_id: str,
+    current_user: dict = Depends(require_staff),
+):
+    """Approve a pending patient. Activates their account."""
+    admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
+
+    patient = _row(admin, "patients", "id", patient_id)
+    if not patient:
+        raise NotFoundError("Patient not found")
+    if clinic_id and patient.get("clinic_id") != clinic_id:
+        raise ForbiddenError("Patient does not belong to your clinic")
+    if patient.get("approval_status") == "approved":
+        raise BadRequestError("Patient is already approved")
+
+    admin.table("patients").update({"approval_status": "approved"}).eq("id", patient_id).execute()
+    admin.table("profiles").update({"is_active": True}).eq("id", patient_id).execute()
+
+    # Trigger doctor allocation if not yet assigned
+    if not patient.get("assigned_doctor_id"):
+        prof = _row(admin, "profiles", "id", patient_id)
+        doctor_id = _allocate_doctor(admin, prof.get("city"), prof.get("state"), clinic_id=clinic_id)
+        if doctor_id:
+            admin.table("patients").update({"assigned_doctor_id": doctor_id}).eq("id", patient_id).execute()
+            existing = admin.table("doctors").select("current_patient_count").eq("id", doctor_id).limit(1).execute()
+            if existing.data:
+                count = (existing.data[0].get("current_patient_count") or 0) + 1
+                admin.table("doctors").update({"current_patient_count": count}).eq("id", doctor_id).execute()
+
+    return success_response({"patient_id": patient_id}, "Patient approved and account activated")
+
+
+@router.put("/patients/{patient_id}/reject")
+@limiter.limit("30/minute")
+async def reject_patient(
+    request: Request,
+    patient_id: str,
+    current_user: dict = Depends(require_staff),
+):
+    """Reject a pending patient registration."""
+    admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
+
+    patient = _row(admin, "patients", "id", patient_id)
+    if not patient:
+        raise NotFoundError("Patient not found")
+    if clinic_id and patient.get("clinic_id") != clinic_id:
+        raise ForbiddenError("Patient does not belong to your clinic")
+
+    # Hard delete — remove all patient data and auth user
+    try:
+        admin.table("patients").delete().eq("id", patient_id).execute()
+        admin.table("profiles").delete().eq("id", patient_id).execute()
+        admin.auth.admin.delete_user(patient_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove patient: {e}")
+
+    return success_response({"patient_id": patient_id}, "Patient registration rejected and data removed")
+
+
+class RegisterPatientRequest(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: str = "India"
+    date_of_birth: Optional[str] = None
+    gender: Optional[str] = None
+    medical_history: Optional[str] = None
+    emergency_contact: Optional[str] = None
+
+
+@router.post("/patients/register")
+@limiter.limit("10/minute")
+async def register_patient(
+    request: Request,
+    body: RegisterPatientRequest,
+    current_user: dict = Depends(require_staff),
+):
+    """
+    Doctor or Receptionist registers a patient directly.
+    Patient inherits the registering staff member's clinic.
+    Account is immediately active (no approval needed).
+    """
+    if current_user["role"] == "clinical_assistant":
+        raise ForbiddenError("Clinical assistants cannot register patients")
+
+    admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
+    if not clinic_id:
+        raise BadRequestError("Your account is not associated with a clinic")
+
+    # Create Supabase auth user
+    try:
+        user_res = admin.auth.admin.create_user({
+            "email": body.email,
+            "password": body.password,
+            "email_confirm": True,
+        })
+    except Exception as e:
+        msg = str(e).lower()
+        if "already registered" in msg or "already been registered" in msg:
+            raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=400, detail=f"Could not create user: {e}")
+
+    user_id = user_res.user.id
+
+    try:
+        admin.table("profiles").insert({
+            "id": user_id,
+            "role": "patient",
+            "full_name": body.full_name,
+            "email": body.email,
+            "phone": body.phone,
+            "city": body.city,
+            "state": body.state,
+            "country": body.country,
+            "date_of_birth": body.date_of_birth,
+            "gender": body.gender,
+            "clinic_id": clinic_id,
+            "is_active": True,
+        }).execute()
+
+        doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=clinic_id)
+
+        admin.table("patients").insert({
+            "id": user_id,
+            "clinic_id": clinic_id,
+            "medical_history": body.medical_history,
+            "emergency_contact": body.emergency_contact,
+            "assigned_doctor_id": doctor_id,
+            "approval_status": "approved",
+        }).execute()
+
+        if doctor_id:
+            existing = admin.table("doctors").select("current_patient_count").eq("id", doctor_id).limit(1).execute()
+            if existing.data:
+                count = (existing.data[0].get("current_patient_count") or 0) + 1
+                admin.table("doctors").update({"current_patient_count": count}).eq("id", doctor_id).execute()
+
+    except Exception as e:
+        try:
+            admin.auth.admin.delete_user(user_id)
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"Patient creation failed: {e}")
+
+    return success_response({
+        "patient_id": user_id,
+        "clinic_id": clinic_id,
+        "assigned_doctor_id": doctor_id,
+    }, "Patient registered successfully", status_code=201)
 
 
 @router.get("/patients/{patient_id}")
@@ -93,11 +340,14 @@ async def get_patient_detail(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
     role = current_user["role"]
 
     patient = _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
+    if clinic_id and patient.get("clinic_id") != clinic_id:
+        raise ForbiddenError("Patient does not belong to your clinic")
 
     profile = _row(admin, "profiles", "id", patient_id)
 
@@ -135,13 +385,21 @@ async def get_patient_detail(
 @limiter.limit("60/minute")
 async def list_doctors(request: Request, current_user: dict = Depends(require_staff)):
     admin = get_supabase_admin()
-    profiles = admin.table("profiles").select(
-        "id, full_name, email"
-    ).eq("role", "doctor").eq("is_active", True).execute().data or []
-    doctors = admin.table("doctors").select(
-        "id, specialization, availability, current_patient_count, max_patients"
-    ).execute().data or []
-    doc_map = {d["id"]: d for d in doctors}
+    clinic_id = current_user.get("clinic_id")
+
+    q = admin.table("profiles").select("id, full_name, email").eq("role", "doctor").eq("is_active", True)
+    if clinic_id:
+        q = q.eq("clinic_id", clinic_id)
+    profiles = q.execute().data or []
+
+    doc_ids = [p["id"] for p in profiles]
+    doctors_data = []
+    if doc_ids:
+        doctors_data = admin.table("doctors").select(
+            "id, specialization, availability, current_patient_count, max_patients"
+        ).in_("id", doc_ids).execute().data or []
+    doc_map = {d["id"]: d for d in doctors_data}
+
     result = []
     for p in profiles:
         d = doc_map.get(p["id"], {})
@@ -171,22 +429,25 @@ async def allocate_patient_to_doctor(
     current_user: dict = Depends(require_receptionist),
 ):
     admin = get_supabase_admin()
+    clinic_id = current_user.get("clinic_id")
 
     patient = _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
+    if clinic_id and patient.get("clinic_id") != clinic_id:
+        raise ForbiddenError("Patient does not belong to your clinic")
 
     doctor = _row(admin, "doctors", "id", body.doctor_id)
     if not doctor:
         raise NotFoundError("Doctor not found")
+    if clinic_id and doctor.get("clinic_id") != clinic_id:
+        raise ForbiddenError("Doctor does not belong to your clinic")
 
-    admin.table("patients").update({
-        "assigned_doctor_id": body.doctor_id,
-    }).eq("id", patient_id).execute()
-
+    admin.table("patients").update({"assigned_doctor_id": body.doctor_id}).eq("id", patient_id).execute()
     admin.table("doctor_patient_allocations").upsert({
         "patient_id": patient_id,
         "doctor_id": body.doctor_id,
+        "clinic_id": clinic_id,
         "is_active": True,
         "notes": body.notes,
     }, on_conflict="patient_id,doctor_id").execute()

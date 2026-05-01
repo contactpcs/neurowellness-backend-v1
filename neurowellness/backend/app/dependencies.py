@@ -103,7 +103,7 @@ async def get_current_user(
     admin = get_supabase_admin()
     try:
         result = admin.table("profiles").select(
-            "id, role, full_name, email, is_active"
+            "id, role, full_name, email, is_active, clinic_id"
         ).eq("id", user_id).limit(1).execute()
     except Exception:
         return {"id": user_id, "email": email, "role": None, "full_name": None}
@@ -113,13 +113,14 @@ async def get_current_user(
 
     profile = result.data[0]
     if not profile.get("is_active"):
-        raise HTTPException(status_code=403, detail="Account is deactivated")
+        raise HTTPException(status_code=403, detail="Account is deactivated. Please contact your clinic receptionist.")
 
     return {
         "id": user_id,
         "email": profile.get("email") or email,
         "role": profile["role"],
         "full_name": profile["full_name"],
+        "clinic_id": profile.get("clinic_id"),
     }
 
 

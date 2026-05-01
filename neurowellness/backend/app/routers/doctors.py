@@ -25,7 +25,11 @@ async def doctor_dashboard(request: Request, current_user: dict = Depends(requir
     profile = _row(admin, "profiles", "id", doctor_id)
     doctor  = _row(admin, "doctors",  "id", doctor_id)
 
-    patients = admin.table("patients").select("id").eq("assigned_doctor_id", doctor_id).execute().data or []
+    clinic_id = current_user.get("clinic_id")
+    pq = admin.table("patients").select("id").eq("assigned_doctor_id", doctor_id)
+    if clinic_id:
+        pq = pq.eq("clinic_id", clinic_id)
+    patients = pq.execute().data or []
     patient_ids = [p["id"] for p in patients]
 
     pending = 0
@@ -66,10 +70,14 @@ async def list_patients(
     current_user: dict = Depends(require_doctor),
 ):
     admin = get_supabase_admin()
-    result = admin.table("patients").select(
-        "id, assigned_doctor_id, created_at, "
+    clinic_id = current_user.get("clinic_id")
+    q = admin.table("patients").select(
+        "id, assigned_doctor_id, clinic_id, created_at, "
         "profiles(id, full_name, email, avatar_url, role, created_at)"
-    ).range(skip, skip + limit - 1).execute()
+    )
+    if clinic_id:
+        q = q.eq("clinic_id", clinic_id)
+    result = q.range(skip, skip + limit - 1).execute()
     data = result.data or []
 
     if search:
