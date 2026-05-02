@@ -8,11 +8,17 @@ export default function ProtectedRoute({ children, requiredRole }) {
   if (isLoading) return <LoadingSpinner message="Authenticating..." />
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
+  // Admin trying to access a non-admin route → redirect to admin dashboard
+  if (role === 'admin' && requiredRole && requiredRole !== 'admin') {
+    return <Navigate to="/admin/dashboard" replace />
+  }
+
   if (requiredRole && role !== requiredRole && role !== 'admin') {
     if (role === 'doctor') return <Navigate to="/doctor/dashboard" replace />
     if (role === 'patient') return <Navigate to="/patient/dashboard" replace />
     if (role === 'receptionist') return <Navigate to="/receptionist/dashboard" replace />
     if (role === 'clinical_assistant') return <Navigate to="/clinical-assistant/dashboard" replace />
+    if (role === 'admin') return <Navigate to="/admin/dashboard" replace />
     return <Navigate to="/login" replace />
   }
 
