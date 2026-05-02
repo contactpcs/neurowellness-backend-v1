@@ -37,6 +37,14 @@ export default function Navbar() {
       <Link to="/" style={styles.brand}>NeuroWellness</Link>
 
       <div style={styles.links}>
+        {role === 'admin' && (
+          <>
+            <Link to="/admin/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/admin/clinics" style={styles.link}>Clinics</Link>
+            <Link to="/admin/staff" style={styles.link}>Staff</Link>
+            <Link to="/admin/patients" style={styles.link}>Patients</Link>
+          </>
+        )}
         {role === 'doctor' && (
           <>
             <Link to="/doctor/dashboard" style={styles.link}>Dashboard</Link>
