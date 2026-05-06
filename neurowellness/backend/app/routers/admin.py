@@ -382,18 +382,30 @@ async def list_staff(
     result = q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
     data = result.data or []
 
-    # Enrich with role-specific details and clinic name
+    # Batch role-table lookups — 3 queries max regardless of staff count
+    role_ids: dict = {"doctor": [], "receptionist": [], "clinical_assistant": []}
+    for p in data:
+        if p["role"] in role_ids:
+            role_ids[p["role"]].append(p["id"])
+
+    role_map: dict = {}
+    role_tables = {"doctor": "doctors", "receptionist": "receptionists", "clinical_assistant": "clinical_assistants"}
+    for role_name, ids in role_ids.items():
+        if ids:
+            rows = admin.table(role_tables[role_name]).select("*").in_("id", ids).execute().data or []
+            for r in rows:
+                role_map[r["id"]] = r
+
+    # Batch clinic name lookup — 1 query
     clinics = {c["clinic_id"]: c["clinic_name"] for c in
                (admin.table("clinics").select("clinic_id, clinic_name").execute().data or [])}
 
     enriched = []
     for p in data:
-        table = {"doctor": "doctors", "receptionist": "receptionists",
-                 "clinical_assistant": "clinical_assistants"}.get(p["role"])
-        extra = _row(admin, table, "id", p["id"]) if table else {}
+        extra = role_map.get(p["id"], {})
         enriched.append({
             **p,
-            **(extra or {}),
+            **extra,
             "clinic_name": clinics.get(p.get("clinic_id"), "—"),
         })
 
@@ -461,50 +473,25 @@ async def register_staff(
     user_id = user_res.user.id
 
     try:
-        admin.table("profiles").insert({
-            "id": user_id,
-            "role": body.role,
-            "full_name": body.full_name,
-            "email": body.email,
-            "phone": body.phone,
-            "city": body.city,
-            "state": body.state,
-            "country": body.country,
-            "clinic_id": target_clinic_id,
-            "is_active": True,
+        # Single atomic transaction: profiles + role table in one DB call
+        admin.rpc("register_staff_db", {
+            "p_id": user_id,
+            "p_role": body.role,
+            "p_full_name": body.full_name,
+            "p_email": body.email,
+            "p_phone": body.phone,
+            "p_city": body.city,
+            "p_state": body.state,
+            "p_country": body.country,
+            "p_clinic_id": target_clinic_id,
+            "p_specialization": body.specialization,
+            "p_license_number": body.license_number,
+            "p_hospital_affiliation": body.hospital_affiliation,
+            "p_years_of_experience": body.years_of_experience,
+            "p_employee_id": body.employee_id,
+            "p_department": body.department,
+            "p_designation": body.designation,
         }).execute()
-
-        if body.role == "doctor":
-            admin.table("doctors").insert({
-                "id": user_id,
-                "clinic_id": target_clinic_id,
-                "specialization": body.specialization,
-                "license_number": body.license_number,
-                "hospital_affiliation": body.hospital_affiliation,
-                "years_of_experience": body.years_of_experience,
-                "availability": "available",
-                "current_patient_count": 0,
-                "max_patients": 50,
-            }).execute()
-
-        elif body.role == "receptionist":
-            admin.table("receptionists").insert({
-                "id": user_id,
-                "clinic_id": target_clinic_id,
-                "employee_id": body.employee_id,
-                "department": body.department,
-                "designation": body.designation,
-            }).execute()
-
-        elif body.role == "clinical_assistant":
-            admin.table("clinical_assistants").insert({
-                "id": user_id,
-                "clinic_id": target_clinic_id,
-                "employee_id": body.employee_id,
-                "department": body.department,
-                "designation": body.designation,
-            }).execute()
-
     except Exception as e:
         try:
             admin.auth.admin.delete_user(user_id)
@@ -629,9 +616,11 @@ async def list_patients(
 ):
     admin = get_supabase_admin()
 
+    # Join clinics inline — one query instead of a separate clinics fetch
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, approval_status, created_at, medical_history, emergency_contact, "
-        "profiles(id, full_name, email, phone, city, state, is_active)"
+        "profiles(id, full_name, email, phone, city, state, is_active), "
+        "clinics(clinic_name)"
     )
 
     if clinic_id:
@@ -642,21 +631,19 @@ async def list_patients(
     result = q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
     raw = result.data or []
 
-    # Flatten profiles into patient row
+    # Flatten nested objects into patient row
     data = []
     for p in raw:
         prof = p.pop("profiles") or {}
-        data.append({**p, **prof})
+        clinic_join = p.pop("clinics") or {}
+        data.append({**p, **prof, "clinic_name": clinic_join.get("clinic_name", "—")})
 
     if search:
         s = search.lower()
         data = [p for p in data if s in (p.get("full_name") or "").lower()
                 or s in (p.get("email") or "").lower()]
 
-    # Enrich with clinic names and doctor names
-    clinics = {c["clinic_id"]: c["clinic_name"] for c in
-               (admin.table("clinics").select("clinic_id, clinic_name").execute().data or [])}
-
+    # Batch-fetch doctor names in one query (not one per patient)
     doctor_ids = list({p["assigned_doctor_id"] for p in data if p.get("assigned_doctor_id")})
     doctor_names = {}
     if doctor_ids:
@@ -664,7 +651,6 @@ async def list_patients(
         doctor_names = {d["id"]: d["full_name"] for d in dr_profiles}
 
     for p in data:
-        p["clinic_name"] = clinics.get(p.get("clinic_id"), "—")
         p["assigned_doctor_name"] = doctor_names.get(p.get("assigned_doctor_id"), "—")
 
     return paginated_response(data, len(data), skip, limit)

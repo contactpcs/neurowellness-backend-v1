@@ -89,7 +89,7 @@ async def staff_dashboard(request: Request, current_user: dict = Depends(require
             "instance_id, patient_id, status, started_at, completed_at"
         ).eq("status", "completed").order("completed_at", desc=True).limit(5)
         if clinic_id:
-            recent_instances_q = recent_instances_q.eq("clinic_id", clinic_id) if False else recent_instances_q  # instance doesn't have clinic_id yet
+            recent_instances_q = recent_instances_q.eq("clinic_id", clinic_id)
         recent_instances = recent_instances_q.execute().data or []
         instance_ids = [i["instance_id"] for i in recent_instances]
         recent_scores = []
@@ -200,10 +200,7 @@ async def approve_patient(
         doctor_id = _allocate_doctor(admin, prof.get("city"), prof.get("state"), clinic_id=clinic_id)
         if doctor_id:
             admin.table("patients").update({"assigned_doctor_id": doctor_id}).eq("id", patient_id).execute()
-            existing = admin.table("doctors").select("current_patient_count").eq("id", doctor_id).limit(1).execute()
-            if existing.data:
-                count = (existing.data[0].get("current_patient_count") or 0) + 1
-                admin.table("doctors").update({"current_patient_count": count}).eq("id", doctor_id).execute()
+            admin.rpc("increment_doctor_patient_count", {"doctor_id": doctor_id}).execute()
 
     return success_response({"patient_id": patient_id}, "Patient approved and account activated")
 
@@ -265,6 +262,12 @@ async def register_patient(
     if current_user["role"] == "clinical_assistant":
         raise ForbiddenError("Clinical assistants cannot register patients")
 
+    if not body.date_of_birth:
+        raise BadRequestError("Date of birth is required for patient registration.")
+
+    if not body.gender:
+        raise BadRequestError("Gender is required for patient registration.")
+
     admin = get_supabase_admin()
     clinic_id = current_user.get("clinic_id")
     if not clinic_id:
@@ -285,39 +288,28 @@ async def register_patient(
 
     user_id = user_res.user.id
 
+    # Allocate doctor before the transaction (read-only, safe outside)
+    doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=clinic_id)
+
     try:
-        admin.table("profiles").insert({
-            "id": user_id,
-            "role": "patient",
-            "full_name": body.full_name,
-            "email": body.email,
-            "phone": body.phone,
-            "city": body.city,
-            "state": body.state,
-            "country": body.country,
-            "date_of_birth": body.date_of_birth,
-            "gender": body.gender,
-            "clinic_id": clinic_id,
-            "is_active": True,
+        # Single atomic transaction: profiles + patients + doctor count increment
+        admin.rpc("register_patient_db", {
+            "p_id": user_id,
+            "p_full_name": body.full_name,
+            "p_email": body.email,
+            "p_phone": body.phone,
+            "p_city": body.city,
+            "p_state": body.state,
+            "p_country": body.country,
+            "p_date_of_birth": body.date_of_birth,
+            "p_gender": body.gender,
+            "p_clinic_id": clinic_id,
+            "p_is_active": True,
+            "p_medical_history": body.medical_history,
+            "p_emergency_contact": body.emergency_contact,
+            "p_doctor_id": doctor_id,
+            "p_approval_status": "approved",
         }).execute()
-
-        doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=clinic_id)
-
-        admin.table("patients").insert({
-            "id": user_id,
-            "clinic_id": clinic_id,
-            "medical_history": body.medical_history,
-            "emergency_contact": body.emergency_contact,
-            "assigned_doctor_id": doctor_id,
-            "approval_status": "approved",
-        }).execute()
-
-        if doctor_id:
-            existing = admin.table("doctors").select("current_patient_count").eq("id", doctor_id).limit(1).execute()
-            if existing.data:
-                count = (existing.data[0].get("current_patient_count") or 0) + 1
-                admin.table("doctors").update({"current_patient_count": count}).eq("id", doctor_id).execute()
-
     except Exception as e:
         try:
             admin.auth.admin.delete_user(user_id)

@@ -1,6 +1,7 @@
 import jwt
 import httpx
-from functools import lru_cache
+import threading
+from cachetools import TTLCache
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import get_supabase_admin
@@ -8,22 +9,29 @@ from app.config import get_settings
 
 security = HTTPBearer()
 
+# Refresh JWKS every hour so key rotations are picked up automatically
+_jwks_cache: TTLCache = TTLCache(maxsize=1, ttl=3600)
+_jwks_lock = threading.Lock()
 
-@lru_cache(maxsize=1)
+
 def _get_jwks() -> dict:
-    """Fetch Supabase JWKS once and cache. Supports both HS256 and ES256 tokens."""
-    settings = get_settings()
-    try:
-        resp = httpx.get(
-            f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json",
-            headers={"apikey": settings.SUPABASE_KEY},
-            timeout=5,
-        )
-        if resp.status_code == 200:
-            return resp.json()
-    except Exception:
-        pass
-    return {}
+    """Fetch Supabase JWKS with a 1-hour TTL cache. Thread-safe."""
+    with _jwks_lock:
+        if "jwks" in _jwks_cache:
+            return _jwks_cache["jwks"]
+        settings = get_settings()
+        try:
+            resp = httpx.get(
+                f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json",
+                headers={"apikey": settings.SUPABASE_KEY},
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                _jwks_cache["jwks"] = resp.json()
+                return _jwks_cache["jwks"]
+        except Exception:
+            pass
+        return {}
 
 
 def _decode_token(token: str) -> dict:

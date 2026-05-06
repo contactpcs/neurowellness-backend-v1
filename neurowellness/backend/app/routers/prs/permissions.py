@@ -18,7 +18,7 @@ class GrantPermissionRequest(BaseModel):
     notes: Optional[str] = None
 
 
-def _get_or_create_session(admin, patient_id: str, doctor_id: str) -> str:
+def _get_or_create_session(admin, patient_id: str, doctor_id: str, clinic_id: str = None) -> str:
     """Return an active session_id for this patient-doctor pair, creating one if needed."""
     existing = admin.table("sessions").select("id").eq(
         "patient_id", patient_id
@@ -29,12 +29,15 @@ def _get_or_create_session(admin, patient_id: str, doctor_id: str) -> str:
     if existing:
         return existing[0]["id"]
 
-    result = admin.table("sessions").insert({
+    row = {
         "patient_id": patient_id,
         "doctor_id": doctor_id,
         "session_type": "in_person",
         "status": "in_progress",
-    }).execute()
+    }
+    if clinic_id:
+        row["clinic_id"] = clinic_id
+    result = admin.table("sessions").insert(row).execute()
     return result.data[0]["id"]
 
 
@@ -50,12 +53,13 @@ async def grant_permission(
 
     admin = get_supabase_admin()
 
-    patient_result = admin.table("patients").select("assigned_doctor_id").eq(
+    patient_result = admin.table("patients").select("assigned_doctor_id, clinic_id").eq(
         "id", body.patient_id
     ).limit(1).execute()
     if not patient_result.data:
         raise NotFoundError("Patient not found")
 
+    patient_clinic_id = patient_result.data[0].get("clinic_id")
     role = current_user["role"]
     if role in ("doctor", "admin"):
         doctor_id = current_user["id"]
@@ -75,7 +79,7 @@ async def grant_permission(
     if not ds_maps:
         raise BadRequestError(f"No scales configured for disease '{body.disease_id}'")
 
-    session_id = _get_or_create_session(admin, body.patient_id, doctor_id)
+    session_id = _get_or_create_session(admin, body.patient_id, doctor_id, clinic_id=patient_clinic_id)
 
     # Check if a disease-level permission already exists for this patient + disease + session
     # Upsert one permission row per scale (existing DB schema — scale_id NOT NULL)
@@ -88,6 +92,7 @@ async def grant_permission(
             "session_id": session_id,
             "status":     "granted",
             "notes":      body.notes,
+            **({"clinic_id": patient_clinic_id} if patient_clinic_id else {}),
         }
         for ds in ds_maps
     ]

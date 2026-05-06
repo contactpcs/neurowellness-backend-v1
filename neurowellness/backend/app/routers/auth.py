@@ -123,6 +123,12 @@ async def register(request: Request, body: RegisterRequest):
     if not body.clinic_id:
         raise HTTPException(status_code=400, detail="Please select your nearest clinic to complete registration.")
 
+    if not body.date_of_birth:
+        raise HTTPException(status_code=400, detail="Date of birth is required for patient registration.")
+
+    if not body.gender:
+        raise HTTPException(status_code=400, detail="Gender is required for patient registration.")
+
     admin = get_supabase_admin()
 
     # Verify clinic exists and is active
@@ -147,44 +153,28 @@ async def register(request: Request, body: RegisterRequest):
 
     user_id = user_res.user.id
 
+    # Allocate doctor before the transaction (read-only, safe outside)
+    doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=body.clinic_id)
+
     try:
-        # Profile: is_active=False until approved
-        admin.table("profiles").insert({
-            "id": user_id,
-            "role": "patient",
-            "full_name": body.full_name,
-            "email": body.email,
-            "phone": body.phone,
-            "city": body.city,
-            "state": body.state,
-            "country": body.country,
-            "date_of_birth": body.date_of_birth,
-            "gender": body.gender,
-            "clinic_id": body.clinic_id,
-            "is_active": False,
+        # Single atomic transaction: profiles + patients + doctor count increment
+        admin.rpc("register_patient_db", {
+            "p_id": user_id,
+            "p_full_name": body.full_name,
+            "p_email": body.email,
+            "p_phone": body.phone,
+            "p_city": body.city,
+            "p_state": body.state,
+            "p_country": body.country,
+            "p_date_of_birth": body.date_of_birth,
+            "p_gender": body.gender,
+            "p_clinic_id": body.clinic_id,
+            "p_is_active": False,
+            "p_medical_history": body.medical_history,
+            "p_emergency_contact": body.emergency_contact,
+            "p_doctor_id": doctor_id,
+            "p_approval_status": "pending",
         }).execute()
-
-        # Auto-allocate doctor within same clinic
-        doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=body.clinic_id)
-
-        # Patient row: approval_status='pending'
-        admin.table("patients").insert({
-            "id": user_id,
-            "clinic_id": body.clinic_id,
-            "medical_history": body.medical_history,
-            "emergency_contact": body.emergency_contact,
-            "assigned_doctor_id": doctor_id,
-            "approval_status": "pending",
-        }).execute()
-
-        if doctor_id:
-            existing = admin.table("doctors").select("current_patient_count").eq(
-                "id", doctor_id
-            ).limit(1).execute()
-            if existing.data:
-                count = (existing.data[0].get("current_patient_count") or 0) + 1
-                admin.table("doctors").update({"current_patient_count": count}).eq("id", doctor_id).execute()
-
     except Exception as e:
         try:
             admin.auth.admin.delete_user(user_id)

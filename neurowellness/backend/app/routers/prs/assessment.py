@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
+import uuid
 
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
@@ -176,6 +177,12 @@ async def start_assessment(
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
+    # Fetch patient's clinic_id for instance scoping
+    patient_clinic_row = admin.table("patients").select("clinic_id").eq(
+        "id", patient_id
+    ).limit(1).execute().data or []
+    patient_clinic_id = patient_clinic_row[0].get("clinic_id") if patient_clinic_row else None
+
     # Gate: patient must have a completed anamnesis before starting any PRS assessment
     ana = admin.table("anamnesis_assessments").select("status").eq(
         "patient_id", patient_id
@@ -198,20 +205,27 @@ async def start_assessment(
         instance_id = existing_instance[0]["instance_id"]
         is_resumed = True
     else:
-        all_instances = admin.table("prs_assessment_instances").select(
-            "instance_id"
-        ).eq("patient_id", patient_id).execute().data or []
-        seq = len(all_instances) + 1
-        instance_id = f"PAT/{patient_id[:8]}/{seq:03d}"
+        # UUID primary key — collision-free regardless of concurrent requests
+        instance_id = str(uuid.uuid4())
+        # Human-readable label for display only (not a PK, harmless if slightly off under concurrency)
+        prior_count = len(
+            admin.table("prs_assessment_instances").select("instance_id")
+            .eq("patient_id", patient_id).execute().data or []
+        )
+        instance_label = f"PAT/{patient_id[:8]}/{prior_count + 1:03d}"
 
-        admin.table("prs_assessment_instances").insert({
-            "instance_id":   instance_id,
-            "disease_id":    body.disease_id,
-            "patient_id":    patient_id,
-            "permission_id": permission_id,
-            "initiated_by":  body.taken_by,
-            "status":        "in_progress",
-        }).execute()
+        insert_row = {
+            "instance_id":    instance_id,
+            "instance_label": instance_label,
+            "disease_id":     body.disease_id,
+            "patient_id":     patient_id,
+            "permission_id":  permission_id,
+            "initiated_by":   body.taken_by,
+            "status":         "in_progress",
+        }
+        if patient_clinic_id:
+            insert_row["clinic_id"] = patient_clinic_id
+        admin.table("prs_assessment_instances").insert(insert_row).execute()
         is_resumed = False
 
     # Fetch all scales for the disease (ordered)

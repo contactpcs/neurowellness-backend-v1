@@ -10,8 +10,8 @@ def get_supabase() -> Client:
     return create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 
-@lru_cache()
 def get_supabase_admin() -> Client:
-    """Service role client — bypasses RLS, backend use only"""
+    """Service role client — bypasses RLS, backend use only.
+    Fresh instance per call to avoid shared mutable state across concurrent requests."""
     settings = get_settings()
     return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
