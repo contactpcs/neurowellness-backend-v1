@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from typing import Optional
 from pydantic import BaseModel, EmailStr
@@ -6,6 +7,7 @@ from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from app.limiter import limiter
+from app.services.notification import send_notification
 
 router = APIRouter()
 
@@ -75,6 +77,14 @@ async def staff_dashboard(request: Request, current_user: dict = Depends(require
         pending_approval_q = pending_approval_q.eq("clinic_id", clinic_id)
     pending_approval_count = len(pending_approval_q.execute().data or [])
 
+    # Patients registered today (UTC). Frontend can display in IST without skew
+    # because we compare against an absolute UTC instant, not a local-day boundary.
+    today_utc = datetime.now(timezone.utc).date().isoformat()
+    today_q = admin.table("patients").select("id").gte("created_at", f"{today_utc}T00:00:00Z")
+    if clinic_id:
+        today_q = today_q.eq("clinic_id", clinic_id)
+    registered_today = len(today_q.execute().data or [])
+
     extra = {}
     if role == "receptionist":
         upcoming_q = admin.table("sessions").select("id, session_date, status, patient_id, doctor_id").in_(
@@ -105,6 +115,7 @@ async def staff_dashboard(request: Request, current_user: dict = Depends(require
             "total": len(patients),
             "pending_assessments": pending_count,
             "pending_approval": pending_approval_count,
+            "registered_today": registered_today,
         },
         **extra,
     })
@@ -205,32 +216,63 @@ async def approve_patient(
     return success_response({"patient_id": patient_id}, "Patient approved and account activated")
 
 
+class RejectPatientRequest(BaseModel):
+    reason: Optional[str] = None
+
+
 @router.put("/patients/{patient_id}/reject")
 @limiter.limit("30/minute")
 async def reject_patient(
     request: Request,
     patient_id: str,
+    body: Optional[RejectPatientRequest] = None,
     current_user: dict = Depends(require_staff),
 ):
-    """Reject a pending patient registration."""
+    """
+    Reject a pending patient registration.
+
+    Soft-rejection: keeps the patient row for audit, marks approval_status=rejected,
+    stores the reason. Login is blocked via the existing ACCOUNT_REJECTED check
+    in auth.login (auth user is NOT deleted, so the patient sees a clear message
+    instead of an Invalid Credentials error).
+    """
     admin = get_supabase_admin()
     clinic_id = current_user.get("clinic_id")
+    reason = (body.reason if body else None) or None
 
     patient = _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
     if clinic_id and patient.get("clinic_id") != clinic_id:
         raise ForbiddenError("Patient does not belong to your clinic")
+    if patient.get("approval_status") == "rejected":
+        raise BadRequestError("Patient is already rejected")
 
-    # Hard delete — remove all patient data and auth user
     try:
-        admin.table("patients").delete().eq("id", patient_id).execute()
-        admin.table("profiles").delete().eq("id", patient_id).execute()
-        admin.auth.admin.delete_user(patient_id)
+        admin.table("patients").update({
+            "approval_status": "rejected",
+            "rejection_reason": reason,
+        }).eq("id", patient_id).execute()
+        admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to remove patient: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to reject patient: {e}")
 
-    return success_response({"patient_id": patient_id}, "Patient registration rejected and data removed")
+    try:
+        send_notification(
+            user_id=patient_id,
+            notif_type="registration_rejected",
+            title="Registration not approved",
+            body=reason or "Your registration was not approved. Please contact the clinic for more information.",
+            data={"reason": reason},
+        )
+    except Exception:
+        # Notification failures must not block the rejection itself.
+        pass
+
+    return success_response(
+        {"patient_id": patient_id, "rejection_reason": reason},
+        "Patient registration rejected",
+    )
 
 
 class RegisterPatientRequest(BaseModel):
