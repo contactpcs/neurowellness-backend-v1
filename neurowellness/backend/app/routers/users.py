@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
+from typing import Optional
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
 from app.utils.responses import success_response
@@ -42,6 +44,52 @@ def _get_full_profile(admin, user_id: str):
             merged["clinic"] = clinic
 
     return merged
+
+
+class UpdateProfileRequest(BaseModel):
+    # Fields stored in profiles table (editable by all roles)
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    address_line1: Optional[str] = None
+    pincode: Optional[str] = None
+    language_pref: Optional[str] = None
+    # Fields stored in patients table (patient role only)
+    blood_group: Optional[str] = None
+    allergies: Optional[str] = None
+    emergency_contact: Optional[str] = None
+    occupation: Optional[str] = None
+    marital_status: Optional[str] = None
+    insurance_provider: Optional[str] = None
+    insurance_policy: Optional[str] = None
+
+
+@router.put("/me")
+@limiter.limit("20/minute")
+async def update_my_profile(
+    request: Request,
+    body: UpdateProfileRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update the current user's own editable profile fields."""
+    admin = get_supabase_admin()
+    user_id = current_user["id"]
+    role = current_user["role"]
+
+    profile_fields = ["phone", "city", "state", "country", "address_line1", "pincode", "language_pref"]
+    profile_updates = {f: getattr(body, f) for f in profile_fields if getattr(body, f) is not None}
+    if profile_updates:
+        admin.table("profiles").update(profile_updates).eq("id", user_id).execute()
+
+    if role == "patient":
+        patient_fields = ["blood_group", "allergies", "emergency_contact", "occupation",
+                          "marital_status", "insurance_provider", "insurance_policy"]
+        patient_updates = {f: getattr(body, f) for f in patient_fields if getattr(body, f) is not None}
+        if patient_updates:
+            admin.table("patients").update(patient_updates).eq("id", user_id).execute()
+
+    return success_response({"id": user_id}, "Profile updated successfully")
 
 
 @router.get("/profile")

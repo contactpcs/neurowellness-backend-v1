@@ -77,14 +77,15 @@ class RegistrationSyncRequest(BaseModel):
     full_name: str
     email: EmailStr
     role: str
-    phone: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
+    phone: str
+    city: str
+    state: str
     country: str = "India"
     date_of_birth: Optional[str] = None
     gender: Optional[str] = None
-    medical_history: Optional[str] = None
-    emergency_contact: Optional[str] = None
+    address_line1: Optional[str] = None
+    pincode: Optional[str] = None
+    # Staff-only fields (ignored for patient registration)
     employee_id: Optional[str] = None
     department: Optional[str] = None
     designation: Optional[str] = None
@@ -170,10 +171,12 @@ async def register(request: Request, body: RegisterRequest):
             "p_gender": body.gender,
             "p_clinic_id": body.clinic_id,
             "p_is_active": False,
-            "p_medical_history": body.medical_history,
-            "p_emergency_contact": body.emergency_contact,
+            "p_medical_history": None,
+            "p_emergency_contact": None,
             "p_doctor_id": doctor_id,
             "p_approval_status": "pending",
+            "p_address_line1": body.address_line1,
+            "p_pincode": body.pincode,
         }).execute()
     except Exception as e:
         try:
