@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -403,13 +404,16 @@ async def list_staff(
     enriched = []
     for p in data:
         extra = role_map.get(p["id"], {})
+        # Exclude soft-deleted staff
+        if extra.get("deleted_by"):
+            continue
         enriched.append({
             **p,
             **extra,
             "clinic_name": clinics.get(p.get("clinic_id"), "—"),
         })
 
-    total = len(admin.table("profiles").select("id").in_("role", list(STAFF_ROLES)).execute().data or [])
+    total = len(enriched)
     return paginated_response(enriched, total, skip, limit)
 
 
@@ -590,11 +594,18 @@ async def delete_staff(
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
 
-    # Delete auth user (cascades to profile via FK in Supabase Auth)
-    try:
-        admin.auth.admin.delete_user(staff_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not delete user: {e}")
+    role_table = {"doctor": "doctors", "receptionist": "receptionists",
+                  "clinical_assistant": "clinical_assistants"}[profile["role"]]
+    role_row = _row(admin, role_table, "id", staff_id)
+    if role_row and role_row.get("deleted_by"):
+        raise BadRequestError("Staff member is already deleted")
+
+    now = datetime.now(timezone.utc).isoformat()
+    admin.table(role_table).update({
+        "deleted_by": current_user["id"],
+        "deleted_at": now,
+    }).eq("id", staff_id).execute()
+    admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
 
     return success_response({"staff_id": staff_id}, "Staff member deleted")
 
@@ -619,9 +630,10 @@ async def list_patients(
     # Join clinics inline — one query instead of a separate clinics fetch
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, approval_status, created_at, medical_history, emergency_contact, "
+        "deleted_by, deleted_at, "
         "profiles(id, full_name, email, phone, city, state, is_active), "
         "clinics(clinic_name)"
-    )
+    ).is_("deleted_by", "null")
 
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
@@ -701,10 +713,14 @@ async def delete_patient(
     patient = _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
+    if patient.get("deleted_by"):
+        raise BadRequestError("Patient is already deleted")
 
-    try:
-        admin.auth.admin.delete_user(patient_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not delete patient: {e}")
+    now = datetime.now(timezone.utc).isoformat()
+    admin.table("patients").update({
+        "deleted_by": current_user["id"],
+        "deleted_at": now,
+    }).eq("id", patient_id).execute()
+    admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
 
     return success_response({"patient_id": patient_id}, "Patient deleted")

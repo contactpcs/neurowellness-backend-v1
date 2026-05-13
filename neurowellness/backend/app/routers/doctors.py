@@ -74,7 +74,7 @@ async def list_patients(
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, created_at, "
         "profiles(id, full_name, email, avatar_url, role, created_at)"
-    )
+    ).is_("deleted_by", "null")
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
     result = q.range(skip, skip + limit - 1).execute()
@@ -115,7 +115,7 @@ async def get_patient_detail(request: Request, patient_id: str, current_user: di
     admin = get_supabase_admin()
 
     patient = _row(admin, "patients", "id", patient_id)
-    if not patient:
+    if not patient or patient.get("deleted_by"):
         raise NotFoundError("Patient not found")
 
     profile     = _row(admin, "profiles", "id", patient_id)

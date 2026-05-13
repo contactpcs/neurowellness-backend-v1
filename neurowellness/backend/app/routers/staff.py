@@ -136,7 +136,7 @@ async def list_patients(
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, approval_status, created_at, "
         "profiles(id, full_name, email, avatar_url, role, created_at)"
-    ).eq("approval_status", "approved")
+    ).eq("approval_status", "approved").is_("deleted_by", "null")
 
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
@@ -166,7 +166,7 @@ async def list_pending_patients(
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, approval_status, created_at, medical_history, emergency_contact, "
         "profiles(id, full_name, email, phone, city, state)"
-    ).eq("approval_status", "pending")
+    ).eq("approval_status", "pending").is_("deleted_by", "null")
 
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
