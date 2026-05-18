@@ -7,7 +7,6 @@ from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from app.limiter import limiter
-from app.services.notification import send_notification
 
 router = APIRouter()
 
@@ -229,16 +228,11 @@ async def reject_patient(
     current_user: dict = Depends(require_staff),
 ):
     """
-    Reject a pending patient registration.
-
-    Soft-rejection: keeps the patient row for audit, marks approval_status=rejected,
-    stores the reason. Login is blocked via the existing ACCOUNT_REJECTED check
-    in auth.login (auth user is NOT deleted, so the patient sees a clear message
-    instead of an Invalid Credentials error).
+    Reject and permanently delete a pending patient registration.
+    Deletes consent responses, patient record, profile, and auth user.
     """
     admin = get_supabase_admin()
     clinic_id = current_user.get("clinic_id")
-    reason = (body.reason if body else None) or None
 
     patient = _row(admin, "patients", "id", patient_id)
     if not patient:
@@ -249,29 +243,16 @@ async def reject_patient(
         raise BadRequestError("Patient is already rejected")
 
     try:
-        admin.table("patients").update({
-            "approval_status": "rejected",
-            "rejection_reason": reason,
-        }).eq("id", patient_id).execute()
-        admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
+        admin.table("user_consent_responses").delete().eq("user_id", patient_id).execute()
+        admin.table("patients").delete().eq("id", patient_id).execute()
+        admin.table("profiles").delete().eq("id", patient_id).execute()
+        admin.auth.admin.delete_user(patient_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reject patient: {e}")
 
-    try:
-        send_notification(
-            user_id=patient_id,
-            notif_type="registration_rejected",
-            title="Registration not approved",
-            body=reason or "Your registration was not approved. Please contact the clinic for more information.",
-            data={"reason": reason},
-        )
-    except Exception:
-        # Notification failures must not block the rejection itself.
-        pass
-
     return success_response(
-        {"patient_id": patient_id, "rejection_reason": reason},
-        "Patient registration rejected",
+        {"patient_id": patient_id},
+        "Patient registration rejected and all data removed.",
     )
 
 

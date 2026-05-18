@@ -7,6 +7,7 @@ from app.database import get_supabase_admin
 from app.config import get_settings
 from app.utils.responses import success_response
 from app.limiter import limiter
+from app.models.consent import ConsentResponseItem
 
 router = APIRouter()
 
@@ -94,6 +95,7 @@ class RegistrationSyncRequest(BaseModel):
 class RegisterRequest(RegistrationSyncRequest):
     password: str
     clinic_id: Optional[str] = None  # required for patient self-registration
+    consent_responses: list[ConsentResponseItem] = []
 
 
 @router.get("/clinics")
@@ -138,6 +140,31 @@ async def register(request: Request, body: RegisterRequest):
     ).eq("is_active", True).limit(1).execute().data
     if not clinic:
         raise HTTPException(status_code=400, detail="Selected clinic not found or is inactive.")
+
+    # Validate consent responses before touching auth (fail fast, no cleanup needed)
+    all_forms = admin.table("consent_forms").select(
+        "consent_form_id, consent_form_name, is_required"
+    ).execute().data or []
+    form_map = {f["consent_form_id"]: f for f in all_forms}
+    required_forms = [f for f in all_forms if f["is_required"]]
+    submitted_map = {r.consent_form_id: r.response for r in body.consent_responses}
+
+    for r in body.consent_responses:
+        if r.consent_form_id not in form_map:
+            raise HTTPException(status_code=400, detail=f"Unknown consent form ID: {r.consent_form_id}")
+
+    for f in required_forms:
+        fid = f["consent_form_id"]
+        if fid not in submitted_map:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Required consent form '{f['consent_form_name']}' not submitted.",
+            )
+        if not submitted_map[fid]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Required consent form '{f['consent_form_name']}' must be accepted to complete registration.",
+            )
 
     # Create Supabase auth user
     try:
@@ -185,7 +212,29 @@ async def register(request: Request, body: RegisterRequest):
             pass
         raise HTTPException(status_code=500, detail=f"Profile creation failed: {e}")
 
+    # Save consent responses — rollback everything on failure
+    consent_rows = [
+        {
+            "user_id": user_id,
+            "consent_form_id": r.consent_form_id,
+            "consent_form_name": form_map[r.consent_form_id]["consent_form_name"],
+            "response": r.response,
+        }
+        for r in body.consent_responses
+    ]
+    try:
+        admin.table("user_consent_responses").insert(consent_rows).execute()
+    except Exception as e:
+        try:
+            admin.table("patients").delete().eq("id", user_id).execute()
+            admin.table("profiles").delete().eq("id", user_id).execute()
+            admin.auth.admin.delete_user(user_id)
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"Failed to save consent responses: {e}")
+
     return success_response({
+        "patient_id": user_id,
         "message": "Registration submitted. Your account is pending approval by your clinic receptionist.",
         "clinic_name": clinic[0]["clinic_name"],
     }, "Registration successful — pending approval", status_code=201)

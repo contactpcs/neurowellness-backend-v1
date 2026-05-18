@@ -82,7 +82,8 @@ export const useAuthStore = create((set) => ({
   },
 
   register: async (formData) => {
-    // Backend uses admin API to create auto-confirmed user (no email verification)
+    // Patient self-registration returns patient_id (pending approval) — no tokens.
+    // Backend validates consent_responses and saves them atomically.
     const res = await api.post('/auth/register', {
       full_name: formData.full_name,
       email: formData.email,
@@ -91,30 +92,23 @@ export const useAuthStore = create((set) => ({
       phone: formData.phone || null,
       city: formData.city || null,
       state: formData.state || null,
+      country: formData.country || 'India',
+      date_of_birth: formData.date_of_birth || null,
+      gender: formData.gender || null,
+      clinic_id: formData.clinic_id || null,
+      address_line1: formData.address_line1 || null,
+      pincode: formData.pincode || null,
       specialization: formData.specialization || null,
       license_number: formData.license_number || null,
-      hospital_affiliation: formData.hospital_affiliation || null,
       medical_history: formData.medical_history || null,
       emergency_contact: formData.emergency_contact || null,
       employee_id: formData.employee_id || null,
       department: formData.department || null,
       designation: formData.designation || null,
+      consent_responses: formData.consent_responses || [],
     })
 
-    const { access_token, refresh_token } = res.data.data
-
-    // Persist session in Supabase so api.js interceptor gets the token
-    await supabase.auth.setSession({ access_token, refresh_token })
-
-    // Fetch profile and update store so the user is logged in immediately
-    const profileRes = await api.get('/auth/login', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    })
-    const profile = profileRes.data.data
-    const { data: { session } } = await supabase.auth.getSession()
-    set({ user: session?.user ?? null, profile, role: profile.role, isAuthenticated: true })
-
-    return profile
+    return res.data.data
   },
 
   logout: async () => {

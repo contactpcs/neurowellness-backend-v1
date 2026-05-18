@@ -1,0 +1,96 @@
+2026-05-18T06:13:34.017Z INFO Is remote: false
+2026-05-18T06:13:34.018Z INFO Starting Local. Installation path: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T06:13:34.018Z INFO [MainProvider] Creating new MainProvider instance...
+2026-05-18T06:13:34.019Z INFO [TabsManager] Code view listener set up at initialization
+2026-05-18T06:13:34.020Z INFO Installation path exists: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T06:13:34.020Z INFO Initializing database with URL: file:c:\Users\mohan\OneDrive\Desktop\Exam\pythagora-core\data\database\pythagora.db
+2026-05-18T06:13:34.023Z INFO Database file exists, skipping prisma generate/push for faster startup
+2026-05-18T06:13:34.023Z INFO Database initialized successfully
+2026-05-18T06:13:34.028Z INFO [Migration] Checking for database migration...
+2026-05-18T06:13:34.209Z INFO [Migration] No migration needed
+2026-05-18T06:16:28.534Z INFO Closing entire Pythagora extension...
+2026-05-18T06:16:28.539Z ERROR Error closing extension
+Error: Canceled
+Stack: Canceled: Canceled
+	at new GI (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:151628)
+	at i._remoteCall (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:157680)
+	at r.<computed>.s.charCodeAt.r.<computed> (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:154475)
+	at Ig._doExecuteCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:502:48120)
+	at Ig.executeCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:502:47567)
+	at Object.executeCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:641:136457)
+	at closeEntirePythagoraExtension (c:\Users\mohan\.vscode\extensions\pythagoratechnologies.pythagora-vs-code-2.6.19\out\extension.js:542:31)
+	at Object.deactivate (c:\Users\mohan\.vscode\extensions\pythagoratechnologies.pythagora-vs-code-2.6.19\out\extension.js:409:15)
+	at mP._deactivate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:14483)
+	at file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:12010
+	at Array.map (<anonymous>)
+	at mP._deactivateAll (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:11998)
+	at mP.terminate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:12349)
+	at i.terminate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:508:1072)
+	at Gs (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:11700)
+	at lp.value (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:9847)
+	at E._deliver (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:403:3244)
+	at E.fire (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:403:3562)
+	at ss.fire (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:405:8437)
+	at MessagePortMain.<anonymous> (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:8082)
+	at MessagePortMain.emit (node:events:519:28)
+	at MessagePortMain.emit (node:domain:489:12)
+	at MessagePortMain._internalPort.emit (node:electron/js2c/utility_init:2:2959)
+Extra context: {
+  "message": "Canceled"
+}
+2026-05-18T06:16:43.722Z INFO Is remote: false
+2026-05-18T06:16:43.723Z INFO Starting Local. Installation path: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T06:16:43.723Z INFO [MainProvider] Creating new MainProvider instance...
+2026-05-18T06:16:43.724Z INFO [TabsManager] Code view listener set up at initialization
+2026-05-18T06:16:43.725Z INFO Installation path exists: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T06:16:43.725Z INFO Initializing database with URL: file:c:\Users\mohan\OneDrive\Desktop\Exam\pythagora-core\data\database\pythagora.db
+2026-05-18T06:16:43.728Z INFO Database file exists, skipping prisma generate/push for faster startup
+2026-05-18T06:16:43.728Z INFO Database initialized successfully
+2026-05-18T06:16:43.729Z INFO [Migration] Checking for database migration...
+2026-05-18T06:16:43.837Z INFO [Migration] No migration needed
+2026-05-18T07:12:46.764Z INFO [TabsManager] First file opened, triggering split view
+2026-05-18T07:12:46.765Z INFO [MainProvider] First file opened, creating split view
+2026-05-18T09:43:48.023Z INFO Closing entire Pythagora extension...
+2026-05-18T09:43:48.030Z ERROR Error closing extension
+Error: Canceled
+Stack: Canceled: Canceled
+	at new GI (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:151628)
+	at i._remoteCall (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:157680)
+	at r.<computed>.s.charCodeAt.r.<computed> (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:407:154475)
+	at Ig._doExecuteCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:502:48120)
+	at Ig.executeCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:502:47567)
+	at Object.executeCommand (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:641:136457)
+	at closeEntirePythagoraExtension (c:\Users\mohan\.vscode\extensions\pythagoratechnologies.pythagora-vs-code-2.6.19\out\extension.js:542:31)
+	at Object.deactivate (c:\Users\mohan\.vscode\extensions\pythagoratechnologies.pythagora-vs-code-2.6.19\out\extension.js:409:15)
+	at mP._deactivate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:14483)
+	at file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:12010
+	at Array.map (<anonymous>)
+	at mP._deactivateAll (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:11998)
+	at mP.terminate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:506:12349)
+	at i.terminate (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:508:1072)
+	at Gs (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:11700)
+	at lp.value (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:9847)
+	at E._deliver (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:403:3244)
+	at E.fire (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:403:3562)
+	at ss.fire (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:405:8437)
+	at MessagePortMain.<anonymous> (file:///c:/Users/mohan/AppData/Local/Programs/Microsoft%20VS%20Code/0958016b2a/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:805:8082)
+	at MessagePortMain.emit (node:events:519:28)
+	at MessagePortMain.emit (node:domain:489:12)
+	at MessagePortMain._internalPort.emit (node:electron/js2c/utility_init:2:2959)
+Extra context: {
+  "message": "Canceled"
+}
+2026-05-18T09:49:58.381Z INFO Is remote: false
+2026-05-18T09:49:58.382Z INFO Starting Local. Installation path: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T09:49:58.383Z INFO [MainProvider] Creating new MainProvider instance...
+2026-05-18T09:49:58.384Z INFO [TabsManager] Code view listener set up at initialization
+2026-05-18T09:49:58.386Z INFO Installation path exists: c:\Users\mohan\OneDrive\Desktop\Exam
+2026-05-18T09:49:58.386Z INFO Initializing database with URL: file:c:\Users\mohan\OneDrive\Desktop\Exam\pythagora-core\data\database\pythagora.db
+2026-05-18T09:49:58.392Z INFO Database file exists, skipping prisma generate/push for faster startup
+2026-05-18T09:49:58.392Z INFO Database initialized successfully
+2026-05-18T09:49:58.394Z INFO [Migration] Checking for database migration...
+2026-05-18T09:49:58.582Z INFO [Migration] No migration needed
+2026-05-18T10:14:42.786Z INFO [TabsManager] First file opened, triggering split view
+2026-05-18T10:14:42.787Z INFO [MainProvider] First file opened, creating split view
+2026-05-18T10:18:30.152Z INFO [TabsManager] First file opened, triggering split view
+2026-05-18T10:18:30.152Z INFO [MainProvider] First file opened, creating split view
