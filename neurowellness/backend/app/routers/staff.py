@@ -7,6 +7,7 @@ from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from app.limiter import limiter
+from app.models.consent import ConsentResponseItem
 
 router = APIRouter()
 
@@ -268,6 +269,7 @@ class RegisterPatientRequest(BaseModel):
     gender: Optional[str] = None
     address_line1: Optional[str] = None
     pincode: Optional[str] = None
+    consent_responses: list[ConsentResponseItem] = []
 
 
 @router.post("/patients/register")
@@ -341,6 +343,29 @@ async def register_patient(
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"Patient creation failed: {e}")
+
+    # Save consent responses to DB
+    if body.consent_responses:
+        all_forms = admin.table("consent_forms").select(
+            "consent_form_id, consent_form_name, is_required"
+        ).execute().data or []
+        form_map = {f["consent_form_id"]: f for f in all_forms}
+        consent_rows = [
+            {
+                "user_id": user_id,
+                "consent_form_id": r.consent_form_id,
+                "consent_form_name": form_map[r.consent_form_id]["consent_form_name"],
+                "response": r.response,
+            }
+            for r in body.consent_responses
+            if r.consent_form_id in form_map
+        ]
+        if consent_rows:
+            try:
+                admin.table("user_consent_responses").insert(consent_rows).execute()
+            except Exception as e:
+                # Non-fatal: patient is already created and approved — log but don't rollback
+                print(f"[WARN] Failed to save consent responses for patient {user_id}: {e}")
 
     return success_response({
         "patient_id": user_id,
