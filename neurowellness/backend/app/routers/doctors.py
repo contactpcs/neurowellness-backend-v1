@@ -74,7 +74,7 @@ async def list_patients(
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, created_at, "
         "profiles(id, full_name, email, avatar_url, role, created_at)"
-    ).is_("deleted_by", "null")
+    ).eq("approval_status", "approved").is_("deleted_by", "null")
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
     result = q.range(skip, skip + limit - 1).execute()
