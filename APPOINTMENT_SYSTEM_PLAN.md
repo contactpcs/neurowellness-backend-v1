@@ -79,7 +79,7 @@ The system is designed for **horizontal scale** (stateless FastAPI workers behin
 3. **Patient cannot self-book or view the doctor's schedule.** Patient submits an **appointment request** (preferred dates + time window + complaint); receptionist reviews and assigns it against an actual slot.
 4. Patient can **cancel** their own confirmed appointment (subject to the 2-hour-before-start rule) and **request a reschedule**, which goes through the same receptionist-review flow.
 5. Doctor / receptionist / clinical assistant **can view the doctor's schedule and pick slots directly** without going through the request flow.
-6. Clinical assistant can view appointments and assist in their clinic.
+6. Clinical assistant has **the same booking, cancel, and reschedule powers as receptionist** — they can book directly against slots, cancel appointments, and reschedule. They also review and approve/reject patient appointment requests.
 7. **All four roles receive real-time notifications and toast pop-ups** on appointment-lifecycle events and request-lifecycle events.
 8. Automated **reminders** (24 h before, 1 h before) sent via in-app notifications + socket.
 9. **No double-booking** — DB-level constraint + transactional check.
@@ -1474,9 +1474,11 @@ const NAV_ITEMS = {
     { label: "Profile",       href: "/receptionist/profile",              icon: UserCircle    },
   ],
   clinical_assistant: [
-    { label: "Dashboard",     href: "/clinical-assistant/dashboard",      icon: LayoutDashboard },
-    { label: "Appointments",  href: "/clinical-assistant/appointments",   icon: Calendar      },
-    { label: "Patients",      href: "/clinical-assistant/patients",       icon: Users         },
+    { label: "Dashboard",     href: "/clinical-assistant/dashboard",              icon: LayoutDashboard },
+    { label: "Appointments",  href: "/clinical-assistant/appointments",           icon: Calendar        },
+    { label: "Requests",      href: "/clinical-assistant/appointment-requests",   icon: Inbox           },
+    { label: "Patients",      href: "/clinical-assistant/patients",               icon: Users           },
+    { label: "Profile",       href: "/clinical-assistant/profile",                icon: UserCircle      },
   ],
 };
 ```
@@ -1742,12 +1744,32 @@ If rejecting:
 7. Patient receives toast + notification with the new time
 ```
 
-### 14.7 Clinical Assistant — View & Coordinate
+### 14.7 Clinical Assistant — Full Receptionist Equivalent
+
+Clinical assistant has **identical booking powers to receptionist**. All receptionist workflows (14.1 and 14.2) apply 1-to-1 under `/clinical-assistant/*` routes.
 
 ```
-1. /clinical-assistant/appointments — list + calendar toggle, filterable by doctor
-2. Read-only by default; admin can grant 'edit' permission per clinic policy
-3. Real-time updates when receptionist books / patient cancels / request approved
+BOOK (same as Receptionist 14.1):
+1. /clinical-assistant/appointments → "Book Appointment" button
+2. Search or register patient → select doctor → pick date → pick slot → confirm
+3. POST /api/v1/appointments
+4. Socket 'appointment:created' fires to patient + doctor
+
+CANCEL:
+1. /clinical-assistant/appointments/{id} → Cancel button
+2. Enter reason → POST /api/v1/appointments/{id}/cancel
+3. Socket 'appointment:cancelled' fires to patient + doctor
+
+RESCHEDULE (direct, no request flow):
+1. /clinical-assistant/appointments/{id} → Reschedule button
+2. Pick new date + slot → POST /api/v1/appointments/{id}/reschedule
+3. Socket 'appointment:rescheduled' fires to patient + doctor
+
+REVIEW PATIENT REQUESTS (same as Receptionist 14.2):
+1. Sidebar badge shows N pending requests
+2. /clinical-assistant/appointment-requests — inbox
+3. Open request → pick slot → approve or reject
+4. POST /api/v1/appointment-requests/{id}/approve (or /reject)
 ```
 
 ---
