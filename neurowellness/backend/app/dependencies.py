@@ -149,3 +149,5 @@ require_admin = require_role(["admin"])
 require_clinical_assistant = require_role(["clinical_assistant", "admin"])
 require_receptionist = require_role(["receptionist", "admin"])
 require_staff = require_role(["doctor", "clinical_assistant", "receptionist", "admin"])
+# Schedule/slot endpoints: every role except patient. Patient never sees the doctor schedule.
+require_staff_or_doctor = require_role(["doctor", "clinical_assistant", "receptionist", "admin"])

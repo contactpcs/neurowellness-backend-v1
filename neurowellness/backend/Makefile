@@ -1,5 +1,5 @@
 dev:
-	uvicorn app.main:app --reload --port 8000
+	uvicorn app.main:asgi_app --reload --port 8000
 
 seed:
 	python scripts/seed_scales.py \

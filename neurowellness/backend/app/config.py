@@ -22,6 +22,21 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100
 
+    # Appointments / scheduling
+    APP_TIMEZONE: str = "Asia/Kolkata"
+    APPOINTMENT_DEFAULT_SLOT_MINUTES: int = 30
+    APPOINTMENT_MAX_BOOKING_DAYS_AHEAD: int = 60
+    APPOINTMENT_REQUEST_EXPIRY_HOURS: float = 72
+    APPOINTMENT_CANCEL_MIN_HOURS: float = 2
+    APPOINTMENT_RESCHEDULE_MIN_HOURS: float = 24
+
+    # Real-time + background jobs (Milestone B)
+    REDIS_URL: str = ""                       # empty → single-process in-memory Socket.IO manager
+    SOCKETIO_CORS_ORIGINS: str = ""           # comma-separated; falls back to ALLOWED_ORIGINS
+    RUN_SCHEDULER: bool = True
+    APPOINTMENT_REMINDER_24H_ENABLED: bool = True
+    APPOINTMENT_REMINDER_1H_ENABLED: bool = True
+
     class Config:
         env_file = ".env"
         case_sensitive = True

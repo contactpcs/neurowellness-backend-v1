@@ -48,12 +48,14 @@ export default function Navbar() {
         {role === 'doctor' && (
           <>
             <Link to="/doctor/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/doctor/appointments" style={styles.link}>Appointments</Link>
             <Link to="/doctor/patients" style={styles.link}>Patients</Link>
           </>
         )}
         {role === 'patient' && (
           <>
             <Link to="/patient/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/patient/appointments" style={styles.link}>Appointments</Link>
             <Link to="/patient/assessments" style={styles.link}>Assessments</Link>
             <Link to="/patient/scores" style={styles.link}>My Scores</Link>
           </>
@@ -61,12 +63,16 @@ export default function Navbar() {
         {role === 'receptionist' && (
           <>
             <Link to="/receptionist/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/receptionist/appointments" style={styles.link}>Appointments</Link>
+            <Link to="/receptionist/appointment-requests" style={styles.link}>Requests</Link>
             <Link to="/receptionist/patients" style={styles.link}>Patients</Link>
           </>
         )}
         {role === 'clinical_assistant' && (
           <>
             <Link to="/clinical-assistant/dashboard" style={styles.link}>Dashboard</Link>
+            <Link to="/clinical-assistant/appointments" style={styles.link}>Appointments</Link>
+            <Link to="/clinical-assistant/appointment-requests" style={styles.link}>Requests</Link>
             <Link to="/clinical-assistant/patients" style={styles.link}>Patients</Link>
           </>
         )}

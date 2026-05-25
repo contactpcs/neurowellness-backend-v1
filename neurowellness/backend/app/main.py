@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -6,15 +7,30 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.limiter import limiter
+from app.socket_io.server import mount_socketio
+from app.socket_io import events as _socket_events  # noqa: F401 — registers connect/disconnect handlers
+from app.scheduler.scheduler import start_scheduler, shutdown_scheduler
 from app.routers import auth, doctors, patients, notifications, staff, users, doctor_notes, admin, consent
+from app.routers import appointments, appointment_requests, doctor_schedule
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
 from app.routers.anamnesis import assessment as anamnesis_assessment
 
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    try:
+        yield
+    finally:
+        shutdown_scheduler()
+
+
 app = FastAPI(
     title="NeuroWellness API",
     version="1.0.0",
+    lifespan=lifespan,
     docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
 )
@@ -52,8 +68,16 @@ app.include_router(questions.router,     prefix=f"{PREFIX}/prs/questions",   tag
 app.include_router(doctor_notes.router,  prefix=f"{PREFIX}/doctor-notes",    tags=["doctor-notes"])
 app.include_router(admin.router,         prefix=f"{PREFIX}/admin",            tags=["admin"])
 app.include_router(consent.router,       prefix=f"{PREFIX}/consent",          tags=["consent"])
+app.include_router(appointments.router,         prefix=f"{PREFIX}/appointments",         tags=["appointments"])
+app.include_router(appointment_requests.router, prefix=f"{PREFIX}/appointment-requests", tags=["appointment-requests"])
+app.include_router(doctor_schedule.router,      prefix=f"{PREFIX}/schedule",             tags=["schedule"])
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "version": "1.0.0", "environment": settings.ENVIRONMENT}
+
+
+# Combined ASGI app: FastAPI (REST) + Socket.IO (realtime) at /socket.io.
+# Launch with: uvicorn app.main:asgi_app
+asgi_app = mount_socketio(app)

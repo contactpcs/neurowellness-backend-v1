@@ -12,12 +12,15 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard'
 import PatientList from './pages/doctor/PatientList'
 import PatientDetail from './pages/doctor/PatientDetail'
 import DoctorRegisterPatient from './pages/doctor/RegisterPatient'
+import DoctorAppointments from './pages/doctor/DoctorAppointments'
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard'
 import MyAssessments from './pages/patient/MyAssessments'
 import MyScores from './pages/patient/MyScores'
 import ScoreDetailPage from './pages/patient/ScoreDetailPage'
+import PatientAppointments from './pages/patient/PatientAppointments'
+import RequestAppointment from './pages/patient/RequestAppointment'
 
 // PRS / assessment pages
 import AssessmentPage from './pages/prs/AssessmentPage'
@@ -31,6 +34,8 @@ import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard'
 import ReceptionistPatientList from './pages/receptionist/ReceptionistPatientList'
 import ReceptionistPatientDetail from './pages/receptionist/ReceptionistPatientDetail'
 import ReceptionistRegisterPatient from './pages/receptionist/RegisterPatient'
+import ReceptionistAppointments from './pages/receptionist/ReceptionistAppointments'
+import AppointmentRequests from './pages/receptionist/AppointmentRequests'
 
 // Clinical Assistant pages
 import ClinicalAssistantDashboard from './pages/clinical_assistant/ClinicalAssistantDashboard'
@@ -107,6 +112,9 @@ export default function App() {
         <Route path="/doctor/patients" element={
           <ProtectedRoute requiredRole="doctor"><PatientList /></ProtectedRoute>
         } />
+        <Route path="/doctor/appointments" element={
+          <ProtectedRoute requiredRole="doctor"><DoctorAppointments /></ProtectedRoute>
+        } />
         <Route path="/doctor/patients/register" element={
           <ProtectedRoute requiredRole="doctor"><DoctorRegisterPatient /></ProtectedRoute>
         } />
@@ -129,6 +137,12 @@ export default function App() {
         <Route path="/patient/assessments" element={
           <ProtectedRoute requiredRole="patient"><MyAssessments /></ProtectedRoute>
         } />
+        <Route path="/patient/appointments" element={
+          <ProtectedRoute requiredRole="patient"><PatientAppointments /></ProtectedRoute>
+        } />
+        <Route path="/patient/appointments/request" element={
+          <ProtectedRoute requiredRole="patient"><RequestAppointment /></ProtectedRoute>
+        } />
         <Route path="/patient/scores" element={
           <ProtectedRoute requiredRole="patient"><MyScores /></ProtectedRoute>
         } />
@@ -143,6 +157,12 @@ export default function App() {
         <Route path="/receptionist/dashboard" element={
           <ProtectedRoute requiredRole="receptionist"><ReceptionistDashboard /></ProtectedRoute>
         } />
+        <Route path="/receptionist/appointments" element={
+          <ProtectedRoute requiredRole="receptionist"><ReceptionistAppointments /></ProtectedRoute>
+        } />
+        <Route path="/receptionist/appointment-requests" element={
+          <ProtectedRoute requiredRole="receptionist"><AppointmentRequests /></ProtectedRoute>
+        } />
         <Route path="/receptionist/patients" element={
           <ProtectedRoute requiredRole="receptionist"><ReceptionistPatientList /></ProtectedRoute>
         } />
@@ -156,6 +176,12 @@ export default function App() {
         {/* Clinical Assistant routes */}
         <Route path="/clinical-assistant/dashboard" element={
           <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantDashboard /></ProtectedRoute>
+        } />
+        <Route path="/clinical-assistant/appointments" element={
+          <ProtectedRoute requiredRole="clinical_assistant"><ReceptionistAppointments /></ProtectedRoute>
+        } />
+        <Route path="/clinical-assistant/appointment-requests" element={
+          <ProtectedRoute requiredRole="clinical_assistant"><AppointmentRequests /></ProtectedRoute>
         } />
         <Route path="/clinical-assistant/patients" element={
           <ProtectedRoute requiredRole="clinical_assistant"><ClinicalAssistantPatientList /></ProtectedRoute>
