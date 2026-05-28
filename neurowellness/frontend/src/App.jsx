@@ -13,6 +13,7 @@ import PatientList from './pages/doctor/PatientList'
 import PatientDetail from './pages/doctor/PatientDetail'
 import DoctorRegisterPatient from './pages/doctor/RegisterPatient'
 import DoctorAppointments from './pages/doctor/DoctorAppointments'
+import DoctorSchedule from './pages/doctor/DoctorSchedule'
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard'
@@ -49,6 +50,8 @@ import AdminStaffList from './pages/admin/AdminStaffList'
 import AdminStaffRegister from './pages/admin/AdminStaffRegister'
 import AdminStaffEdit from './pages/admin/AdminStaffEdit'
 import AdminPatientList from './pages/admin/AdminPatientList'
+import AdminDoctorSchedules from './pages/admin/AdminDoctorSchedules'
+import AdminLayout from './components/layout/AdminLayout'
 
 // Layouts
 import DoctorLayout from './components/layout/DoctorLayout'
@@ -104,6 +107,15 @@ export default function App() {
         <Route path="/admin/patients" element={
           <ProtectedRoute requiredRole="admin"><AdminPatientList /></ProtectedRoute>
         } />
+        <Route path="/admin/appointments" element={
+          <ProtectedRoute requiredRole="admin"><ReceptionistAppointments Layout={AdminLayout} /></ProtectedRoute>
+        } />
+        <Route path="/admin/appointment-requests" element={
+          <ProtectedRoute requiredRole="admin"><AppointmentRequests Layout={AdminLayout} /></ProtectedRoute>
+        } />
+        <Route path="/admin/doctor-schedules" element={
+          <ProtectedRoute requiredRole="admin"><AdminDoctorSchedules /></ProtectedRoute>
+        } />
 
         {/* Doctor routes */}
         <Route path="/doctor/dashboard" element={
@@ -114,6 +126,9 @@ export default function App() {
         } />
         <Route path="/doctor/appointments" element={
           <ProtectedRoute requiredRole="doctor"><DoctorAppointments /></ProtectedRoute>
+        } />
+        <Route path="/doctor/schedule" element={
+          <ProtectedRoute requiredRole="doctor"><DoctorSchedule /></ProtectedRoute>
         } />
         <Route path="/doctor/patients/register" element={
           <ProtectedRoute requiredRole="doctor"><DoctorRegisterPatient /></ProtectedRoute>

@@ -4,7 +4,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 
-from app.dependencies import require_doctor, require_staff, require_staff_or_doctor
+from app.dependencies import require_doctor, require_staff, require_staff_or_doctor, require_admin
 from app.database import get_supabase_admin
 from app.services import schedule_service
 from app.utils.responses import success_response
@@ -90,11 +90,17 @@ async def delete_my_override(request: Request, override_id: str,
 async def doctor_schedule(request: Request, doctor_id: str,
                           current_user: dict = Depends(require_staff_or_doctor)):
     admin = get_supabase_admin()
-    _assert_same_clinic(admin, doctor_id, current_user)
+    # Admins (no clinic_id) bypass the clinic check; staff are restricted to their clinic.
+    if current_user.get("role") != "admin" or current_user.get("clinic_id"):
+        _assert_same_clinic(admin, doctor_id, current_user)
     weekly = admin.table("doctor_weekly_schedules").select("*").eq(
         "doctor_id", doctor_id
     ).order("day_of_week").execute().data or []
-    return success_response({"weekly": weekly})
+    from datetime import date as _date
+    overrides = admin.table("doctor_schedule_overrides").select("*").eq(
+        "doctor_id", doctor_id
+    ).gte("override_date", _date.today().isoformat()).order("override_date").execute().data or []
+    return success_response({"weekly": weekly, "overrides": overrides})
 
 
 @router.get("/doctor/{doctor_id}/slots")
@@ -139,6 +145,54 @@ async def clinic_doctors(request: Request, current_user: dict = Depends(require_
     return success_response([
         {**p, **doctors.get(p["id"], {})} for p in profiles
     ])
+
+
+# ── Admin-on-behalf: write any doctor's schedule + overrides ─────────────
+
+def _resolve_doctor_clinic(admin, doctor_id: str) -> str:
+    rows = admin.table("doctors").select("clinic_id").eq("id", doctor_id).limit(1).execute().data or []
+    if not rows:
+        raise BadRequestError("Doctor not found")
+    cid = rows[0].get("clinic_id")
+    if not cid:
+        raise BadRequestError("Target doctor has no clinic")
+    return cid
+
+
+@router.put("/doctor/{doctor_id}")
+@limiter.limit("20/minute")
+async def admin_replace_doctor_schedule(
+    request: Request, doctor_id: str, body: WeeklyScheduleUpsert,
+    current_user: dict = Depends(require_admin),
+):
+    admin = get_supabase_admin()
+    clinic_id = _resolve_doctor_clinic(admin, doctor_id)
+    rows = schedule_service.upsert_weekly_schedule(
+        doctor_id, clinic_id, [it.model_dump() for it in body.items]
+    )
+    return success_response(rows, "Weekly schedule updated")
+
+
+@router.post("/doctor/{doctor_id}/overrides")
+@limiter.limit("20/minute")
+async def admin_add_doctor_override(
+    request: Request, doctor_id: str, body: ScheduleOverrideCreate,
+    current_user: dict = Depends(require_admin),
+):
+    admin = get_supabase_admin()
+    clinic_id = _resolve_doctor_clinic(admin, doctor_id)
+    row = schedule_service.add_override(doctor_id, clinic_id, body.model_dump(), current_user["id"])
+    return success_response(row, "Override added", status_code=201)
+
+
+@router.delete("/doctor/{doctor_id}/overrides/{override_id}")
+@limiter.limit("20/minute")
+async def admin_delete_doctor_override(
+    request: Request, doctor_id: str, override_id: str,
+    current_user: dict = Depends(require_admin),
+):
+    schedule_service.remove_override(doctor_id, override_id)
+    return success_response({"override_id": override_id}, "Override removed")
 
 
 def _assert_same_clinic(admin, doctor_id: str, current_user: dict) -> None:

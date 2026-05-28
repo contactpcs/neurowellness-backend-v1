@@ -43,12 +43,16 @@ export default function Navbar() {
             <Link to="/admin/clinics" style={styles.link}>Clinics</Link>
             <Link to="/admin/staff" style={styles.link}>Staff</Link>
             <Link to="/admin/patients" style={styles.link}>Patients</Link>
+            <Link to="/admin/appointments" style={styles.link}>Appointments</Link>
+            <Link to="/admin/appointment-requests" style={styles.link}>Requests</Link>
+            <Link to="/admin/doctor-schedules" style={styles.link}>Schedules</Link>
           </>
         )}
         {role === 'doctor' && (
           <>
             <Link to="/doctor/dashboard" style={styles.link}>Dashboard</Link>
             <Link to="/doctor/appointments" style={styles.link}>Appointments</Link>
+            <Link to="/doctor/schedule" style={styles.link}>My Schedule</Link>
             <Link to="/doctor/patients" style={styles.link}>Patients</Link>
           </>
         )}

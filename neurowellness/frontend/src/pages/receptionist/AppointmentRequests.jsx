@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import StaffLayout from '../../components/layout/StaffLayout'
+import StaffLayoutDefault from '../../components/layout/StaffLayout'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import RequestReviewPanel from '../../components/appointments/RequestReviewPanel'
 import { useAppointmentsStore } from '../../store/appointmentsStore'
@@ -17,7 +17,7 @@ const S = {
 
 const urgencyColor = (u) => u === 'emergency' ? '#dc2626' : u === 'urgent' ? '#b45309' : '#0891b2'
 
-export default function AppointmentRequests() {
+export default function AppointmentRequests({ Layout = StaffLayoutDefault }) {
   const { requests, loading, fetchRequests, applyRequestSocketEvent } = useAppointmentsStore()
   const [reviewing, setReviewing] = useState(null)
 
@@ -35,7 +35,7 @@ export default function AppointmentRequests() {
   }, [])
 
   return (
-    <StaffLayout>
+    <Layout>
       <h1 style={S.h1}>Appointment Requests {requests.length > 0 && <span style={S.badge('#dc2626')}>{requests.length} pending</span>}</h1>
 
       {loading ? <LoadingSpinner /> : requests.length === 0 ? (
@@ -66,6 +66,6 @@ export default function AppointmentRequests() {
           onResolved={() => fetchRequests('pending')}
         />
       )}
-    </StaffLayout>
+    </Layout>
   )
 }

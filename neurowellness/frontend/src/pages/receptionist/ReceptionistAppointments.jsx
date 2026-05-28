@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import StaffLayout from '../../components/layout/StaffLayout'
+import StaffLayoutDefault from '../../components/layout/StaffLayout'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import AppointmentCalendar from '../../components/appointments/AppointmentCalendar'
 import AppointmentDetailModal from '../../components/appointments/AppointmentDetailModal'
@@ -16,7 +16,7 @@ const S = {
   bookBtn: { background: '#0891b2', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 18px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 }
 
-export default function ReceptionistAppointments() {
+export default function ReceptionistAppointments({ Layout = StaffLayoutDefault }) {
   const {
     appointments, loading, doctors,
     fetchAppointments, fetchClinicDoctors, action, cancel, applySocketEvent,
@@ -60,7 +60,7 @@ export default function ReceptionistAppointments() {
   }
 
   return (
-    <StaffLayout>
+    <Layout>
       <div style={S.head}>
         <h1 style={S.h1}>Appointments</h1>
         <div style={S.controls}>
@@ -105,6 +105,6 @@ export default function ReceptionistAppointments() {
           onDone={() => { setRescheduling(null); setSelected(null); fetchAppointments(doctorFilter ? { doctor_id: doctorFilter } : {}) }}
         />
       )}
-    </StaffLayout>
+    </Layout>
   )
 }

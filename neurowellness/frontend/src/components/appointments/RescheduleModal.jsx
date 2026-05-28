@@ -18,7 +18,7 @@ const S = {
 const today = () => new Date().toISOString().slice(0, 10)
 
 export default function RescheduleModal({ appt, onClose, onDone }) {
-  const { slots, fetchSlots, reschedule } = useAppointmentsStore()
+  const { slots, slotsLoading, fetchSlots, reschedule } = useAppointmentsStore()
   const [date, setDate] = useState(appt.appointment_date || today())
   const [slot, setSlot] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -50,7 +50,9 @@ export default function RescheduleModal({ appt, onClose, onDone }) {
         <label style={S.label}>New date</label>
         <input style={S.input} type="date" min={today()} value={date} onChange={e => setDate(e.target.value)} />
         <label style={S.label}>New slot</label>
-        {available.length === 0
+        {slotsLoading
+          ? <p style={{ color: '#6b7280', fontSize: '13px' }}>Loading slots…</p>
+          : available.length === 0
           ? <p style={{ color: '#9ca3af', fontSize: '13px' }}>No available slots on this date.</p>
           : <div style={S.slotGrid}>
               {available.map(s => (

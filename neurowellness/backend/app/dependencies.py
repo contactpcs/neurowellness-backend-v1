@@ -13,6 +13,16 @@ security = HTTPBearer()
 _jwks_cache: TTLCache = TTLCache(maxsize=1, ttl=3600)
 _jwks_lock = threading.Lock()
 
+# Per-user profile cache: removes one Supabase round-trip from every authed request.
+# 60s TTL — role/clinic rarely change; invalidations on deactivate handled via _invalidate_profile_cache().
+_profile_cache: TTLCache = TTLCache(maxsize=5000, ttl=60)
+_profile_lock = threading.Lock()
+
+
+def _invalidate_profile_cache(user_id: str) -> None:
+    with _profile_lock:
+        _profile_cache.pop(user_id, None)
+
 
 def _get_jwks() -> dict:
     """Fetch Supabase JWKS with a 1-hour TTL cache. Thread-safe."""
@@ -107,6 +117,13 @@ async def get_current_user(
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+    # Profile cache check (60s TTL) — saves a Supabase round-trip on most requests.
+    with _profile_lock:
+        cached = _profile_cache.get(user_id)
+    if cached:
+        # Re-stamp email from the (fresh) token in case the cached profile email is empty.
+        return {**cached, "email": cached.get("email") or email}
+
     # Look up profile row (no .single() — avoid 500 on missing row)
     admin = get_supabase_admin()
     try:
@@ -123,13 +140,16 @@ async def get_current_user(
     if not profile.get("is_active"):
         raise HTTPException(status_code=403, detail="Account is deactivated. Please contact your clinic receptionist.")
 
-    return {
+    user = {
         "id": user_id,
         "email": profile.get("email") or email,
         "role": profile["role"],
         "full_name": profile["full_name"],
         "clinic_id": profile.get("clinic_id"),
     }
+    with _profile_lock:
+        _profile_cache[user_id] = user
+    return user
 
 
 def require_role(allowed_roles: list):

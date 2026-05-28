@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # Appointments / scheduling
     APP_TIMEZONE: str = "Asia/Kolkata"
-    APPOINTMENT_DEFAULT_SLOT_MINUTES: int = 30
+    APPOINTMENT_DEFAULT_SLOT_MINUTES: int = 60
     APPOINTMENT_MAX_BOOKING_DAYS_AHEAD: int = 60
     APPOINTMENT_REQUEST_EXPIRY_HOURS: float = 72
     APPOINTMENT_CANCEL_MIN_HOURS: float = 2

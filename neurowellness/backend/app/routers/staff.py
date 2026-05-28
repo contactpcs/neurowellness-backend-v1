@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from app.dependencies import require_staff, require_receptionist
+from app.dependencies import require_staff, require_receptionist, _invalidate_profile_cache
 from app.database import get_supabase_admin
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import NotFoundError, BadRequestError, ForbiddenError
@@ -204,6 +204,7 @@ async def approve_patient(
 
     admin.table("patients").update({"approval_status": "approved"}).eq("id", patient_id).execute()
     admin.table("profiles").update({"is_active": True}).eq("id", patient_id).execute()
+    _invalidate_profile_cache(patient_id)
 
     # Trigger doctor allocation if not yet assigned
     if not patient.get("assigned_doctor_id"):

@@ -23,7 +23,7 @@ const S = {
 const urgencyColor = (u) => u === 'emergency' ? '#dc2626' : u === 'urgent' ? '#b45309' : '#0891b2'
 
 export default function RequestReviewPanel({ request, onClose, onResolved }) {
-  const { slots, fetchSlots, approveRequest, rejectRequest } = useAppointmentsStore()
+  const { slots, slotsLoading, fetchSlots, approveRequest, rejectRequest } = useAppointmentsStore()
   const dates = [request.preferred_date_1, request.preferred_date_2, request.preferred_date_3].filter(Boolean)
   const [date, setDate] = useState(dates[0] || '')
   const [slot, setSlot] = useState(null)
@@ -91,7 +91,9 @@ export default function RequestReviewPanel({ request, onClose, onResolved }) {
                      onChange={e => setDate(e.target.value)} />
             )}
             <div style={{ marginTop: '10px' }}>
-              {available.length === 0
+              {slotsLoading
+                ? <p style={{ color: '#6b7280', fontSize: '13px' }}>Loading slots…</p>
+                : available.length === 0
                 ? <p style={{ color: '#9ca3af', fontSize: '13px' }}>No available slots on this date.</p>
                 : <div style={S.slotGrid}>
                     {available.map(s => (

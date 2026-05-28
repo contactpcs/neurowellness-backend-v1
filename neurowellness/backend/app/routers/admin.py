@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from supabase import create_client
-from app.dependencies import require_admin
+from app.dependencies import require_admin, _invalidate_profile_cache
 from app.database import get_supabase_admin
 from app.config import get_settings
 from app.utils.responses import success_response, paginated_response
@@ -564,6 +564,7 @@ async def deactivate_staff(
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
     admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
+    _invalidate_profile_cache(staff_id)
     return success_response({"staff_id": staff_id}, "Staff member deactivated")
 
 
@@ -579,6 +580,7 @@ async def reactivate_staff(
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
     admin.table("profiles").update({"is_active": True}).eq("id", staff_id).execute()
+    _invalidate_profile_cache(staff_id)
     return success_response({"staff_id": staff_id}, "Staff member reactivated")
 
 
@@ -606,6 +608,7 @@ async def delete_staff(
         "deleted_at": now,
     }).eq("id", staff_id).execute()
     admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
+    _invalidate_profile_cache(staff_id)
 
     return success_response({"staff_id": staff_id}, "Staff member deleted")
 

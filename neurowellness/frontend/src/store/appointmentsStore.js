@@ -14,6 +14,11 @@ export const useAppointmentsStore = create((set, get) => ({
   appointments: [],
   doctors: [],
   slots: [],
+  slotsLoading: false,
+  _slotsToken: 0,
+  patients: [],
+  patientsFetchedAt: 0,
+  patientsLoading: false,
   requests: [],
   loading: false,
   error: null,
@@ -35,11 +40,34 @@ export const useAppointmentsStore = create((set, get) => ({
   },
 
   fetchSlots: async (doctorId, fromDate, toDate, includeUnavailable = false) => {
-    const res = await api.get(`/schedule/doctor/${doctorId}/slots`, {
-      params: { from_date: fromDate, to_date: toDate || fromDate, include_unavailable: includeUnavailable },
-    })
-    set({ slots: res.data.data || [] })
-    return res.data.data || []
+    // Race-guard: clear previous slots and track latest call; ignore stale responses.
+    const token = get()._slotsToken + 1
+    set({ slots: [], slotsLoading: true, _slotsToken: token })
+    try {
+      const res = await api.get(`/schedule/doctor/${doctorId}/slots`, {
+        params: { from_date: fromDate, to_date: toDate || fromDate, include_unavailable: includeUnavailable },
+      })
+      if (get()._slotsToken !== token) return []   // a newer fetch superseded this one
+      set({ slots: res.data.data || [], slotsLoading: false })
+      return res.data.data || []
+    } catch (e) {
+      if (get()._slotsToken === token) set({ slotsLoading: false })
+      throw e
+    }
+  },
+
+  fetchPatientsList: async (force = false) => {
+    const { patients, patientsFetchedAt } = get()
+    if (!force && patients.length && Date.now() - patientsFetchedAt < 60_000) return patients
+    set({ patientsLoading: true })
+    try {
+      const res = await api.get('/staff/patients', { params: { limit: 100 } })
+      set({ patients: res.data.data || [], patientsFetchedAt: Date.now(), patientsLoading: false })
+      return res.data.data || []
+    } catch (e) {
+      set({ patientsLoading: false })
+      return []
+    }
   },
 
   book: async (payload) => {

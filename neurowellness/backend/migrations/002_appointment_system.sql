@@ -21,8 +21,8 @@ CREATE TABLE doctor_weekly_schedules (
   day_of_week            SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),  -- 0=Sun..6=Sat
   start_time             TIME NOT NULL,
   end_time               TIME NOT NULL,
-  slot_duration_minutes  SMALLINT NOT NULL DEFAULT 30
-                         CHECK (slot_duration_minutes IN (15,20,30,45,60)),
+  slot_duration_minutes  SMALLINT NOT NULL DEFAULT 60
+                         CHECK (slot_duration_minutes IN (60, 90, 120)),
   break_start            TIME,
   break_end              TIME,
   is_active              BOOLEAN NOT NULL DEFAULT TRUE,
