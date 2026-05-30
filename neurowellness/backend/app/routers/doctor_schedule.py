@@ -43,13 +43,13 @@ class ScheduleOverrideCreate(BaseModel):
 async def my_schedule(request: Request, current_user: dict = Depends(require_doctor)):
     admin = get_supabase_admin()
     doctor_id = current_user["id"]
-    weekly = admin.table("doctor_weekly_schedules").select("*").eq(
+    weekly = (await admin.table("doctor_weekly_schedules").select("*").eq(
         "doctor_id", doctor_id
-    ).order("day_of_week").execute().data or []
+    ).order("day_of_week").execute()).data or []
     today = date.today()
-    overrides = admin.table("doctor_schedule_overrides").select("*").eq(
+    overrides = (await admin.table("doctor_schedule_overrides").select("*").eq(
         "doctor_id", doctor_id
-    ).gte("override_date", today.isoformat()).order("override_date").execute().data or []
+    ).gte("override_date", today.isoformat()).order("override_date").execute()).data or []
     return success_response({"weekly": weekly, "overrides": overrides})
 
 
@@ -60,7 +60,7 @@ async def replace_my_schedule(request: Request, body: WeeklyScheduleUpsert,
     clinic_id = current_user.get("clinic_id")
     if not clinic_id:
         raise BadRequestError("Your account is not associated with a clinic")
-    rows = schedule_service.upsert_weekly_schedule(
+    rows = await schedule_service.upsert_weekly_schedule(
         current_user["id"], clinic_id, [it.model_dump() for it in body.items]
     )
     return success_response(rows, "Weekly schedule updated")
@@ -73,7 +73,7 @@ async def add_my_override(request: Request, body: ScheduleOverrideCreate,
     clinic_id = current_user.get("clinic_id")
     if not clinic_id:
         raise BadRequestError("Your account is not associated with a clinic")
-    row = schedule_service.add_override(current_user["id"], clinic_id, body.model_dump(), current_user["id"])
+    row = await schedule_service.add_override(current_user["id"], clinic_id, body.model_dump(), current_user["id"])
     return success_response(row, "Override added", status_code=201)
 
 
@@ -81,7 +81,7 @@ async def add_my_override(request: Request, body: ScheduleOverrideCreate,
 @limiter.limit("20/minute")
 async def delete_my_override(request: Request, override_id: str,
                              current_user: dict = Depends(require_doctor)):
-    schedule_service.remove_override(current_user["id"], override_id)
+    await schedule_service.remove_override(current_user["id"], override_id)
     return success_response({"override_id": override_id}, "Override removed")
 
 
@@ -90,16 +90,15 @@ async def delete_my_override(request: Request, override_id: str,
 async def doctor_schedule(request: Request, doctor_id: str,
                           current_user: dict = Depends(require_staff_or_doctor)):
     admin = get_supabase_admin()
-    # Admins (no clinic_id) bypass the clinic check; staff are restricted to their clinic.
     if current_user.get("role") != "admin" or current_user.get("clinic_id"):
-        _assert_same_clinic(admin, doctor_id, current_user)
-    weekly = admin.table("doctor_weekly_schedules").select("*").eq(
+        await _assert_same_clinic(admin, doctor_id, current_user)
+    weekly = (await admin.table("doctor_weekly_schedules").select("*").eq(
         "doctor_id", doctor_id
-    ).order("day_of_week").execute().data or []
+    ).order("day_of_week").execute()).data or []
     from datetime import date as _date
-    overrides = admin.table("doctor_schedule_overrides").select("*").eq(
+    overrides = (await admin.table("doctor_schedule_overrides").select("*").eq(
         "doctor_id", doctor_id
-    ).gte("override_date", _date.today().isoformat()).order("override_date").execute().data or []
+    ).gte("override_date", _date.today().isoformat()).order("override_date").execute()).data or []
     return success_response({"weekly": weekly, "overrides": overrides})
 
 
@@ -114,12 +113,12 @@ async def doctor_slots(
     current_user: dict = Depends(require_staff_or_doctor),
 ):
     admin = get_supabase_admin()
-    _assert_same_clinic(admin, doctor_id, current_user)
+    await _assert_same_clinic(admin, doctor_id, current_user)
     if to_date is None:
         to_date = from_date
     if to_date < from_date:
         raise BadRequestError("to_date must be on or after from_date")
-    slots = schedule_service.generate_slots(
+    slots = await schedule_service.generate_slots(
         doctor_id, current_user.get("clinic_id"), from_date, to_date,
         include_unavailable=include_unavailable,
     )
@@ -134,13 +133,13 @@ async def clinic_doctors(request: Request, current_user: dict = Depends(require_
     q = admin.table("profiles").select("id, full_name, email").eq("role", "doctor").eq("is_active", True)
     if clinic_id:
         q = q.eq("clinic_id", clinic_id)
-    profiles = q.execute().data or []
+    profiles = (await q.execute()).data or []
     ids = [p["id"] for p in profiles]
     doctors = {}
     if ids:
-        rows = admin.table("doctors").select(
+        rows = (await admin.table("doctors").select(
             "id, specialization, availability, current_patient_count, max_patients"
-        ).in_("id", ids).execute().data or []
+        ).in_("id", ids).execute()).data or []
         doctors = {d["id"]: d for d in rows}
     return success_response([
         {**p, **doctors.get(p["id"], {})} for p in profiles
@@ -149,8 +148,8 @@ async def clinic_doctors(request: Request, current_user: dict = Depends(require_
 
 # ── Admin-on-behalf: write any doctor's schedule + overrides ─────────────
 
-def _resolve_doctor_clinic(admin, doctor_id: str) -> str:
-    rows = admin.table("doctors").select("clinic_id").eq("id", doctor_id).limit(1).execute().data or []
+async def _resolve_doctor_clinic(admin, doctor_id: str) -> str:
+    rows = (await admin.table("doctors").select("clinic_id").eq("id", doctor_id).limit(1).execute()).data or []
     if not rows:
         raise BadRequestError("Doctor not found")
     cid = rows[0].get("clinic_id")
@@ -166,8 +165,8 @@ async def admin_replace_doctor_schedule(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    clinic_id = _resolve_doctor_clinic(admin, doctor_id)
-    rows = schedule_service.upsert_weekly_schedule(
+    clinic_id = await _resolve_doctor_clinic(admin, doctor_id)
+    rows = await schedule_service.upsert_weekly_schedule(
         doctor_id, clinic_id, [it.model_dump() for it in body.items]
     )
     return success_response(rows, "Weekly schedule updated")
@@ -180,8 +179,8 @@ async def admin_add_doctor_override(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    clinic_id = _resolve_doctor_clinic(admin, doctor_id)
-    row = schedule_service.add_override(doctor_id, clinic_id, body.model_dump(), current_user["id"])
+    clinic_id = await _resolve_doctor_clinic(admin, doctor_id)
+    row = await schedule_service.add_override(doctor_id, clinic_id, body.model_dump(), current_user["id"])
     return success_response(row, "Override added", status_code=201)
 
 
@@ -191,17 +190,17 @@ async def admin_delete_doctor_override(
     request: Request, doctor_id: str, override_id: str,
     current_user: dict = Depends(require_admin),
 ):
-    schedule_service.remove_override(doctor_id, override_id)
+    await schedule_service.remove_override(doctor_id, override_id)
     return success_response({"override_id": override_id}, "Override removed")
 
 
-def _assert_same_clinic(admin, doctor_id: str, current_user: dict) -> None:
+async def _assert_same_clinic(admin, doctor_id: str, current_user: dict) -> None:
     """A doctor may only read their own schedule; staff are limited to their clinic."""
     role = current_user["role"]
     if role == "doctor" and doctor_id != current_user["id"]:
         raise ForbiddenError("Doctors can only view their own schedule")
     clinic_id = current_user.get("clinic_id")
     if clinic_id:
-        d = admin.table("doctors").select("clinic_id").eq("id", doctor_id).limit(1).execute().data or []
+        d = (await admin.table("doctors").select("clinic_id").eq("id", doctor_id).limit(1).execute()).data or []
         if d and d[0].get("clinic_id") and d[0]["clinic_id"] != clinic_id:
             raise ForbiddenError("Doctor is not in your clinic")

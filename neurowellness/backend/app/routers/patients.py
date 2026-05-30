@@ -7,8 +7,8 @@ from app.limiter import limiter
 router = APIRouter()
 
 
-def _row(admin, table: str, field: str, value: str) -> dict:
-    result = admin.table(table).select("*").eq(field, value).limit(1).execute()
+async def _row(admin, table: str, field: str, value: str) -> dict:
+    result = await admin.table(table).select("*").eq(field, value).limit(1).execute()
     return result.data[0] if result.data else {}
 
 
@@ -18,14 +18,14 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
     admin = get_supabase_admin()
     patient_id = current_user["id"]
 
-    profile = _row(admin, "profiles", "id", patient_id)
-    patient = _row(admin, "patients", "id", patient_id)
+    profile = await _row(admin, "profiles", "id", patient_id)
+    patient = await _row(admin, "patients", "id", patient_id)
 
     doctor_info = None
     if patient.get("assigned_doctor_id"):
         dr_id = patient["assigned_doctor_id"]
-        dr_profile = _row(admin, "profiles", "id", dr_id)
-        dr_extra  = _row(admin, "doctors",  "id", dr_id)
+        dr_profile = await _row(admin, "profiles", "id", dr_id)
+        dr_extra  = await _row(admin, "doctors",  "id", dr_id)
         doctor_info = {
             "full_name":            dr_profile.get("full_name"),
             "phone":                dr_profile.get("phone"),
@@ -33,10 +33,9 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
             "hospital_affiliation": dr_extra.get("hospital_affiliation"),
         }
 
-    # Pending permissions — deduplicated to one per disease
-    raw_pending = admin.table("assessment_permissions").select(
+    raw_pending = (await admin.table("assessment_permissions").select(
         "id, disease_id, status, granted_at, prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", patient_id).eq("status", "granted").execute().data or []
+    ).eq("patient_id", patient_id).eq("status", "granted").execute()).data or []
     seen: dict = {}
     for p in raw_pending:
         did = p.get("disease_id")
@@ -44,26 +43,25 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
             seen[did] = p
     pending = list(seen.values())
 
-    instances = admin.table("prs_assessment_instances").select("instance_id, disease_id").eq(
+    instances = (await admin.table("prs_assessment_instances").select("instance_id, disease_id").eq(
         "patient_id", patient_id
-    ).execute().data or []
+    ).execute()).data or []
     instance_ids = [i["instance_id"] for i in instances]
     iid_to_disease = {i["instance_id"]: i.get("disease_id") for i in instances}
 
     recent_scores = []
     if instance_ids:
-        raw = admin.table("prs_final_results").select(
+        raw = (await admin.table("prs_final_results").select(
             "instance_id, calculated_value, max_possible, percentage, "
             "overall_severity, overall_severity_label, time_stamp"
-        ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(3).execute().data or []
+        ).in_("instance_id", instance_ids).order("time_stamp", desc=True).limit(3).execute()).data or []
 
-        # Enrich with disease names via the instance→disease mapping
         d_ids = list({iid_to_disease[r["instance_id"]] for r in raw if iid_to_disease.get(r["instance_id"])})
         dn_map: dict = {}
         if d_ids:
-            disease_rows = admin.table("prs_diseases").select(
+            disease_rows = (await admin.table("prs_diseases").select(
                 "disease_id, disease_name"
-            ).in_("disease_id", d_ids).execute().data or []
+            ).in_("disease_id", d_ids).execute()).data or []
             dn_map = {d["disease_id"]: d["disease_name"] for d in disease_rows}
 
         recent_scores = [
@@ -81,9 +79,9 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
             for r in raw
         ]
 
-    upcoming_instances = admin.table("prs_assessment_instances").select("*").eq(
+    upcoming_instances = (await admin.table("prs_assessment_instances").select("*").eq(
         "patient_id", patient_id
-    ).eq("status", "in_progress").order("started_at").limit(2).execute().data or []
+    ).eq("status", "in_progress").order("started_at").limit(2).execute()).data or []
 
     return success_response({
         "profile": {**profile, **patient},
@@ -98,12 +96,12 @@ async def patient_dashboard(request: Request, current_user: dict = Depends(requi
 @limiter.limit("60/minute")
 async def my_doctor(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    patient = _row(admin, "patients", "id", current_user["id"])
+    patient = await _row(admin, "patients", "id", current_user["id"])
     if not patient.get("assigned_doctor_id"):
         return success_response(None, "No doctor assigned yet")
     dr_id = patient["assigned_doctor_id"]
-    dr_profile = _row(admin, "profiles", "id", dr_id)
-    dr_extra  = _row(admin, "doctors",  "id", dr_id)
+    dr_profile = await _row(admin, "profiles", "id", dr_id)
+    dr_extra  = await _row(admin, "doctors",  "id", dr_id)
     return success_response({
         "full_name":            dr_profile.get("full_name"),
         "phone":                dr_profile.get("phone"),
@@ -115,22 +113,17 @@ async def my_doctor(request: Request, current_user: dict = Depends(get_current_u
 @router.get("/my-assessments")
 @limiter.limit("60/minute")
 async def my_assessments(request: Request, current_user: dict = Depends(get_current_user)):
-    """
-    Return disease-level permissions enriched with per-scale completion status.
-    Each item represents one disease assessment grant.
-    """
+    """Return disease-level permissions enriched with per-scale completion status."""
     admin = get_supabase_admin()
     patient_id = current_user["id"]
 
-    all_perms = admin.table("assessment_permissions").select(
+    all_perms = (await admin.table("assessment_permissions").select(
         "id, disease_id, scale_id, status, granted_at, notes, prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
+    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute()).data or []
 
     if not all_perms:
         return success_response([])
 
-    # Deduplicate to one representative perm per disease.
-    # Prefer the most actionable / valuable status: completed > granted > expired > revoked.
     status_rank = {"completed": 3, "granted": 2, "expired": 1, "revoked": 0}
     seen_diseases: dict = {}
     for p in all_perms:
@@ -144,42 +137,36 @@ async def my_assessments(request: Request, current_user: dict = Depends(get_curr
 
     disease_ids = list({p["disease_id"] for p in perms if p.get("disease_id")})
 
-    # Fetch all scales for all diseases in one query
-    all_ds_maps = admin.table("prs_disease_scale_map").select(
+    all_ds_maps = (await admin.table("prs_disease_scale_map").select(
         "disease_id, scale_id, display_order"
-    ).in_("disease_id", disease_ids).order("display_order").execute().data or []
+    ).in_("disease_id", disease_ids).order("display_order").execute()).data or []
 
-    # Fetch scale names
     scale_ids = list({ds["scale_id"] for ds in all_ds_maps})
     scales_name_map: dict = {}
     if scale_ids:
-        scales_data = admin.table("prs_scales").select(
+        scales_data = (await admin.table("prs_scales").select(
             "scale_id, scale_code, scale_name"
-        ).in_("scale_id", scale_ids).execute().data or []
+        ).in_("scale_id", scale_ids).execute()).data or []
         scales_name_map = {s["scale_id"]: s for s in scales_data}
 
-    # Group scale maps by disease
     ds_by_disease: dict = {}
     for ds in all_ds_maps:
         ds_by_disease.setdefault(ds["disease_id"], []).append(ds)
 
-    # Fetch in_progress instances for scale completion lookup
-    in_progress = admin.table("prs_assessment_instances").select(
+    in_progress = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id"
-    ).eq("patient_id", patient_id).eq("status", "in_progress").execute().data or []
+    ).eq("patient_id", patient_id).eq("status", "in_progress").execute()).data or []
     instance_by_disease = {i["disease_id"]: i["instance_id"] for i in in_progress}
 
-    # Fetch completed scale results per in_progress instance
     done_by_instance: dict = {}
     if in_progress:
         iids = [i["instance_id"] for i in in_progress]
-        done_scales = admin.table("prs_scale_results").select(
+        done_scales = (await admin.table("prs_scale_results").select(
             "instance_id, scale_id"
-        ).in_("instance_id", iids).execute().data or []
+        ).in_("instance_id", iids).execute()).data or []
         for ds in done_scales:
             done_by_instance.setdefault(ds["instance_id"], set()).add(ds["scale_id"])
 
-    # Build the enriched response
     result = []
     for perm in perms:
         disease_id = perm.get("disease_id")
@@ -225,14 +212,14 @@ async def my_assessments(request: Request, current_user: dict = Depends(get_curr
 @limiter.limit("60/minute")
 async def my_scores(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select("instance_id").eq(
+    instances = (await admin.table("prs_assessment_instances").select("instance_id").eq(
         "patient_id", current_user["id"]
-    ).execute().data or []
+    ).execute()).data or []
     instance_ids = [i["instance_id"] for i in instances]
     if not instance_ids:
         return success_response([])
-    scores = admin.table("prs_final_results").select(
+    scores = (await admin.table("prs_final_results").select(
         "final_result_id, instance_id, calculated_value, max_possible, percentage, "
         "overall_severity, overall_severity_label, scale_summaries, time_stamp"
-    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute().data or []
+    ).in_("instance_id", instance_ids).order("time_stamp", desc=True).execute()).data or []
     return success_response(scores)

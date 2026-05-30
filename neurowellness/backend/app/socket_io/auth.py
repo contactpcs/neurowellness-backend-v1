@@ -11,7 +11,7 @@ from app.dependencies import _decode_token
 from app.database import get_supabase_admin
 
 
-def authenticate(auth: Optional[dict], environ: dict) -> Optional[dict]:
+async def authenticate(auth: Optional[dict], environ: dict) -> Optional[dict]:
     """Return a user dict {id, role, clinic_id} or None if the token is invalid."""
     token = None
     if auth and isinstance(auth, dict):
@@ -35,9 +35,9 @@ def authenticate(auth: Optional[dict], environ: dict) -> Optional[dict]:
 
     admin = get_supabase_admin()
     try:
-        rows = admin.table("profiles").select("id, role, clinic_id, is_active").eq(
+        rows = (await admin.table("profiles").select("id, role, clinic_id, is_active").eq(
             "id", user_id
-        ).limit(1).execute().data or []
+        ).limit(1).execute()).data or []
     except Exception:
         return None
     if not rows or not rows[0].get("is_active"):

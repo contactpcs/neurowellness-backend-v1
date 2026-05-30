@@ -11,40 +11,34 @@ router = APIRouter()
 @router.get("/forms")
 @limiter.limit("60/minute")
 async def get_consent_forms(request: Request):
-    """Public — returns all consent forms. Call on page load before rendering checkboxes."""
+    """Public — returns all consent forms."""
     admin = get_supabase_admin()
-    forms = admin.table("consent_forms").select(
+    forms = (await admin.table("consent_forms").select(
         "consent_form_id, consent_form_name, is_required, created_at"
-    ).order("created_at", desc=False).execute().data or []
+    ).order("created_at", desc=False).execute()).data or []
     return success_response(forms, "Consent forms retrieved.")
 
 
 @router.post("/responses", status_code=201)
 @limiter.limit("10/minute")
 async def submit_consent_responses(request: Request, body: ConsentSubmitRequest):
-    """
-    Public — submit consent responses for any user after registration.
-    Validates user exists, all required forms are present and accepted, then batch-inserts.
-    """
+    """Public — submit consent responses for any user after registration."""
     admin = get_supabase_admin()
 
-    # Verify user exists (any role)
-    profile = admin.table("profiles").select("id").eq(
+    profile = (await admin.table("profiles").select("id").eq(
         "id", body.user_id
-    ).limit(1).execute().data
+    ).limit(1).execute()).data
     if not profile:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    # Load all forms for name lookup and required-form validation
-    all_forms = admin.table("consent_forms").select(
+    all_forms = (await admin.table("consent_forms").select(
         "consent_form_id, consent_form_name, is_required"
-    ).execute().data or []
+    ).execute()).data or []
 
     form_map = {f["consent_form_id"]: f for f in all_forms}
     required_forms = [f for f in all_forms if f["is_required"]]
     submitted_map = {r.consent_form_id: r.response for r in body.responses}
 
-    # All submitted form IDs must exist
     for r in body.responses:
         if r.consent_form_id not in form_map:
             raise HTTPException(
@@ -52,7 +46,6 @@ async def submit_consent_responses(request: Request, body: ConsentSubmitRequest)
                 detail=f"Unknown consent form ID: {r.consent_form_id}",
             )
 
-    # All required forms must be submitted and accepted
     for f in required_forms:
         fid = f["consent_form_id"]
         if fid not in submitted_map:
@@ -66,10 +59,9 @@ async def submit_consent_responses(request: Request, body: ConsentSubmitRequest)
                 detail=f"Required consent form '{f['consent_form_name']}' must be accepted.",
             )
 
-    # Block duplicate submissions
-    existing = admin.table("user_consent_responses").select("consent_form_id").eq(
+    existing = (await admin.table("user_consent_responses").select("consent_form_id").eq(
         "user_id", body.user_id
-    ).execute().data or []
+    ).execute()).data or []
     existing_ids = {r["consent_form_id"] for r in existing}
     duplicates = [r.consent_form_id for r in body.responses if r.consent_form_id in existing_ids]
     if duplicates:
@@ -89,7 +81,7 @@ async def submit_consent_responses(request: Request, body: ConsentSubmitRequest)
     ]
 
     try:
-        result = admin.table("user_consent_responses").insert(rows).execute()
+        result = await admin.table("user_consent_responses").insert(rows).execute()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save consent responses: {e}")
 

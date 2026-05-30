@@ -18,13 +18,13 @@ class GrantPermissionRequest(BaseModel):
     notes: Optional[str] = None
 
 
-def _get_or_create_session(admin, patient_id: str, doctor_id: str, clinic_id: str = None) -> str:
+async def _get_or_create_session(admin, patient_id: str, doctor_id: str, clinic_id: str = None) -> str:
     """Return an active session_id for this patient-doctor pair, creating one if needed."""
-    existing = admin.table("sessions").select("id").eq(
+    existing = (await admin.table("sessions").select("id").eq(
         "patient_id", patient_id
     ).eq("doctor_id", doctor_id).in_(
         "status", ["scheduled", "in_progress"]
-    ).order("session_date", desc=True).limit(1).execute().data
+    ).order("session_date", desc=True).limit(1).execute()).data
 
     if existing:
         return existing[0]["id"]
@@ -37,7 +37,7 @@ def _get_or_create_session(admin, patient_id: str, doctor_id: str, clinic_id: st
     }
     if clinic_id:
         row["clinic_id"] = clinic_id
-    result = admin.table("sessions").insert(row).execute()
+    result = await admin.table("sessions").insert(row).execute()
     return result.data[0]["id"]
 
 
@@ -53,7 +53,7 @@ async def grant_permission(
 
     admin = get_supabase_admin()
 
-    patient_result = admin.table("patients").select("assigned_doctor_id, clinic_id").eq(
+    patient_result = await admin.table("patients").select("assigned_doctor_id, clinic_id").eq(
         "id", body.patient_id
     ).limit(1).execute()
     if not patient_result.data:
@@ -66,23 +66,21 @@ async def grant_permission(
     else:
         doctor_id = patient_result.data[0].get("assigned_doctor_id") or current_user["id"]
 
-    disease_result = admin.table("prs_diseases").select("disease_id, disease_name").eq(
+    disease_result = await admin.table("prs_diseases").select("disease_id, disease_name").eq(
         "disease_id", body.disease_id
     ).limit(1).execute()
     if not disease_result.data:
         raise NotFoundError(f"Disease '{body.disease_id}' not found")
     disease = disease_result.data[0]
 
-    ds_maps = admin.table("prs_disease_scale_map").select(
+    ds_maps = (await admin.table("prs_disease_scale_map").select(
         "scale_id"
-    ).eq("disease_id", body.disease_id).execute().data or []
+    ).eq("disease_id", body.disease_id).execute()).data or []
     if not ds_maps:
         raise BadRequestError(f"No scales configured for disease '{body.disease_id}'")
 
-    session_id = _get_or_create_session(admin, body.patient_id, doctor_id, clinic_id=patient_clinic_id)
+    session_id = await _get_or_create_session(admin, body.patient_id, doctor_id, clinic_id=patient_clinic_id)
 
-    # Check if a disease-level permission already exists for this patient + disease + session
-    # Upsert one permission row per scale (existing DB schema — scale_id NOT NULL)
     perm_rows = [
         {
             "patient_id": body.patient_id,
@@ -96,12 +94,12 @@ async def grant_permission(
         }
         for ds in ds_maps
     ]
-    result = admin.table("assessment_permissions").upsert(
+    result = await admin.table("assessment_permissions").upsert(
         perm_rows, on_conflict="patient_id,scale_id,session_id"
     ).execute()
     perm_id = result.data[0]["id"] if result.data else None
 
-    admin.table("notifications").insert({
+    await admin.table("notifications").insert({
         "user_id": body.patient_id,
         "type": "permission_granted",
         "title": "New Assessment Available",
@@ -134,12 +132,11 @@ async def get_patient_permissions(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
-    perms = admin.table("assessment_permissions").select(
+    perms = (await admin.table("assessment_permissions").select(
         "id, patient_id, doctor_id, disease_id, scale_id, status, granted_at, expires_at, "
         "prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute().data or []
+    ).eq("patient_id", patient_id).order("granted_at", desc=True).execute()).data or []
 
-    # Deduplicate to one entry per disease — prefer completed > granted > expired > revoked
     status_rank = {"completed": 3, "granted": 2, "expired": 1, "revoked": 0}
     disease_map: dict = {}
     for p in perms:
@@ -152,17 +149,16 @@ async def get_patient_permissions(
 
     deduplicated = list(disease_map.values())
 
-    # Enrich completed diseases with their most recent completed instance_id
     completed_disease_ids = [
         d["disease_id"] for d in deduplicated if d.get("status") == "completed"
     ]
     instance_by_disease: dict = {}
     if completed_disease_ids:
-        instances = admin.table("prs_assessment_instances").select(
+        instances = (await admin.table("prs_assessment_instances").select(
             "instance_id, disease_id, completed_at"
         ).eq("patient_id", patient_id).eq("status", "completed").in_(
             "disease_id", completed_disease_ids
-        ).order("completed_at", desc=True).execute().data or []
+        ).order("completed_at", desc=True).execute()).data or []
         for inst in instances:
             did = inst["disease_id"]
             if did not in instance_by_disease:
@@ -191,9 +187,9 @@ async def get_patient_permissions(
 @limiter.limit("60/minute")
 async def get_my_permissions(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    perms = admin.table("assessment_permissions").select(
+    perms = (await admin.table("assessment_permissions").select(
         "*, prs_diseases(disease_id, disease_name)"
-    ).eq("patient_id", current_user["id"]).eq("status", "granted").execute().data or []
+    ).eq("patient_id", current_user["id"]).eq("status", "granted").execute()).data or []
     return success_response(perms)
 
 
@@ -205,7 +201,7 @@ async def revoke_permission(
     current_user: dict = Depends(require_doctor),
 ):
     admin = get_supabase_admin()
-    result = admin.table("assessment_permissions").update({
+    result = await admin.table("assessment_permissions").update({
         "status": "revoked",
         "revoked_at": datetime.now(timezone.utc).isoformat(),
     }).eq("id", permission_id).eq("doctor_id", current_user["id"]).execute()

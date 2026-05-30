@@ -7,10 +7,7 @@ from app.limiter import limiter
 
 router = APIRouter()
 
-# Answer types that have discrete selectable options stored in prs_options
 _CHOICE_TYPES = {"radio", "likert", "checkbox"}
-
-# Answer types where options encode numeric constraints (min/max)
 _NUMERIC_TYPES = {"number", "slider"}
 
 
@@ -33,7 +30,6 @@ def _parse_numeric_constraints(options: list, question: dict) -> dict:
                 pass
         elif label.startswith("maximum"):
             try:
-                # points column holds the real max value for number questions
                 max_val = float(o.get("points") if o.get("points") is not None else o["option_value"])
             except (TypeError, ValueError):
                 pass
@@ -60,8 +56,7 @@ async def get_question_options(
     """
     admin = get_supabase_admin()
 
-    # 1. Fetch question metadata (answer_type, min_value, max_value)
-    q_result = admin.table("prs_questions").select(
+    q_result = await admin.table("prs_questions").select(
         "question_id, answer_type, min_value, max_value, skip_logic, is_required"
     ).eq("question_id", question_id).limit(1).execute()
 
@@ -71,14 +66,12 @@ async def get_question_options(
     question = q_result.data[0]
     answer_type = question.get("answer_type", "radio")
 
-    # 2. Fetch options from prs_options (only active ones)
-    opts_result = admin.table("prs_options").select(
+    opts_result = await admin.table("prs_options").select(
         "option_id, option_label, option_value, points, display_order"
     ).eq("question_id", question_id).eq("status", True).order("display_order").execute()
 
     raw_options = opts_result.data or []
 
-    # 3. Shape response based on answer_type
     if answer_type in _CHOICE_TYPES:
         options_payload = [
             {
@@ -115,11 +108,10 @@ async def get_question_options(
             "is_required": question.get("is_required", True),
             "min":         constraints["min"],
             "max":         constraints["max"],
-            "options":     options_payload,   # raw constraint rows, if needed
+            "options":     options_payload,
         })
 
     else:
-        # text or any future free-form type
         return success_response({
             "question_id": question_id,
             "answer_type": answer_type,

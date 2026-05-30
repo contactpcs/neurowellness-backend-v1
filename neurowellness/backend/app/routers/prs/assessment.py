@@ -44,19 +44,19 @@ class SaveResponseRequest(BaseModel):
     response_label: Optional[str] = None
 
 
-def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
+async def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
     """Fetch questions + options (points) for score calculation."""
-    questions = admin.table("prs_questions").select(
+    questions = (await admin.table("prs_questions").select(
         "question_id, answer_type, display_order"
-    ).eq("scale_id", scale_id).order("display_order").execute().data or []
+    ).eq("scale_id", scale_id).order("display_order").execute()).data or []
 
     if not questions:
         return []
 
     q_ids = [q["question_id"] for q in questions]
-    all_opts = admin.table("prs_options").select(
+    all_opts = (await admin.table("prs_options").select(
         "question_id, option_value, points"
-    ).in_("question_id", q_ids).execute().data or []
+    ).in_("question_id", q_ids).execute()).data or []
 
     opts_by_q: dict = {}
     for o in all_opts:
@@ -72,7 +72,7 @@ def _fetch_questions_for_scoring(admin, scale_id: str) -> list:
     return questions
 
 
-def _attach_options_to_questions(admin, questions: list) -> list:
+async def _attach_options_to_questions(admin, questions: list) -> list:
     """Attach `options` to each question via a single batched query."""
     if not questions:
         return questions
@@ -86,7 +86,7 @@ def _attach_options_to_questions(admin, questions: list) -> list:
             q["options"] = []
         return questions
 
-    opts_result = admin.table("prs_options").select(
+    opts_result = await admin.table("prs_options").select(
         "question_id, option_id, option_label, option_value, points, display_order"
     ).in_("question_id", q_ids).eq("status", True).order("display_order").execute()
 
@@ -155,9 +155,9 @@ async def start_assessment(
 
     if body.taken_by == "patient" and role == "patient":
         patient_id = current_user["id"]
-        perm = admin.table("assessment_permissions").select("id, doctor_id").eq(
+        perm = (await admin.table("assessment_permissions").select("id, doctor_id").eq(
             "patient_id", patient_id
-        ).eq("disease_id", body.disease_id).eq("status", "granted").execute().data or []
+        ).eq("disease_id", body.disease_id).eq("status", "granted").execute()).data or []
         if not perm:
             raise ForbiddenError("No permission to take this assessment")
         doctor_id = perm[0]["doctor_id"]
@@ -168,49 +168,43 @@ async def start_assessment(
             raise BadRequestError("patient_id is required for doctor_on_behalf")
         patient_id = body.patient_id
         doctor_id = current_user["id"]
-        perm = admin.table("assessment_permissions").select("id").eq(
+        perm = (await admin.table("assessment_permissions").select("id").eq(
             "patient_id", patient_id
-        ).eq("disease_id", body.disease_id).eq("status", "granted").execute().data or []
+        ).eq("disease_id", body.disease_id).eq("status", "granted").execute()).data or []
         if perm:
             permission_id = perm[0]["id"]
 
     else:
         raise ForbiddenError("Invalid role or taken_by combination")
 
-    # Fetch patient's clinic_id for instance scoping
-    patient_clinic_row = admin.table("patients").select("clinic_id").eq(
+    patient_clinic_row = (await admin.table("patients").select("clinic_id").eq(
         "id", patient_id
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
     patient_clinic_id = patient_clinic_row[0].get("clinic_id") if patient_clinic_row else None
 
-    # Gate: patient must have a completed anamnesis before starting any PRS assessment
-    ana = admin.table("anamnesis_assessments").select("status").eq(
+    ana = (await admin.table("anamnesis_assessments").select("status").eq(
         "patient_id", patient_id
-    ).eq("status", "completed").limit(1).execute().data or []
+    ).eq("status", "completed").limit(1).execute()).data or []
     if not ana:
         raise BadRequestError(
             "Anamnesis Assessment must be completed before starting a PRS assessment"
         )
 
-    # Resume only the in_progress instance tied to this specific grant (permission).
-    # A new grant always produces a new instance, even if an old one was abandoned.
     existing_query = admin.table("prs_assessment_instances").select(
         "instance_id"
     ).eq("patient_id", patient_id).eq("disease_id", body.disease_id).eq("status", "in_progress")
     if permission_id:
         existing_query = existing_query.eq("permission_id", permission_id)
-    existing_instance = existing_query.limit(1).execute().data or []
+    existing_instance = (await existing_query.limit(1).execute()).data or []
 
     if existing_instance:
         instance_id = existing_instance[0]["instance_id"]
         is_resumed = True
     else:
-        # UUID primary key — collision-free regardless of concurrent requests
         instance_id = str(uuid.uuid4())
-        # Human-readable label for display only (not a PK, harmless if slightly off under concurrency)
         prior_count = len(
-            admin.table("prs_assessment_instances").select("instance_id")
-            .eq("patient_id", patient_id).execute().data or []
+            (await admin.table("prs_assessment_instances").select("instance_id")
+            .eq("patient_id", patient_id).execute()).data or []
         )
         instance_label = f"PAT/{patient_id[:8]}/{prior_count + 1:03d}"
 
@@ -225,29 +219,26 @@ async def start_assessment(
         }
         if patient_clinic_id:
             insert_row["clinic_id"] = patient_clinic_id
-        admin.table("prs_assessment_instances").insert(insert_row).execute()
+        await admin.table("prs_assessment_instances").insert(insert_row).execute()
         is_resumed = False
 
-    # Fetch all scales for the disease (ordered)
-    ds_maps = admin.table("prs_disease_scale_map").select(
+    ds_maps = (await admin.table("prs_disease_scale_map").select(
         "scale_id, display_order"
-    ).eq("disease_id", body.disease_id).order("display_order").execute().data or []
+    ).eq("disease_id", body.disease_id).order("display_order").execute()).data or []
     if not ds_maps:
         raise BadRequestError("No scales configured for this disease")
 
     scale_ids = [ds["scale_id"] for ds in ds_maps]
 
-    # Fetch scale metadata in one query
-    scales_data = admin.table("prs_scales").select("*").in_(
+    scales_data = (await admin.table("prs_scales").select("*").in_(
         "scale_id", scale_ids
-    ).execute().data or []
+    ).execute()).data or []
     scales_map = {s["scale_id"]: s for s in scales_data}
 
-    # Fetch questions for ALL scales in one query
-    all_questions = admin.table("prs_questions").select(
+    all_questions = (await admin.table("prs_questions").select(
         "question_id, scale_id, question_text, answer_type, "
         "min_value, max_value, is_required, skip_logic, display_order"
-    ).in_("scale_id", scale_ids).order("display_order").execute().data or []
+    ).in_("scale_id", scale_ids).order("display_order").execute()).data or []
 
     questions_by_scale: dict = {}
     for q in all_questions:
@@ -256,12 +247,11 @@ async def start_assessment(
         for idx, q in enumerate(qs):
             q["question_index"] = idx
 
-    # Bulk-fetch ALL options for ALL questions in one query and embed them
     all_q_ids = [q["question_id"] for q in all_questions]
     if all_q_ids:
-        all_opts = admin.table("prs_options").select(
+        all_opts = (await admin.table("prs_options").select(
             "option_id, question_id, option_label, option_value, points, display_order"
-        ).in_("question_id", all_q_ids).eq("status", True).order("display_order").execute().data or []
+        ).in_("question_id", all_q_ids).eq("status", True).order("display_order").execute()).data or []
     else:
         all_opts = []
 
@@ -305,15 +295,13 @@ async def start_assessment(
         else:
             q["options"] = []
 
-    # Determine which scales already have submitted results (for resumed sessions)
     submitted_scale_ids: set = set()
     if is_resumed:
-        done = admin.table("prs_scale_results").select("scale_id").eq(
+        done = (await admin.table("prs_scale_results").select("scale_id").eq(
             "instance_id", instance_id
-        ).execute().data or []
+        ).execute()).data or []
         submitted_scale_ids = {r["scale_id"] for r in done}
 
-    # Build ordered scales response
     scales_response = []
     for ds in ds_maps:
         sid = ds["scale_id"]
@@ -324,10 +312,9 @@ async def start_assessment(
             "is_completed": sid in submitted_scale_ids,
         })
 
-    # Fetch disease name
-    disease_row = admin.table("prs_diseases").select("disease_name").eq(
+    disease_row = (await admin.table("prs_diseases").select("disease_name").eq(
         "disease_id", body.disease_id
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
     disease_name = disease_row[0]["disease_name"] if disease_row else body.disease_id
 
     return success_response({
@@ -349,7 +336,7 @@ async def submit_assessment(
     admin = get_supabase_admin()
     role = current_user["role"]
 
-    instance_result = admin.table("prs_assessment_instances").select("*").eq(
+    instance_result = await admin.table("prs_assessment_instances").select("*").eq(
         "instance_id", body.instance_id
     ).limit(1).execute()
     if not instance_result.data:
@@ -365,14 +352,14 @@ async def submit_assessment(
     if role not in {"patient", "doctor", "clinical_assistant", "admin"}:
         raise ForbiddenError("Not allowed to submit assessments")
 
-    scale_result = admin.table("prs_scales").select("*").eq(
+    scale_result = await admin.table("prs_scales").select("*").eq(
         "scale_id", body.scale_id
     ).limit(1).execute()
     if not scale_result.data:
         raise NotFoundError("Scale not found")
     scale = scale_result.data[0]
 
-    questions = _fetch_questions_for_scoring(admin, body.scale_id)
+    questions = await _fetch_questions_for_scoring(admin, body.scale_id)
 
     scale_code = scale.get("scale_code", body.scale_id)
     scale_config = scale_config_loader.build(scale_code, questions)
@@ -383,7 +370,7 @@ async def submit_assessment(
     risk_flags   = scale_engine.detect_risk_flags(scale_config, responses_dict, score_result)
 
     scale_result_id = f"{body.instance_id}/{body.scale_id}"
-    admin.table("prs_scale_results").upsert({
+    await admin.table("prs_scale_results").upsert({
         "scale_result_id":  scale_result_id,
         "instance_id":      body.instance_id,
         "scale_id":         body.scale_id,
@@ -396,7 +383,6 @@ async def submit_assessment(
         "raw_score_data":   score_result.extra or {},
     }, on_conflict="instance_id,scale_id").execute()
 
-    # Persist individual responses
     response_rows = []
     for r in body.responses:
         q_id = questions[r.question_index]["question_id"] if r.question_index < len(questions) else None
@@ -410,51 +396,48 @@ async def submit_assessment(
                 "response_value": float(r.response_value) if r.response_value.replace(".", "", 1).isdigit() else None,
             })
     if response_rows:
-        admin.table("prs_responses").upsert(
+        await admin.table("prs_responses").upsert(
             response_rows, on_conflict="instance_id,question_id"
         ).execute()
 
-    # Check if ALL disease scales are now submitted — only then mark instance complete
     disease_id = instance.get("disease_id")
     all_done = False
     remaining_scale_ids: list = []
     if disease_id:
-        expected = admin.table("prs_disease_scale_map").select("scale_id").eq(
+        expected = (await admin.table("prs_disease_scale_map").select("scale_id").eq(
             "disease_id", disease_id
-        ).execute().data or []
+        ).execute()).data or []
         expected_ids = {s["scale_id"] for s in expected}
 
-        done_rows = admin.table("prs_scale_results").select("scale_id").eq(
+        done_rows = (await admin.table("prs_scale_results").select("scale_id").eq(
             "instance_id", body.instance_id
-        ).execute().data or []
+        ).execute()).data or []
         done_ids = {s["scale_id"] for s in done_rows}
 
         remaining_scale_ids = list(expected_ids - done_ids)
         all_done = len(remaining_scale_ids) == 0
 
     if all_done:
-        admin.table("prs_assessment_instances").update({
+        await admin.table("prs_assessment_instances").update({
             "status":       "completed",
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }).eq("instance_id", body.instance_id).execute()
 
-        # Mark the specific permission that spawned this instance as completed
         permission_id = instance.get("permission_id")
         if permission_id:
-            admin.table("assessment_permissions").update({"status": "completed"}).eq(
+            await admin.table("assessment_permissions").update({"status": "completed"}).eq(
                 "id", permission_id
             ).execute()
         else:
-            admin.table("assessment_permissions").update({"status": "completed"}).eq(
+            await admin.table("assessment_permissions").update({"status": "completed"}).eq(
                 "patient_id", instance["patient_id"]
             ).eq("disease_id", disease_id).in_("status", ["granted"]).execute()
 
-    # Disease-level composite scoring
     disease_result = None
     if disease_id:
-        completed = admin.table("prs_scale_results").select(
+        completed = (await admin.table("prs_scale_results").select(
             "scale_id, calculated_value, max_possible"
-        ).eq("instance_id", body.instance_id).execute().data or []
+        ).eq("instance_id", body.instance_id).execute()).data or []
 
         scale_results_map = {
             r["scale_id"]: {
@@ -502,7 +485,7 @@ async def save_response(
     """Save a single question response while the assessment is in progress."""
     admin = get_supabase_admin()
 
-    instance_result = admin.table("prs_assessment_instances").select(
+    instance_result = await admin.table("prs_assessment_instances").select(
         "instance_id, patient_id, status"
     ).eq("instance_id", body.instance_id).limit(1).execute()
     if not instance_result.data:
@@ -518,9 +501,9 @@ async def save_response(
 
     q_id = body.question_id
     if not q_id:
-        questions = admin.table("prs_questions").select("question_id").eq(
+        questions = (await admin.table("prs_questions").select("question_id").eq(
             "scale_id", body.scale_id
-        ).order("display_order").execute().data or []
+        ).order("display_order").execute()).data or []
         if body.question_index >= len(questions):
             raise BadRequestError(
                 f"question_index {body.question_index} out of range "
@@ -531,7 +514,7 @@ async def save_response(
     response_id = f"{body.instance_id}/{q_id}"
     val = body.response_value
 
-    admin.table("prs_responses").upsert({
+    await admin.table("prs_responses").upsert({
         "response_id":    response_id,
         "instance_id":    body.instance_id,
         "question_id":    q_id,
@@ -559,7 +542,7 @@ async def get_instance_responses(
     """Return all saved responses for an in-progress instance (for resume)."""
     admin = get_supabase_admin()
 
-    instance_result = admin.table("prs_assessment_instances").select(
+    instance_result = await admin.table("prs_assessment_instances").select(
         "instance_id, patient_id, disease_id, status, started_at"
     ).eq("instance_id", instance_id).limit(1).execute()
     if not instance_result.data:
@@ -570,9 +553,9 @@ async def get_instance_responses(
     if role == "patient" and instance["patient_id"] != current_user["id"]:
         raise ForbiddenError("Not your assessment instance")
 
-    responses = admin.table("prs_responses").select(
+    responses = (await admin.table("prs_responses").select(
         "response_id, question_id, given_response, response_value"
-    ).eq("instance_id", instance_id).execute().data or []
+    ).eq("instance_id", instance_id).execute()).data or []
 
     by_question = {
         r["question_id"]: {
