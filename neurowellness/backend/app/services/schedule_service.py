@@ -3,10 +3,6 @@ schedule_service — doctor availability + slot generation.
 
 Pure slot math (`build_day_slots`) is separated from DB access so it can be
 unit-tested without a database. DB-facing functions fetch rows then delegate.
-
-Slot convention:
-  - day_of_week: 0=Sun .. 6=Sat (matches doctor_weekly_schedules DDL)
-  - times handled as datetime.time; serialized to 'HH:MM:SS' strings on output
 """
 from __future__ import annotations
 
@@ -40,20 +36,12 @@ def build_day_slots(
     include_unavailable: bool = False,
     default_slot_minutes: int = 30,
 ) -> list[dict]:
-    """
-    Pure function — generate slots for a single date.
-
-    weekly_rows   : doctor_weekly_schedules rows for this date's day_of_week.
-    override      : doctor_schedule_overrides row for this exact date (or None).
-    booked_starts : set of 'HH:MM:SS' start times already booked on this date.
-    """
-    # Full-day off override
+    """Pure function — generate slots for a single date."""
     if override and override.get("is_available") is False:
         return []
 
     windows: list[dict] = []
     if override and override.get("is_available") is True and override.get("start_time") and override.get("end_time"):
-        # Modified-hours override replaces the weekly template for this date.
         windows.append({
             "start_time": parse_time(override["start_time"]),
             "end_time":   parse_time(override["end_time"]),
@@ -85,7 +73,6 @@ def build_day_slots(
         cursor = w["start_time"]
         while True:
             slot_end = add_minutes(cursor, dur)
-            # stop if slot would run past the window end
             if slot_end > w["end_time"] or slot_end <= cursor:
                 break
             if not _overlaps_break(cursor, slot_end, w["break_start"], w["break_end"]):
@@ -93,10 +80,11 @@ def build_day_slots(
                 is_avail = start_str not in booked_starts
                 if is_avail or include_unavailable:
                     slots.append({
-                        "date":        target_date.isoformat(),
-                        "start_time":  start_str,
-                        "end_time":    hhmmss(slot_end),
-                        "is_available": is_avail,
+                        "date":                target_date.isoformat(),
+                        "start_time":          start_str,
+                        "end_time":            hhmmss(slot_end),
+                        "is_available":        is_avail,
+                        "slot_duration_minutes": dur,
                     })
             cursor = slot_end
 
@@ -108,7 +96,7 @@ def build_day_slots(
 # DB-facing
 # --------------------------------------------------------------------------- #
 
-def generate_slots(
+async def generate_slots(
     doctor_id: str,
     clinic_id: Optional[str],
     date_from: date,
@@ -118,25 +106,25 @@ def generate_slots(
 ) -> list[dict]:
     admin = get_supabase_admin()
 
-    weekly = admin.table("doctor_weekly_schedules").select("*").eq(
+    weekly = (await admin.table("doctor_weekly_schedules").select("*").eq(
         "doctor_id", doctor_id
-    ).eq("is_active", True).execute().data or []
+    ).eq("is_active", True).execute()).data or []
     weekly_by_dow: dict[int, list[dict]] = {}
     for row in weekly:
         weekly_by_dow.setdefault(row["day_of_week"], []).append(row)
 
-    overrides = admin.table("doctor_schedule_overrides").select("*").eq(
+    overrides = (await admin.table("doctor_schedule_overrides").select("*").eq(
         "doctor_id", doctor_id
     ).gte("override_date", date_from.isoformat()).lte(
         "override_date", date_to.isoformat()
-    ).execute().data or []
+    ).execute()).data or []
     override_by_date = {str(o["override_date"]): o for o in overrides}
 
-    booked = admin.table("appointments").select("appointment_date, start_time").eq(
+    booked = (await admin.table("appointments").select("appointment_date, start_time").eq(
         "doctor_id", doctor_id
     ).gte("appointment_date", date_from.isoformat()).lte(
         "appointment_date", date_to.isoformat()
-    ).in_("status", ACTIVE_APT_STATUSES).execute().data or []
+    ).in_("status", ACTIVE_APT_STATUSES).execute()).data or []
     booked_by_date: dict[str, set[str]] = {}
     for b in booked:
         booked_by_date.setdefault(str(b["appointment_date"]), set()).add(hhmmss(parse_time(b["start_time"])))
@@ -156,19 +144,19 @@ def generate_slots(
     return out
 
 
-def is_slot_available(doctor_id: str, appointment_date: date, start_time: time) -> bool:
+async def is_slot_available(doctor_id: str, appointment_date: date, start_time: time) -> bool:
     """True if the slot exists in the doctor's schedule and is not already booked."""
-    slots = generate_slots(doctor_id, None, appointment_date, appointment_date, include_unavailable=False)
+    slots = await generate_slots(doctor_id, None, appointment_date, appointment_date, include_unavailable=False)
     target = hhmmss(start_time)
     return any(s["start_time"] == target for s in slots)
 
 
-def get_slot_duration(doctor_id: str, appointment_date: date, start_time: time) -> int:
+async def get_slot_duration(doctor_id: str, appointment_date: date, start_time: time) -> int:
     """Return the slot duration (minutes) for the matching weekly window, or the default."""
     admin = get_supabase_admin()
-    rows = admin.table("doctor_weekly_schedules").select(
+    rows = (await admin.table("doctor_weekly_schedules").select(
         "day_of_week, start_time, end_time, slot_duration_minutes, is_active"
-    ).eq("doctor_id", doctor_id).eq("is_active", True).execute().data or []
+    ).eq("doctor_id", doctor_id).eq("is_active", True).execute()).data or []
     dow = _dow(appointment_date)
     for r in rows:
         if r["day_of_week"] == dow:
@@ -178,10 +166,28 @@ def get_slot_duration(doctor_id: str, appointment_date: date, start_time: time) 
     return get_settings().APPOINTMENT_DEFAULT_SLOT_MINUTES
 
 
-def upsert_weekly_schedule(doctor_id: str, clinic_id: str, items: list[dict]) -> list[dict]:
+async def check_slot(
+    doctor_id: str, appointment_date: date, start_time: time
+) -> tuple[bool, int]:
+    """Return (is_available, duration_minutes) in a single generate_slots call.
+
+    Replaces calling is_slot_available + get_slot_duration separately, which
+    would hit doctor_weekly_schedules twice.
+    """
+    slots = await generate_slots(
+        doctor_id, None, appointment_date, appointment_date, include_unavailable=True
+    )
+    target = hhmmss(start_time)
+    for s in slots:
+        if s["start_time"] == target:
+            return s["is_available"], int(s.get("slot_duration_minutes") or get_settings().APPOINTMENT_DEFAULT_SLOT_MINUTES)
+    return False, get_settings().APPOINTMENT_DEFAULT_SLOT_MINUTES
+
+
+async def upsert_weekly_schedule(doctor_id: str, clinic_id: str, items: list[dict]) -> list[dict]:
     """Replace a doctor's weekly schedule atomically (delete-then-insert)."""
     admin = get_supabase_admin()
-    admin.table("doctor_weekly_schedules").delete().eq("doctor_id", doctor_id).execute()
+    await admin.table("doctor_weekly_schedules").delete().eq("doctor_id", doctor_id).execute()
     rows = [{
         "doctor_id": doctor_id,
         "clinic_id": clinic_id,
@@ -197,10 +203,10 @@ def upsert_weekly_schedule(doctor_id: str, clinic_id: str, items: list[dict]) ->
     } for it in items]
     if not rows:
         return []
-    return admin.table("doctor_weekly_schedules").insert(rows).execute().data or []
+    return (await admin.table("doctor_weekly_schedules").insert(rows).execute()).data or []
 
 
-def add_override(doctor_id: str, clinic_id: str, payload: dict, created_by: str) -> dict:
+async def add_override(doctor_id: str, clinic_id: str, payload: dict, created_by: str) -> dict:
     admin = get_supabase_admin()
     row = {
         "doctor_id": doctor_id,
@@ -212,14 +218,14 @@ def add_override(doctor_id: str, clinic_id: str, payload: dict, created_by: str)
         "reason": payload.get("reason"),
         "created_by": created_by,
     }
-    res = admin.table("doctor_schedule_overrides").upsert(
+    res = await admin.table("doctor_schedule_overrides").upsert(
         row, on_conflict="doctor_id,override_date"
     ).execute()
     return res.data[0] if res.data else {}
 
 
-def remove_override(doctor_id: str, override_id: str) -> None:
+async def remove_override(doctor_id: str, override_id: str) -> None:
     admin = get_supabase_admin()
-    admin.table("doctor_schedule_overrides").delete().eq(
+    await admin.table("doctor_schedule_overrides").delete().eq(
         "override_id", override_id
     ).eq("doctor_id", doctor_id).execute()

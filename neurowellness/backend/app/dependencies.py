@@ -127,7 +127,7 @@ async def get_current_user(
     # Look up profile row (no .single() — avoid 500 on missing row)
     admin = get_supabase_admin()
     try:
-        result = admin.table("profiles").select(
+        result = await admin.table("profiles").select(
             "id, role, full_name, email, is_active, clinic_id"
         ).eq("id", user_id).limit(1).execute()
     except Exception:
