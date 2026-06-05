@@ -2677,8 +2677,11 @@ def band_topomaps(
     raw = raw.copy().load_data()
     raw.pick_types(eeg=True)
 
-    if raw.get_montage() is None:
-        raise RuntimeError("Montage must be set for topomaps.")
+    _strip_ref_suffix(raw)
+    raw.set_montage(
+        mne.channels.make_standard_montage('standard_1020'),
+        match_case=False, on_missing="ignore"
+    )
 
     raw.set_eeg_reference("average")
 
