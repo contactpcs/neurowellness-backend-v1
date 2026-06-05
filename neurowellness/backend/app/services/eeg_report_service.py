@@ -3,7 +3,9 @@ import uuid
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import boto3
 import structlog
+from botocore.exceptions import ClientError
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +20,7 @@ MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
 ALLOWED_MIME_TYPES = {"application/pdf", "application/x-pdf"}
 ALLOWED_EXTENSIONS = {".pdf"}
 PDF_MAGIC = b"%PDF"
+PRESIGNED_URL_EXPIRY = 900  # 15 minutes
 
 
 # ── Validation ────────────────────────────────────────────────────────────────
@@ -40,28 +43,51 @@ def _validate(file: UploadFile, content: bytes) -> None:
         raise HTTPException(status_code=400, detail="File is not a valid PDF (bad magic bytes).")
 
 
-# ── File I/O ──────────────────────────────────────────────────────────────────
+# ── S3 helpers ────────────────────────────────────────────────────────────────
 
-def _storage_path(patient_id: str, report_uuid: str) -> Path:
+def _get_s3_client():
     settings = get_settings()
-    dir_ = Path(settings.UPLOADS_DIR) / "eeg_reports" / patient_id
-    dir_.mkdir(parents=True, exist_ok=True)
-    return dir_ / f"{report_uuid}.pdf"
+    kwargs = {"region_name": settings.AWS_REGION}
+    if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+        kwargs["aws_access_key_id"] = settings.AWS_ACCESS_KEY_ID
+        kwargs["aws_secret_access_key"] = settings.AWS_SECRET_ACCESS_KEY
+    return boto3.client("s3", **kwargs)
 
 
-def _write_file(path: Path, content: bytes) -> None:
-    path.write_bytes(content)
-    logger.info("eeg_file_saved", path=str(path), size_bytes=len(content))
+def _s3_key(patient_id: str, report_uuid: str) -> str:
+    return f"eeg_reports/{patient_id}/{report_uuid}.pdf"
 
 
-def _remove_file(path: str) -> None:
+def _upload_to_s3(key: str, content: bytes) -> None:
+    settings = get_settings()
+    s3 = _get_s3_client()
+    s3.put_object(
+        Bucket=settings.S3_BUCKET_NAME,
+        Key=key,
+        Body=content,
+        ContentType="application/pdf",
+    )
+    logger.info("eeg_s3_upload", key=key, size_bytes=len(content))
+
+
+def _delete_from_s3(key: str) -> None:
+    settings = get_settings()
     try:
-        p = Path(path)
-        if p.exists():
-            p.unlink()
-            logger.info("eeg_file_removed", path=path)
-    except Exception as exc:
-        logger.warning("eeg_file_remove_failed", path=path, error=str(exc))
+        s3 = _get_s3_client()
+        s3.delete_object(Bucket=settings.S3_BUCKET_NAME, Key=key)
+        logger.info("eeg_s3_deleted", key=key)
+    except ClientError as exc:
+        logger.warning("eeg_s3_delete_failed", key=key, error=str(exc))
+
+
+def _presigned_url(key: str) -> str:
+    settings = get_settings()
+    s3 = _get_s3_client()
+    return s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
+        ExpiresIn=PRESIGNED_URL_EXPIRY,
+    )
 
 
 # ── Service ───────────────────────────────────────────────────────────────────
@@ -95,13 +121,13 @@ class EEGReportService:
 
         version = (await self._repo.get_latest_version(patient_id, report_name)) + 1
         report_uuid = str(uuid.uuid4())
-        file_path = _storage_path(patient_id, report_uuid)
+        s3_key = _s3_key(patient_id, report_uuid)
 
         try:
-            _write_file(file_path, content)
+            _upload_to_s3(s3_key, content)
         except Exception as exc:
-            logger.error("eeg_file_save_error", error=str(exc))
-            raise HTTPException(status_code=500, detail="Failed to persist report file.")
+            logger.error("eeg_s3_upload_error", error=str(exc))
+            raise HTTPException(status_code=500, detail="Failed to upload report to S3.")
 
         try:
             report = await self._repo.create(
@@ -110,7 +136,7 @@ class EEGReportService:
                     "patient_id": patient_id,
                     "session_id": session_id,
                     "report_name": report_name,
-                    "file_path": str(file_path),
+                    "file_path": s3_key,
                     "file_size_bytes": len(content),
                     "report_type": report_type,
                     "sha256_checksum": checksum,
@@ -119,7 +145,7 @@ class EEGReportService:
                 }
             )
         except Exception as exc:
-            _remove_file(str(file_path))
+            _delete_from_s3(s3_key)
             logger.error("eeg_db_insert_error", error=str(exc))
             raise HTTPException(status_code=500, detail="Failed to persist report metadata.")
 
@@ -138,14 +164,15 @@ class EEGReportService:
             raise HTTPException(status_code=404, detail="EEG report not found.")
         return EEGReportOut.model_validate(report)
 
-    async def get_report_file_path(self, report_id: uuid.UUID) -> Path:
+    async def get_report_download_url(self, report_id: uuid.UUID) -> str:
         report = await self._repo.get_by_id(report_id)
         if not report:
             raise HTTPException(status_code=404, detail="EEG report not found.")
-        p = Path(report.file_path)
-        if not p.exists():
-            raise HTTPException(status_code=404, detail="Report PDF missing from storage.")
-        return p
+        try:
+            return _presigned_url(report.file_path)
+        except ClientError as exc:
+            logger.error("eeg_presign_error", key=report.file_path, error=str(exc))
+            raise HTTPException(status_code=500, detail="Failed to generate download URL.")
 
     async def list_patient_reports(
         self, patient_id: str, skip: int = 0, limit: int = 20
@@ -161,7 +188,6 @@ class EEGReportService:
         report_name: str,
         report_type: str = "EEG_ANALYSIS",
     ) -> Optional[str]:
-        """Save a PDF from disk path directly to DB+storage. Returns report_id or None."""
         try:
             content = pdf_path.read_bytes()
         except Exception as exc:
@@ -179,12 +205,12 @@ class EEGReportService:
 
         version = (await self._repo.get_latest_version(patient_id, report_name)) + 1
         report_uuid = str(uuid.uuid4())
-        dest_path = _storage_path(patient_id, report_uuid)
+        s3_key = _s3_key(patient_id, report_uuid)
 
         try:
-            dest_path.write_bytes(content)
+            _upload_to_s3(s3_key, content)
         except Exception as exc:
-            logger.error("eeg_file_copy_error", error=str(exc))
+            logger.error("eeg_s3_upload_error", error=str(exc))
             return None
 
         try:
@@ -194,7 +220,7 @@ class EEGReportService:
                     "patient_id": patient_id,
                     "session_id": session_id,
                     "report_name": report_name,
-                    "file_path": str(dest_path),
+                    "file_path": s3_key,
                     "file_size_bytes": len(content),
                     "report_type": report_type,
                     "sha256_checksum": checksum,
@@ -205,7 +231,7 @@ class EEGReportService:
             logger.info("eeg_report_saved_from_analysis", report_id=str(report.id), patient_id=patient_id)
             return str(report.id)
         except Exception as exc:
-            _remove_file(str(dest_path))
+            _delete_from_s3(s3_key)
             logger.error("eeg_db_insert_error", error=str(exc))
             return None
 
@@ -213,7 +239,7 @@ class EEGReportService:
         report = await self._repo.get_by_id(report_id)
         if not report:
             raise HTTPException(status_code=404, detail="EEG report not found.")
-        file_path = report.file_path
+        s3_key = report.file_path
         await self._repo.soft_delete(report)
-        _remove_file(file_path)
+        _delete_from_s3(s3_key)
         logger.info("eeg_report_deleted", report_id=str(report_id))

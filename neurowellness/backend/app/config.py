@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 
 
@@ -13,7 +13,14 @@ class Settings(BaseSettings):
     # TimescaleDB (EEG reports)
     TSDB_DATABASE_URL: str = "postgres://tsdbadmin@gguyvxc03b.oiyo0zj1k9.tsdb.cloud.timescale.com:35472/tsdb?sslmode=require"
 
-    # File storage
+    # S3 storage (EEG report PDFs)
+    S3_BUCKET_NAME: str = "neurowellness-eeg-reports"
+    AWS_REGION: str = "ap-south-1"
+    # Leave empty on EC2 — IAM instance role provides credentials automatically
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+
+    # File storage (legacy local path, unused when S3 enabled)
     UPLOADS_DIR: str = "uploads"
 
     # App
