@@ -9,6 +9,8 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # headless backend — must be before any plt import
 import matplotlib.pyplot as plt
+
+mne.viz.set_3d_backend('pyvista')
 import nibabel as nib
 
 
@@ -1545,10 +1547,11 @@ def plot_3d_brain(stc_z, out_png, hemi="both"):
         subjects_dir=subjects_dir,
         hemi=hemi,
         surface="inflated",
-        smoothing_steps=10,       
+        smoothing_steps=10,
         time_viewer=False,
         size=(900, 700),
         background="white",
+        offscreen=True,
         clim=dict(
             kind="value",
             lims=[-3, 0, 3]         # Z-score scale
@@ -1573,7 +1576,8 @@ def plot_axial_slices(stc_z, out_png):
         background="white",
         colorbar=True,
         time_label="",
-        size=(800, 600)
+        size=(800, 600),
+        offscreen=True,
     )
 
     # Save screenshot
