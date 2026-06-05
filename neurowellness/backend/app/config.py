@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_KEY: str  # service role key (backend only, never expose)
     JWT_SECRET: str            # from Supabase Settings → API → JWT Settings
 
+    # TimescaleDB (EEG reports)
+    TSDB_DATABASE_URL: str = "postgres://tsdbadmin@gguyvxc03b.oiyo0zj1k9.tsdb.cloud.timescale.com:35472/tsdb?sslmode=require"
+
+    # File storage
+    UPLOADS_DIR: str = "uploads"
+
     # App
     ENVIRONMENT: str = "development"
     API_PREFIX: str = "/api/v1"
