@@ -36,8 +36,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://13.233.194.162:8000/api/v1
-        - VITE_SOCKET_URL=http://13.233.194.162:8000
+        - VITE_API_URL=http://43.204.115.242:8000/api/v1
+        - VITE_SOCKET_URL=http://43.204.115.242:8000
     ports:
       - "80:80"
     depends_on:
