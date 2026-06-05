@@ -15,6 +15,7 @@ COPY app/ ./app/
 COPY scripts/ ./scripts/
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONUNBUFFERED=1
+ENV QT_QPA_PLATFORM=offscreen
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
 # Socket.IO is served by asgi_app. Run a single worker unless REDIS_URL is set

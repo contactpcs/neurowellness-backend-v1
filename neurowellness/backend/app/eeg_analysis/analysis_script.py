@@ -9,8 +9,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # headless backend — must be before any plt import
 import matplotlib.pyplot as plt
-
-mne.viz.set_3d_backend('pyvista')
 import nibabel as nib
 
 
