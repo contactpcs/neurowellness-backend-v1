@@ -1100,13 +1100,25 @@ def brain_connectivity(raw, subject_metadata, normative_stats, target_dir, outpu
     # return False
     return pdf_path
 
+def _strip_ref_suffix(raw):
+    """Rename channels: strip -REF/-ref so standard_1020 montage matches."""
+    rename = {
+        ch: ch.replace('-REF', '').replace('-ref', '')
+        for ch in raw.ch_names
+        if '-REF' in ch or '-ref' in ch
+    }
+    if rename:
+        raw.rename_channels(rename)
+
+
 def preprocess_raw(raw):
     if 'EXT' in raw.ch_names:
         raw.set_channel_types({'EXT': 'misc'})
 
+    _strip_ref_suffix(raw)
     raw.filter(1., 40., fir_design="firwin")
     raw.set_eeg_reference("average", projection=True)
-    raw.set_montage("standard_1020", on_missing="ignore")
+    raw.set_montage("standard_1020", match_case=False, on_missing="ignore")
     return raw
 
 def compute_radar_features(raw):
@@ -2183,7 +2195,8 @@ def process_nedf_files(extension: str, target_dir: str):
             print(target_dir)
             create_workspace_directory(target_dir)            
             raw = mne.io.read_raw_nedf(file, preload = True)
-            montage = raw.set_montage("standard_1020", on_missing="ignore")
+            _strip_ref_suffix(raw)
+            montage = raw.set_montage("standard_1020", match_case=False, on_missing="ignore")
         
             df = raw.to_data_frame()
             
@@ -2411,20 +2424,21 @@ def save_ica_components(raw, dipoles, target_dir: str = 'my_dir'):
 
     raw_good_channels.pick_types(eeg=True, exclude='bads')
 
-    # match_case=False: maps EDF mixed-case names (Af7, Fc3, Cp1) to the
-    # montage equivalents (AF7, FC3, CP1) that standard_1020 actually uses.
+    _strip_ref_suffix(raw_good_channels)
     montage = mne.channels.make_standard_montage('standard_1020')
     raw_good_channels.set_montage(montage, match_case=False, on_missing="ignore")
 
-    # Drop channels whose 3-D position is zero OR NaN after montage assignment.
-    # np.any(NaN) == True so a NaN-loc channel would pass a plain `not np.any`
-    # check — catch both explicitly.
     def _has_valid_loc(ch):
         loc = ch['loc'][:3]
         return np.any(loc) and not np.any(np.isnan(loc))
 
     no_loc = [ch['ch_name'] for ch in raw_good_channels.info['chs']
               if not _has_valid_loc(ch)]
+    has_loc = [ch['ch_name'] for ch in raw_good_channels.info['chs']
+               if _has_valid_loc(ch)]
+    if not has_loc:
+        print("ICA: no channels have valid montage positions — skipping save_ica_components")
+        return
     if no_loc:
         print(f"ICA: dropping {len(no_loc)} channels with missing positions: {no_loc}")
         raw_good_channels.drop_channels(no_loc)
