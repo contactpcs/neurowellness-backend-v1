@@ -2685,6 +2685,8 @@ def band_topomaps(
     # -----------------------
     # PSD (once!)
     # -----------------------
+    nyquist = raw.info['sfreq'] / 2.0
+    fmax = min(fmax, nyquist - 0.5)
     psd = raw.compute_psd(
         method="welch",
         fmin=fmin,
