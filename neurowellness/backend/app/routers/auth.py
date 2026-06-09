@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from supabase import create_client
 from app.dependencies import get_current_user
 from app.database import get_supabase_admin
 from app.config import get_settings
@@ -11,22 +10,17 @@ from app.models.consent import ConsentResponseItem
 
 router = APIRouter()
 
-# Only patients may self-register. All other roles are created by admin.
 PUBLIC_REGISTER_ROLES = {"patient"}
 
 
-def _row(admin, table: str, field: str, value: str) -> Optional[dict]:
-    result = admin.table(table).select("*").eq(field, value).limit(1).execute()
+async def _row(admin, table: str, field: str, value: str) -> Optional[dict]:
+    result = await admin.table(table).select("*").eq(field, value).limit(1).execute()
     return result.data[0] if result.data else None
 
 
-def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id: Optional[str] = None) -> Optional[str]:
-    """
-    Find the best available doctor for a new patient.
-    Priority: same city → same state → any available.
-    Scoped to clinic_id when provided.
-    """
-    def query_doctors(filters: dict) -> list:
+async def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id: Optional[str] = None) -> Optional[str]:
+    """Find the best available doctor. Priority: same city → same state → any available."""
+    async def query_doctors(filters: dict) -> list:
         q = admin.table("doctors").select(
             "id, current_patient_count, max_patients"
         ).eq("availability", "available")
@@ -34,7 +28,7 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id
             q = q.eq("clinic_id", clinic_id)
         for col, val in filters.items():
             q = q.eq(col, val)
-        rows = q.execute().data or []
+        rows = (await q.execute()).data or []
         return [r for r in rows if (r.get("current_patient_count") or 0) < (r.get("max_patients") or 50)]
 
     def pick_least_loaded(doctors: list) -> Optional[str]:
@@ -45,11 +39,11 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id
     if city:
         city_doctor_ids = {
             r["id"] for r in (
-                admin.table("profiles").select("id").eq("role", "doctor").eq("city", city).execute().data or []
+                (await admin.table("profiles").select("id").eq("role", "doctor").eq("city", city).execute()).data or []
             )
         }
         if city_doctor_ids:
-            candidates = [d for d in query_doctors({}) if d["id"] in city_doctor_ids]
+            candidates = [d for d in await query_doctors({}) if d["id"] in city_doctor_ids]
             result = pick_least_loaded(candidates)
             if result:
                 return result
@@ -57,16 +51,16 @@ def _allocate_doctor(admin, city: Optional[str], state: Optional[str], clinic_id
     if state:
         state_doctor_ids = {
             r["id"] for r in (
-                admin.table("profiles").select("id").eq("role", "doctor").eq("state", state).execute().data or []
+                (await admin.table("profiles").select("id").eq("role", "doctor").eq("state", state).execute()).data or []
             )
         }
         if state_doctor_ids:
-            candidates = [d for d in query_doctors({}) if d["id"] in state_doctor_ids]
+            candidates = [d for d in await query_doctors({}) if d["id"] in state_doctor_ids]
             result = pick_least_loaded(candidates)
             if result:
                 return result
 
-    return pick_least_loaded(query_doctors({}))
+    return pick_least_loaded(await query_doctors({}))
 
 
 class LoginRequest(BaseModel):
@@ -86,7 +80,6 @@ class RegistrationSyncRequest(BaseModel):
     gender: Optional[str] = None
     address_line1: Optional[str] = None
     pincode: Optional[str] = None
-    # Staff-only fields (ignored for patient registration)
     employee_id: Optional[str] = None
     department: Optional[str] = None
     designation: Optional[str] = None
@@ -94,7 +87,7 @@ class RegistrationSyncRequest(BaseModel):
 
 class RegisterRequest(RegistrationSyncRequest):
     password: str
-    clinic_id: Optional[str] = None  # required for patient self-registration
+    clinic_id: Optional[str] = None
     consent_responses: list[ConsentResponseItem] = []
 
 
@@ -103,20 +96,16 @@ class RegisterRequest(RegistrationSyncRequest):
 async def list_active_clinics(request: Request):
     """Public endpoint — returns active clinics for the self-registration clinic picker."""
     admin = get_supabase_admin()
-    clinics = admin.table("clinics").select(
+    clinics = (await admin.table("clinics").select(
         "clinic_id, clinic_name, city, state, address"
-    ).eq("is_active", True).order("clinic_name").execute().data or []
+    ).eq("is_active", True).order("clinic_name").execute()).data or []
     return success_response(clinics)
 
 
 @router.post("/register")
 @limiter.limit("5/minute")
 async def register(request: Request, body: RegisterRequest):
-    """
-    Public self-registration — patients only.
-    Patient account is created with is_active=False and approval_status='pending'
-    until a receptionist or admin approves it.
-    """
+    """Public self-registration — patients only."""
     if body.role not in PUBLIC_REGISTER_ROLES:
         raise HTTPException(
             status_code=400,
@@ -134,17 +123,15 @@ async def register(request: Request, body: RegisterRequest):
 
     admin = get_supabase_admin()
 
-    # Verify clinic exists and is active
-    clinic = admin.table("clinics").select("clinic_id, clinic_name").eq(
+    clinic = (await admin.table("clinics").select("clinic_id, clinic_name").eq(
         "clinic_id", body.clinic_id
-    ).eq("is_active", True).limit(1).execute().data
+    ).eq("is_active", True).limit(1).execute()).data
     if not clinic:
         raise HTTPException(status_code=400, detail="Selected clinic not found or is inactive.")
 
-    # Validate consent responses before touching auth (fail fast, no cleanup needed)
-    all_forms = admin.table("consent_forms").select(
+    all_forms = (await admin.table("consent_forms").select(
         "consent_form_id, consent_form_name, is_required"
-    ).execute().data or []
+    ).execute()).data or []
     form_map = {f["consent_form_id"]: f for f in all_forms}
     required_forms = [f for f in all_forms if f["is_required"]]
     submitted_map = {r.consent_form_id: r.response for r in body.consent_responses}
@@ -166,9 +153,8 @@ async def register(request: Request, body: RegisterRequest):
                 detail=f"Required consent form '{f['consent_form_name']}' must be accepted to complete registration.",
             )
 
-    # Create Supabase auth user
     try:
-        user_res = admin.auth.admin.create_user({
+        user_res = await admin.auth.admin.create_user({
             "email": body.email,
             "password": body.password,
             "email_confirm": True,
@@ -181,12 +167,10 @@ async def register(request: Request, body: RegisterRequest):
 
     user_id = user_res.user.id
 
-    # Allocate doctor before the transaction (read-only, safe outside)
-    doctor_id = _allocate_doctor(admin, body.city, body.state, clinic_id=body.clinic_id)
+    doctor_id = await _allocate_doctor(admin, body.city, body.state, clinic_id=body.clinic_id)
 
     try:
-        # Single atomic transaction: profiles + patients + doctor count increment
-        admin.rpc("register_patient_db", {
+        await admin.rpc("register_patient_db", {
             "p_id": user_id,
             "p_full_name": body.full_name,
             "p_email": body.email,
@@ -207,12 +191,11 @@ async def register(request: Request, body: RegisterRequest):
         }).execute()
     except Exception as e:
         try:
-            admin.auth.admin.delete_user(user_id)
+            await admin.auth.admin.delete_user(user_id)
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"Profile creation failed: {e}")
 
-    # Save consent responses — rollback everything on failure
     consent_rows = [
         {
             "user_id": user_id,
@@ -223,12 +206,12 @@ async def register(request: Request, body: RegisterRequest):
         for r in body.consent_responses
     ]
     try:
-        admin.table("user_consent_responses").insert(consent_rows).execute()
+        await admin.table("user_consent_responses").insert(consent_rows).execute()
     except Exception as e:
         try:
-            admin.table("patients").delete().eq("id", user_id).execute()
-            admin.table("profiles").delete().eq("id", user_id).execute()
-            admin.auth.admin.delete_user(user_id)
+            await admin.table("patients").delete().eq("id", user_id).execute()
+            await admin.table("profiles").delete().eq("id", user_id).execute()
+            await admin.auth.admin.delete_user(user_id)
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"Failed to save consent responses: {e}")
@@ -240,8 +223,8 @@ async def register(request: Request, body: RegisterRequest):
     }, "Registration successful — pending approval", status_code=201)
 
 
-def _get_full_profile(admin, user_id: str) -> Optional[dict]:
-    profile = _row(admin, "profiles", "id", user_id)
+async def _get_full_profile(admin, user_id: str) -> Optional[dict]:
+    profile = await _row(admin, "profiles", "id", user_id)
     if not profile:
         return None
     table_map = {
@@ -252,7 +235,7 @@ def _get_full_profile(admin, user_id: str) -> Optional[dict]:
         "admin": "admins",
     }
     role = profile.get("role")
-    extra = _row(admin, table_map[role], "id", user_id) if role in table_map else {}
+    extra = await _row(admin, table_map[role], "id", user_id) if role in table_map else {}
     return {**profile, **(extra or {})}
 
 
@@ -260,10 +243,11 @@ def _get_full_profile(admin, user_id: str) -> Optional[dict]:
 @limiter.limit("10/minute")
 async def login(request: Request, body: LoginRequest):
     """Authenticate with email/password and return tokens + user profile."""
+    from app.database import AsyncClient
     settings = get_settings()
     try:
-        fresh = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-        sign_in = fresh.auth.sign_in_with_password({
+        fresh = AsyncClient(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        sign_in = await fresh.auth.sign_in_with_password({
             "email": body.email,
             "password": body.password,
         })
@@ -273,7 +257,7 @@ async def login(request: Request, body: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     admin = get_supabase_admin()
-    profile = _get_full_profile(admin, user_id)
+    profile = await _get_full_profile(admin, user_id)
     if not profile:
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
@@ -302,7 +286,7 @@ async def get_me(request: Request, current_user: dict = Depends(get_current_user
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
     admin = get_supabase_admin()
-    profile = _get_full_profile(admin, current_user["id"])
+    profile = await _get_full_profile(admin, current_user["id"])
     if not profile:
         raise HTTPException(status_code=404, detail="PROFILE_NOT_FOUND")
 
@@ -320,7 +304,7 @@ async def sync_profile(
     if body.role not in PUBLIC_REGISTER_ROLES:
         raise HTTPException(status_code=400, detail="Only patient profiles can be synced via this endpoint.")
     admin = get_supabase_admin()
-    admin.table("profiles").upsert({
+    await admin.table("profiles").upsert({
         "id": current_user["id"],
         "role": body.role,
         "full_name": body.full_name,
@@ -331,10 +315,8 @@ async def sync_profile(
         "country": body.country,
         "is_active": False,
     }).execute()
-    admin.table("patients").upsert({
+    await admin.table("patients").upsert({
         "id": current_user["id"],
-        "medical_history": body.medical_history,
-        "emergency_contact": body.emergency_contact,
         "approval_status": "pending",
     }).execute()
     return success_response({"role": body.role, "id": current_user["id"]}, "Profile synced")

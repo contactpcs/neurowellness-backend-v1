@@ -5,11 +5,10 @@ All authorization is enforced here (the routers add a coarse role guard, this
 layer enforces ownership / clinic / timing rules). Patients can only cancel
 their own appointment (>= min hours before start); they can never create or
 directly reschedule — that goes through request_service.
-
-NOTE: Socket.IO emits are intentionally NOT wired here yet (Milestone B).
 """
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone, date, time
 from typing import Optional
 
@@ -28,25 +27,25 @@ ACTIVE_STATUSES = {"scheduled", "confirmed", "checked_in", "in_progress"}
 # Helpers
 # --------------------------------------------------------------------------- #
 
-def _name_map(admin, ids: list[str]) -> dict[str, str]:
+async def _name_map(admin, ids: list[str]) -> dict[str, str]:
     ids = [i for i in set(ids) if i]
     if not ids:
         return {}
-    rows = admin.table("profiles").select("id, full_name").in_("id", ids).execute().data or []
+    rows = (await admin.table("profiles").select("id, full_name").in_("id", ids).execute()).data or []
     return {r["id"]: r["full_name"] for r in rows}
 
 
-def _hydrate(admin, row: dict) -> dict:
-    names = _name_map(admin, [row.get("patient_id"), row.get("doctor_id")])
+async def _hydrate(admin, row: dict) -> dict:
+    names = await _name_map(admin, [row.get("patient_id"), row.get("doctor_id")])
     row["patient_name"] = names.get(row.get("patient_id"))
     row["doctor_name"] = names.get(row.get("doctor_id"))
     return row
 
 
-def _record_history(admin, entity_id: str, action: str, current_user: dict,
+async def _record_history(admin, entity_id: str, action: str, current_user: dict,
                     old_status: Optional[str] = None, new_status: Optional[str] = None,
                     metadata: Optional[dict] = None, notes: Optional[str] = None) -> None:
-    admin.table("appointment_history").insert({
+    await admin.table("appointment_history").insert({
         "entity_type": "appointment",
         "entity_id": entity_id,
         "action": action,
@@ -59,25 +58,27 @@ def _record_history(admin, entity_id: str, action: str, current_user: dict,
     }).execute()
 
 
-def _notify(admin, user_id: str, ntype: str, title: str, body: str, metadata: dict) -> None:
+async def _notify(admin, user_id: str, ntype: str, title: str, body: str, metadata: dict) -> None:
     if not user_id:
         return
-    row = {
-        "user_id": user_id,
-        "type": ntype,
-        "title": title,
-        "body": body,
-        "metadata": metadata,
-    }
-    res = admin.table("notifications").insert(row).execute()
-    saved = res.data[0] if res.data else row
-    emitter.fire(emitter.emit_notification(user_id, saved))
+    await _notify_many(admin, [user_id], ntype, title, body, metadata)
 
 
-def _load(admin, appointment_id: str) -> dict:
-    rows = admin.table("appointments").select("*").eq(
+async def _notify_many(admin, user_ids: list, ntype: str, title: str, body: str, metadata: dict) -> None:
+    """Batch-insert notifications for multiple users in one DB round-trip."""
+    rows = [{"user_id": uid, "type": ntype, "title": title, "body": body, "metadata": metadata}
+            for uid in user_ids if uid]
+    if not rows:
+        return
+    res = await admin.table("notifications").insert(rows).execute()
+    for saved in (res.data or rows):
+        emitter.fire(emitter.emit_notification(saved["user_id"], saved))
+
+
+async def _load(admin, appointment_id: str) -> dict:
+    rows = (await admin.table("appointments").select("*").eq(
         "appointment_id", appointment_id
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
     if not rows:
         raise NotFoundError("Appointment not found")
     return rows[0]
@@ -101,9 +102,13 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
 
     admin = get_supabase_admin()
 
-    patient = admin.table("patients").select("id, clinic_id").eq(
-        "id", payload.patient_id
-    ).limit(1).execute().data or []
+    patient_res, doctor_res = await asyncio.gather(
+        admin.table("patients").select("id, clinic_id").eq("id", payload.patient_id).limit(1).execute(),
+        admin.table("doctors").select("id, clinic_id").eq("id", payload.doctor_id).limit(1).execute(),
+    )
+    patient = patient_res.data or []
+    doctor  = doctor_res.data or []
+
     if not patient:
         raise NotFoundError("Patient not found")
     clinic_id = patient[0].get("clinic_id")
@@ -112,9 +117,6 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
     if user_clinic and clinic_id and user_clinic != clinic_id:
         raise ForbiddenError("Patient does not belong to your clinic")
 
-    doctor = admin.table("doctors").select("id, clinic_id").eq(
-        "id", payload.doctor_id
-    ).limit(1).execute().data or []
     if not doctor:
         raise NotFoundError("Doctor not found")
     if clinic_id and doctor[0].get("clinic_id") and doctor[0]["clinic_id"] != clinic_id:
@@ -123,10 +125,10 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
     appt_date: date = payload.appointment_date
     start_t: time = payload.start_time
 
-    if not schedule_service.is_slot_available(payload.doctor_id, appt_date, start_t):
+    slot_available, duration = await schedule_service.check_slot(payload.doctor_id, appt_date, start_t)
+    if not slot_available:
         raise ConflictError("That slot is not available on the doctor's schedule")
 
-    duration = schedule_service.get_slot_duration(payload.doctor_id, appt_date, start_t)
     end_t = add_minutes(start_t, duration)
 
     row = {
@@ -149,7 +151,7 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
     }
 
     try:
-        res = admin.table("appointments").insert(row).execute()
+        res = await admin.table("appointments").insert(row).execute()
     except Exception as e:
         msg = str(e).lower()
         if "uq_doctor_slot" in msg or "duplicate" in msg or "unique" in msg:
@@ -157,15 +159,15 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
         raise BadRequestError(f"Could not create appointment: {e}")
 
     appt = res.data[0]
-    _record_history(admin, appt["appointment_id"], "created", current_user, new_status="scheduled")
+    await _record_history(admin, appt["appointment_id"], "created", current_user, new_status="scheduled")
 
     meta = {"appointment_id": appt["appointment_id"], "appointment_date": row["appointment_date"], "start_time": row["start_time"]}
-    _notify(admin, payload.patient_id, "appointment_created", "Appointment Scheduled",
+    await _notify(admin, payload.patient_id, "appointment_created", "Appointment Scheduled",
             f"An appointment was booked for {row['appointment_date']} at {row['start_time'][:5]}.", meta)
-    _notify(admin, payload.doctor_id, "appointment_created", "New Appointment",
+    await _notify(admin, payload.doctor_id, "appointment_created", "New Appointment",
             f"New appointment on {row['appointment_date']} at {row['start_time'][:5]}.", meta)
 
-    out = _hydrate(admin, appt)
+    out = await _hydrate(admin, appt)
     await emitter.emit_appointment_event(
         "appointment:created", {"appointment": out},
         clinic_id=clinic_id, patient_id=payload.patient_id, doctor_id=payload.doctor_id,
@@ -179,7 +181,7 @@ async def create_appointment(payload, *, current_user: dict) -> dict:
 
 async def cancel_appointment(appointment_id: str, payload, *, current_user: dict) -> dict:
     admin = get_supabase_admin()
-    appt = _load(admin, appointment_id)
+    appt = await _load(admin, appointment_id)
     role = current_user["role"]
 
     if appt["status"] not in ACTIVE_STATUSES:
@@ -200,7 +202,7 @@ async def cancel_appointment(appointment_id: str, payload, *, current_user: dict
     else:
         raise ForbiddenError("Not allowed to cancel appointments")
 
-    res = admin.table("appointments").update({
+    res = await admin.table("appointments").update({
         "status": "cancelled",
         "cancelled_by": current_user["id"],
         "cancelled_at": datetime.now(timezone.utc).isoformat(),
@@ -208,15 +210,15 @@ async def cancel_appointment(appointment_id: str, payload, *, current_user: dict
     }).eq("appointment_id", appointment_id).execute()
     appt = res.data[0]
 
-    _record_history(admin, appointment_id, "cancelled", current_user,
+    await _record_history(admin, appointment_id, "cancelled", current_user,
                     old_status="scheduled", new_status="cancelled", notes=payload.cancellation_reason)
 
     other = appt["doctor_id"] if role == "patient" else appt["patient_id"]
-    _notify(admin, other, "appointment_cancelled", "Appointment Cancelled",
+    await _notify(admin, other, "appointment_cancelled", "Appointment Cancelled",
             f"Appointment on {appt['appointment_date']} at {str(appt['start_time'])[:5]} was cancelled.",
             {"appointment_id": appointment_id})
 
-    out = _hydrate(admin, appt)
+    out = await _hydrate(admin, appt)
     await emitter.emit_appointment_event(
         "appointment:cancelled",
         {"appointment_id": appointment_id, "cancelled_by": current_user["id"],
@@ -238,7 +240,7 @@ async def reschedule_appointment_direct(appointment_id: str, payload, *, current
         raise ForbiddenError("Not allowed to reschedule")
 
     admin = get_supabase_admin()
-    old = _load(admin, appointment_id)
+    old = await _load(admin, appointment_id)
     if old["status"] not in ACTIVE_STATUSES:
         raise BadRequestError(f"Cannot reschedule an appointment in '{old['status']}' status")
     if role == "doctor" and old["doctor_id"] != current_user["id"]:
@@ -260,19 +262,19 @@ async def reschedule_appointment_direct(appointment_id: str, payload, *, current
         current_user=current_user,
     )
 
-    admin.table("appointments").update({
+    await admin.table("appointments").update({
         "status": "rescheduled",
         "rescheduled_to": new_appt["appointment_id"],
     }).eq("appointment_id", appointment_id).execute()
-    admin.table("appointments").update({
+    await admin.table("appointments").update({
         "rescheduled_from": appointment_id,
     }).eq("appointment_id", new_appt["appointment_id"]).execute()
 
-    _record_history(admin, appointment_id, "rescheduled", current_user,
+    await _record_history(admin, appointment_id, "rescheduled", current_user,
                     old_status=old["status"], new_status="rescheduled",
                     metadata={"rescheduled_to": new_appt["appointment_id"]})
 
-    _notify(admin, old["patient_id"], "appointment_rescheduled", "Appointment Rescheduled",
+    await _notify(admin, old["patient_id"], "appointment_rescheduled", "Appointment Rescheduled",
             f"Your appointment moved to {new_appt['appointment_date']} at {str(new_appt['start_time'])[:5]}.",
             {"old_appointment_id": appointment_id, "new_appointment_id": new_appt["appointment_id"]})
 
@@ -305,15 +307,15 @@ async def _transition(appointment_id: str, new_status: str, action: str, *,
                       current_user: dict, doctor_only: bool = False,
                       event: str = "appointment:updated") -> dict:
     admin = get_supabase_admin()
-    appt = _load(admin, appointment_id)
+    appt = await _load(admin, appointment_id)
     _staff_or_doctor_guard(appt, current_user, doctor_only=doctor_only)
     old_status = appt["status"]
-    res = admin.table("appointments").update({"status": new_status}).eq(
+    res = await admin.table("appointments").update({"status": new_status}).eq(
         "appointment_id", appointment_id
     ).execute()
     appt = res.data[0]
-    _record_history(admin, appointment_id, action, current_user, old_status=old_status, new_status=new_status)
-    out = _hydrate(admin, appt)
+    await _record_history(admin, appointment_id, action, current_user, old_status=old_status, new_status=new_status)
+    out = await _hydrate(admin, appt)
     await emitter.emit_appointment_event(
         event, {"appointment_id": appointment_id, "status": new_status, "appointment": out},
         clinic_id=appt.get("clinic_id"), patient_id=appt["patient_id"], doctor_id=appt["doctor_id"],
@@ -325,7 +327,7 @@ async def confirm_appointment(appointment_id: str, *, current_user: dict) -> dic
     appt = await _transition(appointment_id, "confirmed", "confirmed", current_user=current_user,
                              event="appointment:confirmed")
     admin = get_supabase_admin()
-    _notify(admin, appt["patient_id"], "appointment_confirmed", "Appointment Confirmed",
+    await _notify(admin, appt["patient_id"], "appointment_confirmed", "Appointment Confirmed",
             f"Your appointment on {appt['appointment_date']} is confirmed.", {"appointment_id": appointment_id})
     return appt
 
@@ -342,13 +344,12 @@ async def start_appointment(appointment_id: str, *, current_user: dict) -> dict:
 
 async def complete_appointment(appointment_id: str, *, current_user: dict) -> dict:
     admin = get_supabase_admin()
-    appt = _load(admin, appointment_id)
+    appt = await _load(admin, appointment_id)
     _staff_or_doctor_guard(appt, current_user, doctor_only=True)
 
-    # Link / create a clinical sessions row, preserving the existing workflow.
     session_id = appt.get("session_id")
     if not session_id:
-        sess = admin.table("sessions").insert({
+        sess = await admin.table("sessions").insert({
             "patient_id": appt["patient_id"],
             "doctor_id": appt["doctor_id"],
             "session_type": "in_person",
@@ -358,16 +359,16 @@ async def complete_appointment(appointment_id: str, *, current_user: dict) -> di
         }).execute()
         session_id = sess.data[0]["id"] if sess.data else None
 
-    res = admin.table("appointments").update({
+    res = await admin.table("appointments").update({
         "status": "completed", "session_id": session_id,
     }).eq("appointment_id", appointment_id).execute()
     appt = res.data[0]
-    _record_history(admin, appointment_id, "completed", current_user,
+    await _record_history(admin, appointment_id, "completed", current_user,
                     old_status="in_progress", new_status="completed",
                     metadata={"session_id": session_id})
-    _notify(admin, appt["patient_id"], "appointment_completed", "Appointment Completed",
+    await _notify(admin, appt["patient_id"], "appointment_completed", "Appointment Completed",
             "Your consultation has been marked complete.", {"appointment_id": appointment_id})
-    out = _hydrate(admin, appt)
+    out = await _hydrate(admin, appt)
     await emitter.emit_appointment_event(
         "appointment:completed", {"appointment_id": appointment_id, "session_id": session_id},
         clinic_id=appt.get("clinic_id"), patient_id=appt["patient_id"], doctor_id=appt["doctor_id"],
@@ -382,7 +383,7 @@ async def mark_no_show(appointment_id: str, *, current_user: dict) -> dict:
 
 async def update_appointment(appointment_id: str, payload, *, current_user: dict) -> dict:
     admin = get_supabase_admin()
-    appt = _load(admin, appointment_id)
+    appt = await _load(admin, appointment_id)
     _staff_or_doctor_guard(appt, current_user)
     updates = {k: v for k, v in {
         "notes": payload.notes,
@@ -391,10 +392,10 @@ async def update_appointment(appointment_id: str, payload, *, current_user: dict
     }.items() if v is not None}
     if not updates:
         raise BadRequestError("No fields to update")
-    res = admin.table("appointments").update(updates).eq("appointment_id", appointment_id).execute()
+    res = await admin.table("appointments").update(updates).eq("appointment_id", appointment_id).execute()
     appt = res.data[0]
-    _record_history(admin, appointment_id, "notes_updated", current_user, metadata=updates)
-    out = _hydrate(admin, appt)
+    await _record_history(admin, appointment_id, "notes_updated", current_user, metadata=updates)
+    out = await _hydrate(admin, appt)
     await emitter.emit_appointment_event(
         "appointment:updated", {"appointment_id": appointment_id, "changes": updates},
         clinic_id=appt.get("clinic_id"), patient_id=appt["patient_id"], doctor_id=appt["doctor_id"],
@@ -406,23 +407,22 @@ async def update_appointment(appointment_id: str, payload, *, current_user: dict
 # Reads
 # --------------------------------------------------------------------------- #
 
-def get_appointment(appointment_id: str, *, current_user: dict) -> dict:
+async def get_appointment(appointment_id: str, *, current_user: dict) -> dict:
     admin = get_supabase_admin()
-    appt = _load(admin, appointment_id)
+    appt = await _load(admin, appointment_id)
     role = current_user["role"]
     if role == "patient" and appt["patient_id"] != current_user["id"]:
         raise ForbiddenError("Not your appointment")
     if role == "doctor" and appt["doctor_id"] != current_user["id"]:
-        # doctors may still view clinic appts? Restrict to own for safety.
         if current_user.get("clinic_id") and appt.get("clinic_id") != current_user["clinic_id"]:
             raise ForbiddenError("Not your appointment")
     if role in ("receptionist", "clinical_assistant") and current_user.get("clinic_id") \
             and appt.get("clinic_id") != current_user["clinic_id"]:
         raise ForbiddenError("Appointment is not in your clinic")
-    return _hydrate(admin, appt)
+    return await _hydrate(admin, appt)
 
 
-def list_appointments(*, current_user: dict,
+async def list_appointments(*, current_user: dict,
                       date_from: Optional[date] = None, date_to: Optional[date] = None,
                       status: Optional[str] = None,
                       doctor_id: Optional[str] = None, patient_id: Optional[str] = None,
@@ -435,7 +435,7 @@ def list_appointments(*, current_user: dict,
         q = q.eq("patient_id", current_user["id"])
     elif role == "doctor":
         q = q.eq("doctor_id", current_user["id"])
-    else:  # receptionist / clinical_assistant / admin
+    else:
         if current_user.get("clinic_id"):
             q = q.eq("clinic_id", current_user["clinic_id"])
         if doctor_id:
@@ -450,19 +450,18 @@ def list_appointments(*, current_user: dict,
     if date_to:
         q = q.lte("appointment_date", date_to.isoformat())
 
-    rows = q.order("start_at", desc=False).range(skip, skip + limit - 1).execute().data or []
+    rows = (await q.order("start_at", desc=False).range(skip, skip + limit - 1).execute()).data or []
 
-    names = _name_map(admin, [r.get("patient_id") for r in rows] + [r.get("doctor_id") for r in rows])
+    names = await _name_map(admin, [r.get("patient_id") for r in rows] + [r.get("doctor_id") for r in rows])
     for r in rows:
         r["patient_name"] = names.get(r.get("patient_id"))
         r["doctor_name"] = names.get(r.get("doctor_id"))
     return rows
 
 
-def get_history(appointment_id: str, *, current_user: dict) -> list[dict]:
-    # Reuse access check
-    get_appointment(appointment_id, current_user=current_user)
+async def get_history(appointment_id: str, *, current_user: dict) -> list[dict]:
+    await get_appointment(appointment_id, current_user=current_user)
     admin = get_supabase_admin()
-    return admin.table("appointment_history").select("*").eq(
+    return (await admin.table("appointment_history").select("*").eq(
         "entity_type", "appointment"
-    ).eq("entity_id", appointment_id).order("changed_at", desc=True).execute().data or []
+    ).eq("entity_id", appointment_id).order("changed_at", desc=True).execute()).data or []

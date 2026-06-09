@@ -27,7 +27,7 @@ def _rooms_for(user: dict) -> list[str]:
 
 @sio.event
 async def connect(sid, environ, auth):
-    user = authenticate(auth, environ)
+    user = await authenticate(auth, environ)
     if not user:
         raise ConnectionRefusedError("authentication failed")
     await sio.save_session(sid, user)

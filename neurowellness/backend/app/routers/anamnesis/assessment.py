@@ -36,16 +36,16 @@ def _assert_access(role: str, user_id: str, rec: dict) -> None:
         raise ForbiddenError("Access denied")
 
 
-def _fetch_with_responses(admin, anamnesis_id: str) -> dict:
-    rec = admin.table("anamnesis_assessments").select("*").eq(
+async def _fetch_with_responses(admin, anamnesis_id: str) -> dict:
+    rec = (await admin.table("anamnesis_assessments").select("*").eq(
         "anamnesis_id", anamnesis_id
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
     if not rec:
         raise NotFoundError("Anamnesis record not found")
     data = rec[0]
-    data["responses"] = admin.table("anamnesis_responses").select(
+    data["responses"] = (await admin.table("anamnesis_responses").select(
         "response_id, question_id, response_value, response_values, updated_at"
-    ).eq("anamnesis_id", anamnesis_id).execute().data or []
+    ).eq("anamnesis_id", anamnesis_id).execute()).data or []
     return data
 
 
@@ -60,19 +60,19 @@ async def get_anamnesis_questions(
 ):
     admin = get_supabase_admin()
 
-    questions = admin.table("anamnesis_questions").select(
+    questions = (await admin.table("anamnesis_questions").select(
         "question_id, section_number, section_title, question_code, question_text, "
         "answer_type, is_required, display_order, depends_on_question_id, "
         "depends_on_value, helper_text"
-    ).eq("status", True).order("display_order").execute().data or []
+    ).eq("status", True).order("display_order").execute()).data or []
 
     if not questions:
         return success_response(data=[], message="No questions found")
 
     q_ids = [q["question_id"] for q in questions]
-    all_options = admin.table("anamnesis_options").select(
+    all_options = (await admin.table("anamnesis_options").select(
         "option_id, question_id, option_label, option_value, display_order"
-    ).in_("question_id", q_ids).order("display_order").execute().data or []
+    ).in_("question_id", q_ids).order("display_order").execute()).data or []
 
     opts_by_q: dict = {}
     for o in all_options:
@@ -97,9 +97,9 @@ async def start_anamnesis(
     admin      = get_supabase_admin()
     patient_id = _resolve_patient_id(body.taken_by, body.patient_id, current_user)
 
-    existing = admin.table("anamnesis_assessments").select(
+    existing = (await admin.table("anamnesis_assessments").select(
         "anamnesis_id, status"
-    ).eq("patient_id", patient_id).limit(1).execute().data or []
+    ).eq("patient_id", patient_id).limit(1).execute()).data or []
 
     if existing:
         rec = existing[0]
@@ -114,7 +114,7 @@ async def start_anamnesis(
         )
 
     anamnesis_id = f"ANA/{patient_id[:8]}/001"
-    admin.table("anamnesis_assessments").insert({
+    await admin.table("anamnesis_assessments").insert({
         "anamnesis_id": anamnesis_id,
         "patient_id":   patient_id,
         "taken_by":     body.taken_by,
@@ -141,9 +141,9 @@ async def save_response(
     admin = get_supabase_admin()
     role  = current_user["role"]
 
-    rec_rows = admin.table("anamnesis_assessments").select(
+    rec_rows = (await admin.table("anamnesis_assessments").select(
         "anamnesis_id, patient_id, status"
-    ).eq("anamnesis_id", body.anamnesis_id).limit(1).execute().data or []
+    ).eq("anamnesis_id", body.anamnesis_id).limit(1).execute()).data or []
 
     if not rec_rows:
         raise NotFoundError("Anamnesis record not found")
@@ -159,7 +159,7 @@ async def save_response(
 
     response_id = f"{body.anamnesis_id}|{body.question_id}"
 
-    admin.table("anamnesis_responses").upsert({
+    await admin.table("anamnesis_responses").upsert({
         "response_id":     response_id,
         "anamnesis_id":    body.anamnesis_id,
         "question_id":     body.question_id,
@@ -186,9 +186,9 @@ async def submit_anamnesis(
     admin = get_supabase_admin()
     role  = current_user["role"]
 
-    rec_rows = admin.table("anamnesis_assessments").select(
+    rec_rows = (await admin.table("anamnesis_assessments").select(
         "anamnesis_id, patient_id, status"
-    ).eq("anamnesis_id", body.anamnesis_id).limit(1).execute().data or []
+    ).eq("anamnesis_id", body.anamnesis_id).limit(1).execute()).data or []
 
     if not rec_rows:
         raise NotFoundError("Anamnesis record not found")
@@ -199,7 +199,6 @@ async def submit_anamnesis(
     if rec["status"] == "completed":
         raise BadRequestError("Anamnesis is already submitted and is read-only")
 
-    # Optional: upsert any remaining responses passed in the submit payload
     if body.responses:
         upsert_rows = []
         for r in body.responses:
@@ -213,11 +212,11 @@ async def submit_anamnesis(
                 "response_values": r.response_values,
             })
         if upsert_rows:
-            admin.table("anamnesis_responses").upsert(
+            await admin.table("anamnesis_responses").upsert(
                 upsert_rows, on_conflict="anamnesis_id,question_id"
             ).execute()
 
-    admin.table("anamnesis_assessments").update({
+    await admin.table("anamnesis_assessments").update({
         "status":       "completed",
         "submitted_by": current_user["id"],
         "completed_at": datetime.now(timezone.utc).isoformat(),
@@ -240,14 +239,14 @@ async def get_my_anamnesis(
 ):
     admin = get_supabase_admin()
 
-    rec_rows = admin.table("anamnesis_assessments").select("anamnesis_id").eq(
+    rec_rows = (await admin.table("anamnesis_assessments").select("anamnesis_id").eq(
         "patient_id", current_user["id"]
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
 
     if not rec_rows:
         raise NotFoundError("No anamnesis found for this patient")
 
-    data = _fetch_with_responses(admin, rec_rows[0]["anamnesis_id"])
+    data = await _fetch_with_responses(admin, rec_rows[0]["anamnesis_id"])
     return success_response(data=data, message="Anamnesis retrieved")
 
 
@@ -263,12 +262,12 @@ async def get_patient_anamnesis(
 ):
     admin = get_supabase_admin()
 
-    rec_rows = admin.table("anamnesis_assessments").select("anamnesis_id").eq(
+    rec_rows = (await admin.table("anamnesis_assessments").select("anamnesis_id").eq(
         "patient_id", patient_id
-    ).limit(1).execute().data or []
+    ).limit(1).execute()).data or []
 
     if not rec_rows:
         raise NotFoundError("No anamnesis found for this patient")
 
-    data = _fetch_with_responses(admin, rec_rows[0]["anamnesis_id"])
+    data = await _fetch_with_responses(admin, rec_rows[0]["anamnesis_id"])
     return success_response(data=data, message="Anamnesis retrieved")

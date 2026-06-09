@@ -25,7 +25,7 @@ async def list_scales(
     current_user: dict = Depends(get_current_user),
 ):
     admin = get_supabase_admin()
-    result = admin.table("prs_scales").select(
+    result = await admin.table("prs_scales").select(
         "scale_id, scale_code, scale_name, is_common_scale, num_diseases_used"
     ).range(skip, skip + limit - 1).execute()
     return paginated_response(result.data or [], len(result.data or []), skip, limit)
@@ -44,15 +44,15 @@ async def get_scale_by_code(
     GET /prs/questions/{question_id}/options.
     """
     admin = get_supabase_admin()
-    result = admin.table("prs_scales").select("*").eq("scale_code", code).limit(1).execute()
+    result = await admin.table("prs_scales").select("*").eq("scale_code", code).limit(1).execute()
     if not result.data:
         raise NotFoundError(f"Scale '{code}' not found")
     scale = result.data[0]
 
-    questions = admin.table("prs_questions").select(
+    questions = (await admin.table("prs_questions").select(
         "question_id, question_text, answer_type, min_value, max_value, "
         "is_required, skip_logic, display_order"
-    ).eq("scale_id", scale["scale_id"]).order("display_order").execute().data or []
+    ).eq("scale_id", scale["scale_id"]).order("display_order").execute()).data or []
 
     questions = _attach_question_indexes(questions)
     return success_response({**scale, "questions": questions})
@@ -71,15 +71,15 @@ async def get_scale(
     GET /prs/questions/{question_id}/options.
     """
     admin = get_supabase_admin()
-    result = admin.table("prs_scales").select("*").eq("scale_id", scale_id).limit(1).execute()
+    result = await admin.table("prs_scales").select("*").eq("scale_id", scale_id).limit(1).execute()
     if not result.data:
         raise NotFoundError("Scale not found")
     scale = result.data[0]
 
-    questions = admin.table("prs_questions").select(
+    questions = (await admin.table("prs_questions").select(
         "question_id, question_text, answer_type, min_value, max_value, "
         "is_required, skip_logic, display_order"
-    ).eq("scale_id", scale_id).order("display_order").execute().data or []
+    ).eq("scale_id", scale_id).order("display_order").execute()).data or []
 
     questions = _attach_question_indexes(questions)
     return success_response({**scale, "questions": questions})

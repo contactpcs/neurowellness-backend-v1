@@ -2,9 +2,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from supabase import create_client
 from app.dependencies import require_admin, _invalidate_profile_cache
-from app.database import get_supabase_admin
+from app.database import get_supabase_admin, AsyncClient
 from app.config import get_settings
 from app.utils.responses import success_response, paginated_response
 from app.utils.exceptions import ForbiddenError, NotFoundError, BadRequestError
@@ -19,14 +18,14 @@ STAFF_ROLES = {"doctor", "receptionist", "clinical_assistant"}
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _row(admin, table: str, field: str, value: str) -> Optional[dict]:
-    result = admin.table(table).select("*").eq(field, value).limit(1).execute()
+async def _row(admin, table: str, field: str, value: str) -> Optional[dict]:
+    result = await admin.table(table).select("*").eq(field, value).limit(1).execute()
     return result.data[0] if result.data else None
 
 
-def _get_admin_clinic_id(admin_db, user_id: str) -> Optional[str]:
+async def _get_admin_clinic_id(admin_db, user_id: str) -> Optional[str]:
     """Return this admin's clinic_id (None if unassigned — global super-admin)."""
-    result = admin_db.table("admins").select("clinic_id").eq("id", user_id).limit(1).execute()
+    result = await admin_db.table("admins").select("clinic_id").eq("id", user_id).limit(1).execute()
     return result.data[0].get("clinic_id") if result.data else None
 
 
@@ -126,8 +125,7 @@ async def create_clinic_with_admin(
 
     admin = get_supabase_admin()
 
-    # Create clinic
-    clinic_res = admin.table("clinics").insert({
+    clinic_res = await admin.table("clinics").insert({
         "clinic_name": body.clinic_name,
         "owner_name": body.owner_name,
         "address": body.address,
@@ -142,15 +140,14 @@ async def create_clinic_with_admin(
         raise HTTPException(status_code=500, detail="Failed to create clinic")
     clinic_id = clinic_res.data[0]["clinic_id"]
 
-    # Create admin auth user
     try:
-        user_res = admin.auth.admin.create_user({
+        user_res = await admin.auth.admin.create_user({
             "email": body.admin_email,
             "password": body.admin_password,
             "email_confirm": True,
         })
     except Exception as e:
-        admin.table("clinics").delete().eq("clinic_id", clinic_id).execute()
+        await admin.table("clinics").delete().eq("clinic_id", clinic_id).execute()
         msg = str(e).lower()
         if "already registered" in msg or "already been registered" in msg:
             raise HTTPException(status_code=409, detail="Admin email already registered")
@@ -159,7 +156,7 @@ async def create_clinic_with_admin(
     user_id = user_res.user.id
 
     try:
-        admin.table("profiles").insert({
+        await admin.table("profiles").insert({
             "id": user_id,
             "role": "admin",
             "full_name": body.admin_name,
@@ -168,23 +165,22 @@ async def create_clinic_with_admin(
             "is_active": True,
         }).execute()
 
-        admin.table("admins").insert({
+        await admin.table("admins").insert({
             "id": user_id,
             "clinic_id": clinic_id,
         }).execute()
     except Exception as e:
         try:
-            admin.auth.admin.delete_user(user_id)
-            admin.table("clinics").delete().eq("clinic_id", clinic_id).execute()
+            await admin.auth.admin.delete_user(user_id)
+            await admin.table("clinics").delete().eq("clinic_id", clinic_id).execute()
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"Profile creation failed: {e}")
 
-    # Sign in and return tokens
     settings = get_settings()
     try:
-        fresh = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-        sign_in = fresh.auth.sign_in_with_password({
+        fresh = AsyncClient(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        sign_in = await fresh.auth.sign_in_with_password({
             "email": body.admin_email,
             "password": body.admin_password,
         })
@@ -211,20 +207,18 @@ async def create_clinic_with_admin(
 async def admin_dashboard(request: Request, current_user: dict = Depends(require_admin)):
     admin = get_supabase_admin()
 
-    clinics = admin.table("clinics").select("clinic_id, clinic_name, city, state, is_active").execute().data or []
+    clinics = (await admin.table("clinics").select("clinic_id, clinic_name, city, state, is_active").execute()).data or []
     total_clinics = len(clinics)
 
-    profiles = admin.table("profiles").select("role, clinic_id").execute().data or []
+    profiles = (await admin.table("profiles").select("role, clinic_id").execute()).data or []
     total_doctors = sum(1 for p in profiles if p["role"] == "doctor")
     total_receptionists = sum(1 for p in profiles if p["role"] == "receptionist")
     total_clinical_assistants = sum(1 for p in profiles if p["role"] == "clinical_assistant")
     total_patients = sum(1 for p in profiles if p["role"] == "patient")
 
-    pending_patients = admin.table("patients").select("id").eq("approval_status", "pending").execute().data or []
-    active_assessments = admin.table("assessment_permissions").select("id").eq("status", "granted").execute().data or []
+    pending_patients = (await admin.table("patients").select("id").eq("approval_status", "pending").execute()).data or []
+    active_assessments = (await admin.table("assessment_permissions").select("id").eq("status", "granted").execute()).data or []
 
-    # Per-clinic breakdown
-    clinic_ids = [c["clinic_id"] for c in clinics]
     breakdown = []
     for c in clinics:
         cid = c["clinic_id"]
@@ -267,7 +261,7 @@ async def create_clinic(
 ):
     """Admin creates a new clinic from the dashboard (no bootstrap key needed)."""
     admin = get_supabase_admin()
-    result = admin.table("clinics").insert({
+    result = await admin.table("clinics").insert({
         "clinic_name": body.clinic_name,
         "owner_name": body.owner_name,
         "address": body.address,
@@ -287,7 +281,7 @@ async def create_clinic(
 @limiter.limit("60/minute")
 async def list_clinics(request: Request, current_user: dict = Depends(require_admin)):
     admin = get_supabase_admin()
-    clinics = admin.table("clinics").select("*").order("created_at", desc=False).execute().data or []
+    clinics = (await admin.table("clinics").select("*").order("created_at", desc=False).execute()).data or []
     return success_response(clinics)
 
 
@@ -295,7 +289,7 @@ async def list_clinics(request: Request, current_user: dict = Depends(require_ad
 @limiter.limit("60/minute")
 async def get_clinic(request: Request, clinic_id: str, current_user: dict = Depends(require_admin)):
     admin = get_supabase_admin()
-    clinic = _row(admin, "clinics", "clinic_id", clinic_id)
+    clinic = await _row(admin, "clinics", "clinic_id", clinic_id)
     if not clinic:
         raise NotFoundError("Clinic not found")
     return success_response(clinic)
@@ -310,7 +304,7 @@ async def update_clinic(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    clinic = _row(admin, "clinics", "clinic_id", clinic_id)
+    clinic = await _row(admin, "clinics", "clinic_id", clinic_id)
     if not clinic:
         raise NotFoundError("Clinic not found")
 
@@ -318,7 +312,7 @@ async def update_clinic(
     if not updates:
         raise BadRequestError("No fields to update")
 
-    result = admin.table("clinics").update(updates).eq("clinic_id", clinic_id).execute()
+    result = await admin.table("clinics").update(updates).eq("clinic_id", clinic_id).execute()
     return success_response(result.data[0] if result.data else {}, "Clinic updated")
 
 
@@ -330,10 +324,10 @@ async def deactivate_clinic(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    clinic = _row(admin, "clinics", "clinic_id", clinic_id)
+    clinic = await _row(admin, "clinics", "clinic_id", clinic_id)
     if not clinic:
         raise NotFoundError("Clinic not found")
-    admin.table("clinics").update({"is_active": False}).eq("clinic_id", clinic_id).execute()
+    await admin.table("clinics").update({"is_active": False}).eq("clinic_id", clinic_id).execute()
     return success_response({"clinic_id": clinic_id}, "Clinic deactivated")
 
 
@@ -345,10 +339,10 @@ async def activate_clinic(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    clinic = _row(admin, "clinics", "clinic_id", clinic_id)
+    clinic = await _row(admin, "clinics", "clinic_id", clinic_id)
     if not clinic:
         raise NotFoundError("Clinic not found")
-    admin.table("clinics").update({"is_active": True}).eq("clinic_id", clinic_id).execute()
+    await admin.table("clinics").update({"is_active": True}).eq("clinic_id", clinic_id).execute()
     return success_response({"clinic_id": clinic_id}, "Clinic activated")
 
 
@@ -380,10 +374,9 @@ async def list_staff(
     if is_active is not None:
         q = q.eq("is_active", is_active)
 
-    result = q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
+    result = await q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
     data = result.data or []
 
-    # Batch role-table lookups — 3 queries max regardless of staff count
     role_ids: dict = {"doctor": [], "receptionist": [], "clinical_assistant": []}
     for p in data:
         if p["role"] in role_ids:
@@ -393,18 +386,16 @@ async def list_staff(
     role_tables = {"doctor": "doctors", "receptionist": "receptionists", "clinical_assistant": "clinical_assistants"}
     for role_name, ids in role_ids.items():
         if ids:
-            rows = admin.table(role_tables[role_name]).select("*").in_("id", ids).execute().data or []
+            rows = (await admin.table(role_tables[role_name]).select("*").in_("id", ids).execute()).data or []
             for r in rows:
                 role_map[r["id"]] = r
 
-    # Batch clinic name lookup — 1 query
     clinics = {c["clinic_id"]: c["clinic_name"] for c in
-               (admin.table("clinics").select("clinic_id, clinic_name").execute().data or [])}
+               ((await admin.table("clinics").select("clinic_id, clinic_name").execute()).data or [])}
 
     enriched = []
     for p in data:
         extra = role_map.get(p["id"], {})
-        # Exclude soft-deleted staff
         if extra.get("deleted_by"):
             continue
         enriched.append({
@@ -425,17 +416,17 @@ async def get_staff_member(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    profile = _row(admin, "profiles", "id", staff_id)
+    profile = await _row(admin, "profiles", "id", staff_id)
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
 
     table = {"doctor": "doctors", "receptionist": "receptionists",
              "clinical_assistant": "clinical_assistants"}.get(profile["role"])
-    extra = _row(admin, table, "id", staff_id) if table else {}
+    extra = await _row(admin, table, "id", staff_id) if table else {}
 
     clinic = None
     if profile.get("clinic_id"):
-        clinic = _row(admin, "clinics", "clinic_id", profile["clinic_id"])
+        clinic = await _row(admin, "clinics", "clinic_id", profile["clinic_id"])
 
     return success_response({**profile, **(extra or {}), "clinic": clinic})
 
@@ -452,18 +443,16 @@ async def register_staff(
 
     admin = get_supabase_admin()
 
-    # Resolve clinic_id: use body's clinic_id if given, else fall back to admin's own clinic
-    target_clinic_id = body.clinic_id or _get_admin_clinic_id(admin, current_user["id"])
+    target_clinic_id = body.clinic_id or await _get_admin_clinic_id(admin, current_user["id"])
     if not target_clinic_id:
         raise BadRequestError("clinic_id is required — provide it in the request body or ensure your admin account is assigned to a clinic")
 
-    clinic = _row(admin, "clinics", "clinic_id", target_clinic_id)
+    clinic = await _row(admin, "clinics", "clinic_id", target_clinic_id)
     if not clinic:
         raise NotFoundError("Target clinic not found")
 
-    # Create auth user
     try:
-        user_res = admin.auth.admin.create_user({
+        user_res = await admin.auth.admin.create_user({
             "email": body.email,
             "password": body.password,
             "email_confirm": True,
@@ -477,8 +466,7 @@ async def register_staff(
     user_id = user_res.user.id
 
     try:
-        # Single atomic transaction: profiles + role table in one DB call
-        admin.rpc("register_staff_db", {
+        await admin.rpc("register_staff_db", {
             "p_id": user_id,
             "p_role": body.role,
             "p_full_name": body.full_name,
@@ -498,7 +486,7 @@ async def register_staff(
         }).execute()
     except Exception as e:
         try:
-            admin.auth.admin.delete_user(user_id)
+            await admin.auth.admin.delete_user(user_id)
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"Staff creation failed: {e}")
@@ -520,7 +508,7 @@ async def update_staff(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    profile = _row(admin, "profiles", "id", staff_id)
+    profile = await _row(admin, "profiles", "id", staff_id)
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
 
@@ -543,11 +531,11 @@ async def update_staff(
                 role_updates[f] = v
 
     if profile_updates:
-        admin.table("profiles").update(profile_updates).eq("id", staff_id).execute()
+        await admin.table("profiles").update(profile_updates).eq("id", staff_id).execute()
     if role_updates:
         table = {"doctor": "doctors", "receptionist": "receptionists",
                  "clinical_assistant": "clinical_assistants"}[profile["role"]]
-        admin.table(table).update(role_updates).eq("id", staff_id).execute()
+        await admin.table(table).update(role_updates).eq("id", staff_id).execute()
 
     return success_response({"staff_id": staff_id}, "Staff member updated")
 
@@ -560,10 +548,10 @@ async def deactivate_staff(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    profile = _row(admin, "profiles", "id", staff_id)
+    profile = await _row(admin, "profiles", "id", staff_id)
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
-    admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
+    await admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
     _invalidate_profile_cache(staff_id)
     return success_response({"staff_id": staff_id}, "Staff member deactivated")
 
@@ -576,10 +564,10 @@ async def reactivate_staff(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    profile = _row(admin, "profiles", "id", staff_id)
+    profile = await _row(admin, "profiles", "id", staff_id)
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
-    admin.table("profiles").update({"is_active": True}).eq("id", staff_id).execute()
+    await admin.table("profiles").update({"is_active": True}).eq("id", staff_id).execute()
     _invalidate_profile_cache(staff_id)
     return success_response({"staff_id": staff_id}, "Staff member reactivated")
 
@@ -592,22 +580,22 @@ async def delete_staff(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    profile = _row(admin, "profiles", "id", staff_id)
+    profile = await _row(admin, "profiles", "id", staff_id)
     if not profile or profile.get("role") not in STAFF_ROLES:
         raise NotFoundError("Staff member not found")
 
     role_table = {"doctor": "doctors", "receptionist": "receptionists",
                   "clinical_assistant": "clinical_assistants"}[profile["role"]]
-    role_row = _row(admin, role_table, "id", staff_id)
+    role_row = await _row(admin, role_table, "id", staff_id)
     if role_row and role_row.get("deleted_by"):
         raise BadRequestError("Staff member is already deleted")
 
     now = datetime.now(timezone.utc).isoformat()
-    admin.table(role_table).update({
+    await admin.table(role_table).update({
         "deleted_by": current_user["id"],
         "deleted_at": now,
     }).eq("id", staff_id).execute()
-    admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
+    await admin.table("profiles").update({"is_active": False}).eq("id", staff_id).execute()
     _invalidate_profile_cache(staff_id)
 
     return success_response({"staff_id": staff_id}, "Staff member deleted")
@@ -630,7 +618,6 @@ async def list_patients(
 ):
     admin = get_supabase_admin()
 
-    # Join clinics inline — one query instead of a separate clinics fetch
     q = admin.table("patients").select(
         "id, assigned_doctor_id, clinic_id, approval_status, created_at, medical_history, emergency_contact, "
         "deleted_by, deleted_at, "
@@ -643,10 +630,9 @@ async def list_patients(
     if approval_status:
         q = q.eq("approval_status", approval_status)
 
-    result = q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
+    result = await q.order("created_at", desc=True).range(skip, skip + limit - 1).execute()
     raw = result.data or []
 
-    # Flatten nested objects into patient row
     data = []
     for p in raw:
         prof = p.pop("profiles") or {}
@@ -658,11 +644,10 @@ async def list_patients(
         data = [p for p in data if s in (p.get("full_name") or "").lower()
                 or s in (p.get("email") or "").lower()]
 
-    # Batch-fetch doctor names in one query (not one per patient)
     doctor_ids = list({p["assigned_doctor_id"] for p in data if p.get("assigned_doctor_id")})
     doctor_names = {}
     if doctor_ids:
-        dr_profiles = admin.table("profiles").select("id, full_name").in_("id", doctor_ids).execute().data or []
+        dr_profiles = (await admin.table("profiles").select("id, full_name").in_("id", doctor_ids).execute()).data or []
         doctor_names = {d["id"]: d["full_name"] for d in dr_profiles}
 
     for p in data:
@@ -679,12 +664,12 @@ async def approve_patient(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    patient = _row(admin, "patients", "id", patient_id)
+    patient = await _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
 
-    admin.table("patients").update({"approval_status": "approved"}).eq("id", patient_id).execute()
-    admin.table("profiles").update({"is_active": True}).eq("id", patient_id).execute()
+    await admin.table("patients").update({"approval_status": "approved"}).eq("id", patient_id).execute()
+    await admin.table("profiles").update({"is_active": True}).eq("id", patient_id).execute()
     return success_response({"patient_id": patient_id}, "Patient approved")
 
 
@@ -696,12 +681,12 @@ async def reject_patient(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    patient = _row(admin, "patients", "id", patient_id)
+    patient = await _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
 
-    admin.table("patients").update({"approval_status": "rejected"}).eq("id", patient_id).execute()
-    admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
+    await admin.table("patients").update({"approval_status": "rejected"}).eq("id", patient_id).execute()
+    await admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
     return success_response({"patient_id": patient_id}, "Patient rejected")
 
 
@@ -713,17 +698,17 @@ async def delete_patient(
     current_user: dict = Depends(require_admin),
 ):
     admin = get_supabase_admin()
-    patient = _row(admin, "patients", "id", patient_id)
+    patient = await _row(admin, "patients", "id", patient_id)
     if not patient:
         raise NotFoundError("Patient not found")
     if patient.get("deleted_by"):
         raise BadRequestError("Patient is already deleted")
 
     now = datetime.now(timezone.utc).isoformat()
-    admin.table("patients").update({
+    await admin.table("patients").update({
         "deleted_by": current_user["id"],
         "deleted_at": now,
     }).eq("id", patient_id).execute()
-    admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
+    await admin.table("profiles").update({"is_active": False}).eq("id", patient_id).execute()
 
     return success_response({"patient_id": patient_id}, "Patient deleted")

@@ -8,9 +8,6 @@ from app.limiter import limiter
 
 router = APIRouter()
 
-# Actual prs_final_results columns populated by the DB trigger:
-#   calculated_value, max_possible, percentage, overall_severity,
-#   overall_severity_label, scale_summaries, all_risk_flags, time_stamp
 _FINAL_COLS = (
     "instance_id, calculated_value, max_possible, percentage, "
     "overall_severity, overall_severity_label, scale_summaries, time_stamp"
@@ -21,31 +18,30 @@ def _normalize_final(row: dict) -> dict:
     """Map DB trigger column names → consistent frontend keys."""
     row["severity_level"] = row.get("overall_severity")
     row["severity_label"] = row.get("overall_severity_label")
-    # Use percentage (0-100) as the disease_score for the list/summary views
     row["disease_score"]  = row.get("percentage")
     return row
 
 
-def _attach_disease_names(admin, instances: list) -> None:
+async def _attach_disease_names(admin, instances: list) -> None:
     disease_ids = list({i["disease_id"] for i in instances if i.get("disease_id")})
     if not disease_ids:
         return
-    rows = admin.table("prs_diseases").select("disease_id, disease_name").in_(
+    rows = (await admin.table("prs_diseases").select("disease_id, disease_name").in_(
         "disease_id", disease_ids
-    ).execute().data or []
+    ).execute()).data or []
     name_map = {r["disease_id"]: r["disease_name"] for r in rows}
     for inst in instances:
         inst["disease_name"] = name_map.get(inst.get("disease_id"), inst.get("disease_id"))
 
 
-def _attach_final_results(admin, instances: list) -> None:
+async def _attach_final_results(admin, instances: list) -> None:
     """Fetch prs_final_results for a batch of instances and merge into each dict."""
     if not instances:
         return
     iids = [i["instance_id"] for i in instances]
-    rows = admin.table("prs_final_results").select(_FINAL_COLS).in_(
+    rows = (await admin.table("prs_final_results").select(_FINAL_COLS).in_(
         "instance_id", iids
-    ).execute().data or []
+    ).execute()).data or []
     by_iid = {r["instance_id"]: _normalize_final(r) for r in rows}
     for inst in instances:
         fr = by_iid.get(inst["instance_id"], {})
@@ -56,7 +52,6 @@ def _attach_final_results(admin, instances: list) -> None:
         inst["max_possible"]     = fr.get("max_possible")
         inst["percentage"]       = fr.get("percentage")
         inst["scale_summaries"]  = fr.get("scale_summaries", [])
-        # Use trigger timestamp if instance completed_at is missing
         if not inst.get("completed_at"):
             inst["completed_at"] = fr.get("time_stamp")
 
@@ -74,14 +69,14 @@ async def my_scores(
     current_user: dict = Depends(get_current_user),
 ):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select(
+    instances = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, initiated_by, status, started_at, completed_at"
     ).eq("patient_id", current_user["id"]).eq("status", "completed").order(
         "completed_at", desc=True
-    ).range(skip, skip + limit - 1).execute().data or []
+    ).range(skip, skip + limit - 1).execute()).data or []
 
-    _attach_disease_names(admin, instances)
-    _attach_final_results(admin, instances)
+    await _attach_disease_names(admin, instances)
+    await _attach_final_results(admin, instances)
     return paginated_response(instances, len(instances), skip, limit)
 
 
@@ -89,14 +84,14 @@ async def my_scores(
 @limiter.limit("60/minute")
 async def my_score_summary(request: Request, current_user: dict = Depends(get_current_user)):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select(
+    instances = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, status, started_at, completed_at"
     ).eq("patient_id", current_user["id"]).eq("status", "completed").order(
         "completed_at", desc=True
-    ).execute().data or []
+    ).execute()).data or []
 
-    _attach_disease_names(admin, instances)
-    _attach_final_results(admin, instances)
+    await _attach_disease_names(admin, instances)
+    await _attach_final_results(admin, instances)
 
     latest: dict = {}
     for inst in instances:
@@ -124,9 +119,9 @@ async def get_instance_score(
 ):
     admin = get_supabase_admin()
 
-    inst_rows = admin.table("prs_assessment_instances").select(
+    inst_rows = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, patient_id, initiated_by, status, started_at, completed_at"
-    ).eq("instance_id", instance_id).limit(1).execute().data
+    ).eq("instance_id", instance_id).limit(1).execute()).data
     if not inst_rows:
         raise NotFoundError("Assessment instance not found")
     inst = inst_rows[0]
@@ -135,42 +130,38 @@ async def get_instance_score(
     if role == "patient" and inst["patient_id"] != current_user["id"]:
         raise ForbiddenError("Not your assessment")
 
-    # Disease name
     disease_name = inst.get("disease_id")
     if inst.get("disease_id"):
-        d = admin.table("prs_diseases").select("disease_name").eq(
+        d = (await admin.table("prs_diseases").select("disease_name").eq(
             "disease_id", inst["disease_id"]
-        ).limit(1).execute().data
+        ).limit(1).execute()).data
         if d:
             disease_name = d[0]["disease_name"]
     inst["disease_name"] = disease_name
 
-    # Disease-level result from DB (trigger-populated)
-    fr_rows = admin.table("prs_final_results").select(
+    fr_rows = (await admin.table("prs_final_results").select(
         _FINAL_COLS + ", all_risk_flags"
-    ).eq("instance_id", instance_id).limit(1).execute().data
+    ).eq("instance_id", instance_id).limit(1).execute()).data
     disease_result = None
     if fr_rows:
         disease_result = _normalize_final(fr_rows[0])
 
-    # Per-scale results
-    scale_results = admin.table("prs_scale_results").select(
+    scale_results = (await admin.table("prs_scale_results").select(
         "scale_result_id, scale_id, calculated_value, max_possible, "
         "severity_level, severity_label, subscale_scores, risk_flags, raw_score_data"
-    ).eq("instance_id", instance_id).execute().data or []
+    ).eq("instance_id", instance_id).execute()).data or []
 
     if scale_results:
         scale_ids = [sr["scale_id"] for sr in scale_results]
-        scales = admin.table("prs_scales").select(
+        scales = (await admin.table("prs_scales").select(
             "scale_id, scale_code, scale_name"
-        ).in_("scale_id", scale_ids).execute().data or []
+        ).in_("scale_id", scale_ids).execute()).data or []
         scale_map = {s["scale_id"]: s for s in scales}
         for sr in scale_results:
             s = scale_map.get(sr["scale_id"], {})
             sr["scale_name"] = s.get("scale_name", sr["scale_id"])
             sr["scale_code"] = s.get("scale_code", sr["scale_id"])
 
-    # Compute DiseaseEngine weighted composite (0-100) on-the-fly
     weighted_result = None
     if inst.get("disease_id") and scale_results:
         scale_results_map = {
@@ -213,14 +204,14 @@ async def patient_score_summary(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select(
+    instances = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, status, started_at, completed_at"
     ).eq("patient_id", patient_id).eq("status", "completed").order(
         "completed_at", desc=True
-    ).execute().data or []
+    ).execute()).data or []
 
-    _attach_disease_names(admin, instances)
-    _attach_final_results(admin, instances)
+    await _attach_disease_names(admin, instances)
+    await _attach_final_results(admin, instances)
 
     latest: dict = {}
     for inst in instances:
@@ -245,12 +236,12 @@ async def patient_scores(
     current_user: dict = Depends(require_staff),
 ):
     admin = get_supabase_admin()
-    instances = admin.table("prs_assessment_instances").select(
+    instances = (await admin.table("prs_assessment_instances").select(
         "instance_id, disease_id, initiated_by, status, started_at, completed_at"
     ).eq("patient_id", patient_id).eq("status", "completed").order(
         "completed_at", desc=True
-    ).range(skip, skip + limit - 1).execute().data or []
+    ).range(skip, skip + limit - 1).execute()).data or []
 
-    _attach_disease_names(admin, instances)
-    _attach_final_results(admin, instances)
+    await _attach_disease_names(admin, instances)
+    await _attach_final_results(admin, instances)
     return paginated_response(instances, len(instances), skip, limit)

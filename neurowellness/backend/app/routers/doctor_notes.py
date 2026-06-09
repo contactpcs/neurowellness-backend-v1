@@ -17,9 +17,9 @@ class NoteUpsert(BaseModel):
 @limiter.limit("60/minute")
 async def get_note(request: Request, patient_id: str, current_user: dict = Depends(require_doctor)):
     admin = get_supabase_admin()
-    rows = admin.table("doctor_notes").select("*").eq(
+    rows = (await admin.table("doctor_notes").select("*").eq(
         "patient_id", patient_id
-    ).eq("doctor_id", current_user["id"]).limit(1).execute().data
+    ).eq("doctor_id", current_user["id"]).limit(1).execute()).data
     return success_response(rows[0] if rows else None)
 
 
@@ -28,13 +28,12 @@ async def get_note(request: Request, patient_id: str, current_user: dict = Depen
 async def get_my_notes(request: Request, current_user: dict = Depends(require_patient)):
     admin = get_supabase_admin()
     rows = (
-        admin.table("doctor_notes")
+        await admin.table("doctor_notes")
         .select("*")
         .eq("patient_id", current_user["id"])
         .order("updated_at", desc=True)
         .execute()
-        .data
-    )
+    ).data
     return success_response(rows or [])
 
 
@@ -48,11 +47,11 @@ async def upsert_note(
 ):
     admin = get_supabase_admin()
 
-    patient = admin.table("patients").select("id").eq("id", patient_id).limit(1).execute().data
+    patient = (await admin.table("patients").select("id").eq("id", patient_id).limit(1).execute()).data
     if not patient:
         raise NotFoundError("Patient not found")
 
-    result = admin.table("doctor_notes").upsert(
+    result = await admin.table("doctor_notes").upsert(
         {
             "patient_id": patient_id,
             "doctor_id": current_user["id"],
