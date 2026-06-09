@@ -54,6 +54,7 @@ export default function Navbar() {
             <Link to="/doctor/appointments" style={styles.link}>Appointments</Link>
             <Link to="/doctor/schedule" style={styles.link}>My Schedule</Link>
             <Link to="/doctor/patients" style={styles.link}>Patients</Link>
+            <Link to="/profile/settings" style={styles.link}>Profile</Link>
           </>
         )}
         {role === 'patient' && (
@@ -62,6 +63,7 @@ export default function Navbar() {
             <Link to="/patient/appointments" style={styles.link}>Appointments</Link>
             <Link to="/patient/assessments" style={styles.link}>Assessments</Link>
             <Link to="/patient/scores" style={styles.link}>My Scores</Link>
+            <Link to="/profile/settings" style={styles.link}>Profile</Link>
           </>
         )}
         {role === 'receptionist' && (

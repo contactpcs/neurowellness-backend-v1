@@ -2964,6 +2964,18 @@ SELECT public.refresh_disease_question_map();
 NOTIFY pgrst, 'reload schema';
 
 
+-- ============================================================
+-- K. Profile self-edit — name split + government ID fields
+--    first_name / last_name stored separately; full_name kept
+--    in sync by the backend (first + " " + last).
+-- ============================================================
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS first_name      TEXT,
+  ADD COLUMN IF NOT EXISTS last_name       TEXT,
+  ADD COLUMN IF NOT EXISTS government_id   TEXT,
+  ADD COLUMN IF NOT EXISTS id_type         TEXT;
+
+
 COMMIT;
 
 

@@ -53,6 +53,9 @@ import AdminPatientList from './pages/admin/AdminPatientList'
 import AdminDoctorSchedules from './pages/admin/AdminDoctorSchedules'
 import AdminLayout from './components/layout/AdminLayout'
 
+// Shared pages
+import ProfileSettings from './pages/common/ProfileSettings'
+
 // Layouts
 import DoctorLayout from './components/layout/DoctorLayout'
 import StaffLayout from './components/layout/StaffLayout'
@@ -208,6 +211,11 @@ export default function App() {
           <ProtectedRoute requiredRole="clinical_assistant">
             <ScoreInstanceDetail Layout={StaffLayout} />
           </ProtectedRoute>
+        } />
+
+        {/* Profile settings — shared (doctor + patient) */}
+        <Route path="/profile/settings" element={
+          <ProtectedRoute><ProfileSettings /></ProtectedRoute>
         } />
 
         {/* Assessment — shared */}
