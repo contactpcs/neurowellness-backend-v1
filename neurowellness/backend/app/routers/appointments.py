@@ -36,7 +36,7 @@ async def list_appointments(
     limit: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
 ):
-    rows = appointment_service.list_appointments(
+    rows = await appointment_service.list_appointments(
         current_user=current_user, date_from=date_from, date_to=date_to,
         status=status, doctor_id=doctor_id, patient_id=patient_id, skip=skip, limit=limit,
     )
@@ -47,7 +47,7 @@ async def list_appointments(
 @limiter.limit("120/minute")
 async def upcoming(request: Request, current_user: dict = Depends(get_current_user)):
     today = date.today()
-    rows = appointment_service.list_appointments(
+    rows = await appointment_service.list_appointments(
         current_user=current_user, date_from=today, date_to=today + timedelta(days=14),
         skip=0, limit=100,
     )
@@ -59,7 +59,7 @@ async def upcoming(request: Request, current_user: dict = Depends(get_current_us
 @limiter.limit("120/minute")
 async def today(request: Request, current_user: dict = Depends(require_staff)):
     d = date.today()
-    rows = appointment_service.list_appointments(
+    rows = await appointment_service.list_appointments(
         current_user=current_user, date_from=d, date_to=d, skip=0, limit=100,
     )
     return success_response(rows)
@@ -69,14 +69,14 @@ async def today(request: Request, current_user: dict = Depends(require_staff)):
 @limiter.limit("120/minute")
 async def get_appointment(request: Request, appointment_id: str,
                           current_user: dict = Depends(get_current_user)):
-    return success_response(appointment_service.get_appointment(appointment_id, current_user=current_user))
+    return success_response(await appointment_service.get_appointment(appointment_id, current_user=current_user))
 
 
 @router.get("/{appointment_id}/history")
 @limiter.limit("120/minute")
 async def get_history(request: Request, appointment_id: str,
                       current_user: dict = Depends(get_current_user)):
-    return success_response(appointment_service.get_history(appointment_id, current_user=current_user))
+    return success_response(await appointment_service.get_history(appointment_id, current_user=current_user))
 
 
 @router.patch("/{appointment_id}")
