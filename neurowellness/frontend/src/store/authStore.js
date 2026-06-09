@@ -111,6 +111,15 @@ export const useAuthStore = create((set) => ({
     return res.data.data
   },
 
+  updateProfile: async (payload) => {
+    await api.put('/users/me', payload)
+    // re-fetch profile so store reflects saved values (including full_name sync)
+    const res = await api.get('/users/me')
+    const updated = res.data.data
+    set({ profile: updated })
+    return updated
+  },
+
   logout: async () => {
     await supabase.auth.signOut()
     set({ user: null, profile: null, role: null, isAuthenticated: false })
