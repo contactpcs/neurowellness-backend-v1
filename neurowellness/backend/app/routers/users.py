@@ -41,13 +41,20 @@ async def _get_full_profile(admin, user_id: str):
 
 
 class UpdateProfileRequest(BaseModel):
-    phone: Optional[str] = None
+    # shared — all roles
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    date_of_birth: Optional[str] = None   # ISO date string: "YYYY-MM-DD"
+    gender: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
     address_line1: Optional[str] = None
     pincode: Optional[str] = None
     language_pref: Optional[str] = None
+    government_id: Optional[str] = None   # Aadhar / PAN / Passport number
+    id_type: Optional[str] = None         # "aadhar" | "pan" | "passport" | "voter_id" | "other"
+    # patient-only
     blood_group: Optional[str] = None
     allergies: Optional[str] = None
     emergency_contact: Optional[str] = None
@@ -55,6 +62,10 @@ class UpdateProfileRequest(BaseModel):
     marital_status: Optional[str] = None
     insurance_provider: Optional[str] = None
     insurance_policy: Optional[str] = None
+    # doctor-only
+    specialisation: Optional[str] = None
+    hospital: Optional[str] = None
+    years_of_experience: Optional[int] = None
 
 
 @router.put("/me")
@@ -64,22 +75,42 @@ async def update_my_profile(
     body: UpdateProfileRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Update the current user's own editable profile fields."""
+    """Update the current user's own editable profile fields. Email and phone are not editable."""
     admin = get_supabase_admin()
     user_id = current_user["id"]
     role = current_user["role"]
 
-    profile_fields = ["phone", "city", "state", "country", "address_line1", "pincode", "language_pref"]
+    profile_fields = [
+        "first_name", "last_name", "date_of_birth", "gender",
+        "city", "state", "country", "address_line1", "pincode",
+        "language_pref", "government_id", "id_type",
+    ]
     profile_updates = {f: getattr(body, f) for f in profile_fields if getattr(body, f) is not None}
+
+    # keep full_name in sync whenever either name part is provided
+    if body.first_name is not None or body.last_name is not None:
+        existing = await _row(admin, "profiles", "id", user_id) or {}
+        first = body.first_name or existing.get("first_name", "")
+        last = body.last_name or existing.get("last_name", "")
+        profile_updates["full_name"] = f"{first} {last}".strip()
+
     if profile_updates:
         await admin.table("profiles").update(profile_updates).eq("id", user_id).execute()
 
     if role == "patient":
-        patient_fields = ["blood_group", "allergies", "emergency_contact", "occupation",
-                          "marital_status", "insurance_provider", "insurance_policy"]
+        patient_fields = [
+            "blood_group", "allergies", "emergency_contact", "occupation",
+            "marital_status", "insurance_provider", "insurance_policy",
+        ]
         patient_updates = {f: getattr(body, f) for f in patient_fields if getattr(body, f) is not None}
         if patient_updates:
             await admin.table("patients").update(patient_updates).eq("id", user_id).execute()
+
+    if role == "doctor":
+        doctor_fields = ["specialisation", "hospital", "years_of_experience"]
+        doctor_updates = {f: getattr(body, f) for f in doctor_fields if getattr(body, f) is not None}
+        if doctor_updates:
+            await admin.table("doctors").update(doctor_updates).eq("id", user_id).execute()
 
     return success_response({"id": user_id}, "Profile updated successfully")
 
