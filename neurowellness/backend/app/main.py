@@ -11,9 +11,11 @@ from app.socket_io.server import mount_socketio
 from app.socket_io import events as _socket_events  # noqa: F401 — registers connect/disconnect handlers
 from app.scheduler.scheduler import start_scheduler, shutdown_scheduler
 from app.routers import auth, doctors, patients, notifications, staff, users, doctor_notes, admin, consent
-from app.routers import appointments, appointment_requests, doctor_schedule
+from app.routers import appointments, appointment_requests, doctor_schedule, eeg_reports
+from app.eeg_analysis import router as eeg_analysis_router
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
 from app.routers.anamnesis import assessment as anamnesis_assessment
+from app.database_tsdb import check_tsdb_health
 
 settings = get_settings()
 
@@ -71,11 +73,19 @@ app.include_router(consent.router,       prefix=f"{PREFIX}/consent",          ta
 app.include_router(appointments.router,         prefix=f"{PREFIX}/appointments",         tags=["appointments"])
 app.include_router(appointment_requests.router, prefix=f"{PREFIX}/appointment-requests", tags=["appointment-requests"])
 app.include_router(doctor_schedule.router,      prefix=f"{PREFIX}/schedule",             tags=["schedule"])
+app.include_router(eeg_reports.router,               prefix=f"{PREFIX}/eeg/reports",   tags=["eeg-reports"])
+app.include_router(eeg_analysis_router.router,       prefix=f"{PREFIX}/eeg/analysis",  tags=["eeg-analysis"])
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "1.0.0", "environment": settings.ENVIRONMENT}
+    tsdb_ok = await check_tsdb_health()
+    return {
+        "status": "ok",
+        "version": "1.0.0",
+        "environment": settings.ENVIRONMENT,
+        "services": {"timescaledb": "ok" if tsdb_ok else "degraded"},
+    }
 
 
 # Combined ASGI app: FastAPI (REST) + Socket.IO (realtime) at /socket.io.
