@@ -18,7 +18,7 @@ class WeeklyScheduleItem(BaseModel):
     day_of_week: int
     start_time: time
     end_time: time
-    slot_duration_minutes: int = 30
+    slot_duration_minutes: int = 60
     break_start: Optional[time] = None
     break_end: Optional[time] = None
     is_active: bool = True
