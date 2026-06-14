@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str            # from Supabase Settings → API → JWT Settings
 
     # TimescaleDB (EEG reports)
-    TSDB_DATABASE_URL: str = "postgres://tsdbadmin@gguyvxc03b.oiyo0zj1k9.tsdb.cloud.timescale.com:35472/tsdb?sslmode=require"
+    TSDB_DATABASE_URL: str = "postgres://tsdbadmin:k4220hmly8g8jsed@gguyvxc03b.oiyo0zj1k9.tsdb.cloud.timescale.com:35472/tsdb?sslmode=require"
 
     # S3 storage (EEG report PDFs)
     S3_BUCKET_NAME: str = "neurowellness-eeg-reports"
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
-    MAX_PAGE_SIZE: int = 100
+    MAX_PAGE_SIZE: int = 200
 
     # Appointments / scheduling
     APP_TIMEZONE: str = "Asia/Kolkata"

@@ -184,8 +184,17 @@ async def check_slot(
     return False, get_settings().APPOINTMENT_DEFAULT_SLOT_MINUTES
 
 
+ALLOWED_SLOT_DURATIONS = {60, 90, 120}
+
+
 async def upsert_weekly_schedule(doctor_id: str, clinic_id: str, items: list[dict]) -> list[dict]:
     """Replace a doctor's weekly schedule atomically (delete-then-insert)."""
+    from app.utils.exceptions import BadRequestError
+    for it in items:
+        dur = it.get("slot_duration_minutes", get_settings().APPOINTMENT_DEFAULT_SLOT_MINUTES)
+        if dur not in ALLOWED_SLOT_DURATIONS:
+            raise BadRequestError(f"slot_duration_minutes must be one of {sorted(ALLOWED_SLOT_DURATIONS)}, got {dur}")
+
     admin = get_supabase_admin()
     await admin.table("doctor_weekly_schedules").delete().eq("doctor_id", doctor_id).execute()
     rows = [{

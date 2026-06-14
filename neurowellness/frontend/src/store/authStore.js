@@ -36,7 +36,8 @@ export const useAuthStore = create((set) => ({
     if (session) {
       try {
         const res = await api.get('/auth/login')
-        const profile = res.data.data
+        const profile = res.data?.data
+        if (!profile) throw new Error('Profile missing')
         set({ user: session.user, profile, role: profile.role, isAuthenticated: true, isLoading: false })
       } catch {
         set({ isLoading: false })
@@ -67,7 +68,8 @@ export const useAuthStore = create((set) => ({
 
     try {
       const res = await api.get('/auth/login')
-      const profile = res.data.data
+      const profile = res.data?.data
+      if (!profile) throw Object.assign(new Error('Profile not found'), { response: { status: 404 } })
       set({ user: data.user, profile, role: profile.role, isAuthenticated: true })
       return profile
     } catch (err) {

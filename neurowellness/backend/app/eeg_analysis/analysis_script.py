@@ -1901,16 +1901,6 @@ def make_doc(base_name, raw, image_folder_path, output_doc, icons_path):
     # run = p_right.add_run()
     # run.text = measurement_date.strftime("%d-%m-%Y")
     run = p_right.add_run()
-    add_floating_image(
-    p_center, 
-    rf"{icons_path}/Lines5.png", 
-    width=Cm(6.45), 
-    height=Cm(6.37),
-    h_pos=Cm(13.82),
-    h_rel = "column",
-    v_pos = Cm(-1.2),
-    v_rel = "paragraph"
-)   
     # Main header
     header = section.header
     header.is_linked_to_previous = False
@@ -1970,18 +1960,6 @@ def make_doc(base_name, raw, image_folder_path, output_doc, icons_path):
     p_left = left_cell.paragraphs[0]
     p_left.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
-    run = p_left.add_run()
-    add_floating_image(
-    p_left,
-    rf"{icons_path}/Graphics 1.png",
-    width=Cm(7.93), 
-    height=Cm(3.31),
-    h_pos=Cm(-2.14),
-    h_rel = "page",
-    v_pos = Cm(-1.52),
-    v_rel = "paragraph",
-
-    )
     # --- YOUR CENTERED TEXT SECTION ---
     p_center = center_cell.paragraphs[0]
     p_center.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -2050,18 +2028,6 @@ def make_doc(base_name, raw, image_folder_path, output_doc, icons_path):
     p_left = left_cell.paragraphs[0]
     p_left.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
-    run = p_left.add_run()
-    add_floating_image(
-    p_left,
-    rf"{icons_path}/Graphics 1.png",
-    width=Cm(7.93), 
-    height=Cm(3.31),
-    h_pos=Cm(-2.14),
-    h_rel = "page",
-    v_pos = Cm(-1.52),
-    v_rel = "paragraph",
-
-    )
     # --- YOUR CENTERED TEXT SECTION ---
     p_center = center_cell.paragraphs[0]
     p_center.alignment = WD_ALIGN_PARAGRAPH.CENTER

@@ -30,20 +30,20 @@ async def list_requests(
     limit: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
 ):
-    rows = request_service.list_requests(current_user=current_user, status=status, skip=skip, limit=limit)
+    rows = await request_service.list_requests(current_user=current_user, status=status, skip=skip, limit=limit)
     return paginated_response(rows, len(rows), skip, limit)
 
 
 @router.get("/{request_id}")
 @limiter.limit("120/minute")
 async def get_request(request: Request, request_id: str, current_user: dict = Depends(get_current_user)):
-    return success_response(request_service.get_request(request_id, current_user=current_user))
+    return success_response(await request_service.get_request(request_id, current_user=current_user))
 
 
 @router.get("/{request_id}/history")
 @limiter.limit("120/minute")
 async def get_history(request: Request, request_id: str, current_user: dict = Depends(get_current_user)):
-    return success_response(request_service.get_history(request_id, current_user=current_user))
+    return success_response(await request_service.get_history(request_id, current_user=current_user))
 
 
 @router.post("/{request_id}/cancel")
