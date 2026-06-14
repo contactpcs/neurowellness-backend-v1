@@ -66,7 +66,7 @@ async def list_patients(
     request: Request,
     search: Optional[str] = None,
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=200),
     current_user: dict = Depends(require_doctor),
 ):
     admin = get_supabase_admin()

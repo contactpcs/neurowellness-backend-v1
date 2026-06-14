@@ -33,7 +33,7 @@ async def list_appointments(
     doctor_id: Optional[str] = None,
     patient_id: Optional[str] = None,
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=200),
     current_user: dict = Depends(get_current_user),
 ):
     rows = await appointment_service.list_appointments(

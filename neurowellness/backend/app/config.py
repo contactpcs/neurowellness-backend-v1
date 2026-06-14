@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
-    MAX_PAGE_SIZE: int = 100
+    MAX_PAGE_SIZE: int = 200
 
     # Appointments / scheduling
     APP_TIMEZONE: str = "Asia/Kolkata"
