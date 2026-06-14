@@ -3,7 +3,6 @@ from typing import Optional
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
-from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database_tsdb import get_tsdb_session
@@ -64,9 +63,9 @@ async def download_report(
     current_user: dict = Depends(get_current_user),
     svc: EEGReportService = Depends(_svc),
 ):
-    """Redirect to a 15-minute pre-signed S3 URL for the PDF."""
+    """Return a 15-minute pre-signed S3 URL for the PDF."""
     url = await svc.get_report_download_url(report_id)
-    return RedirectResponse(url=url, status_code=302)
+    return {"url": url}
 
 
 # ── GET /patients/{patient_id}/reports ───────────────────────────────────────
