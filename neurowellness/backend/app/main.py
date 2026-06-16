@@ -12,7 +12,6 @@ from app.socket_io import events as _socket_events  # noqa: F401 — registers c
 from app.scheduler.scheduler import start_scheduler, shutdown_scheduler
 from app.routers import auth, doctors, patients, notifications, staff, users, doctor_notes, admin, consent
 from app.routers import appointments, appointment_requests, doctor_schedule, eeg_reports
-from app.eeg_analysis import router as eeg_analysis_router
 from app.routers.prs import scales, conditions, permissions, assessment, scores, questions
 from app.routers.anamnesis import assessment as anamnesis_assessment
 from app.database_tsdb import check_tsdb_health
@@ -74,7 +73,6 @@ app.include_router(appointments.router,         prefix=f"{PREFIX}/appointments",
 app.include_router(appointment_requests.router, prefix=f"{PREFIX}/appointment-requests", tags=["appointment-requests"])
 app.include_router(doctor_schedule.router,      prefix=f"{PREFIX}/schedule",             tags=["schedule"])
 app.include_router(eeg_reports.router,               prefix=f"{PREFIX}/eeg/reports",   tags=["eeg-reports"])
-app.include_router(eeg_analysis_router.router,       prefix=f"{PREFIX}/eeg/analysis",  tags=["eeg-analysis"])
 
 
 @app.get("/health")

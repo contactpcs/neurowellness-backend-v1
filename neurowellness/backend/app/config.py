@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # Admin bootstrap
     BOOTSTRAP_SECRET_KEY: str = ""
 
+    # Service-to-service auth (brain_mapping → /eeg/reports/register)
+    SERVICE_API_KEY: str = ""
+
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 200

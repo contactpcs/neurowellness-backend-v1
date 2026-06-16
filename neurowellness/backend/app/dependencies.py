@@ -2,7 +2,7 @@ import jwt
 import httpx
 import threading
 from cachetools import TTLCache
-from fastapi import Depends, HTTPException
+from fastapi import Depends, Header, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import get_supabase_admin
 from app.config import get_settings
@@ -171,3 +171,9 @@ require_receptionist = require_role(["receptionist", "admin"])
 require_staff = require_role(["doctor", "clinical_assistant", "receptionist", "admin"])
 # Schedule/slot endpoints: every role except patient. Patient never sees the doctor schedule.
 require_staff_or_doctor = require_role(["doctor", "clinical_assistant", "receptionist", "admin"])
+
+
+def require_service_key(x_service_key: str = Header(..., alias="X-Service-Key")) -> None:
+    settings = get_settings()
+    if not settings.SERVICE_API_KEY or x_service_key != settings.SERVICE_API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid service key")

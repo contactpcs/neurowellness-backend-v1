@@ -235,6 +235,56 @@ class EEGReportService:
             logger.error("eeg_db_insert_error", error=str(exc))
             return None
 
+    async def register_report(
+        self,
+        patient_id: str,
+        session_id: Optional[str],
+        report_name: str,
+        report_type: str,
+        s3_key: str,
+        file_size_bytes: int,
+        sha256_checksum: str,
+    ) -> EEGReportOut:
+        existing = await self._repo.get_by_checksum(sha256_checksum, patient_id)
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "message": "Duplicate report: identical file already uploaded.",
+                    "existing_report_id": str(existing.id),
+                },
+            )
+
+        version = (await self._repo.get_latest_version(patient_id, report_name)) + 1
+        report_uuid = str(uuid.uuid4())
+
+        try:
+            report = await self._repo.create(
+                {
+                    "id": uuid.UUID(report_uuid),
+                    "patient_id": patient_id,
+                    "session_id": session_id,
+                    "report_name": report_name,
+                    "file_path": s3_key,
+                    "file_size_bytes": file_size_bytes,
+                    "report_type": report_type,
+                    "sha256_checksum": sha256_checksum,
+                    "version": version,
+                    "status": ReportStatus.COMPLETED,
+                }
+            )
+        except Exception as exc:
+            logger.error("eeg_db_insert_error", error=str(exc))
+            raise HTTPException(status_code=500, detail="Failed to persist report metadata.")
+
+        logger.info(
+            "eeg_report_registered",
+            report_id=str(report.id),
+            patient_id=patient_id,
+            s3_key=s3_key,
+        )
+        return EEGReportOut.model_validate(report)
+
     async def delete_report(self, report_id: uuid.UUID) -> None:
         report = await self._repo.get_by_id(report_id)
         if not report:
